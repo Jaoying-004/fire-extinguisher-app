@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "gen-lang-client-0000457993",
+  "private_key_id": "fd4ec2f338e7e66beb5768bd9c8bfa7e9e399663",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCvEnlQve0HrX+x\nH6uBieXwz9rRiRSEs1uLCyqvNifuuK8nwyTrdP0jhGTg/dYkGOofFr/Cy+v7DiiU\nD/uxrC9sUxcQNrLmO1lBTc3/abVjTizaclOtRMOHDzMTvW3wVw9t6iuL7WfZXUxi\noC3XBWVo4THoMXRmwhq5BH5AzowuzedBZevdkdb4wgXgLer0vCgqvSVw2KigvM5y\n9WWBCEr1LMjwldlKw3SrFC5941E5RADq4AdLESJgmJ7cU8sIhZimpwWRyVRgrAdk\ntiebPrl/C4ac0HmKgh4D17qS/E02iOIL/puTflN9iQzUp42a0wI2o1Nk/1PcpTmR\nCiHUfnlbAgMBAAECggEAEge/icK9rhw+ueGump02mrn1ab4J6G7GX0gLodbcfvfz\nRg+RdlRqm6VPdGKAEuCkAAaqQigZShZXtIP+4nn+ulPGXMudWhvDofee3w6meS88\nbFT47C/YSUkV9BL+xxFYS/Qhfvw4xUiYDNI9Vlc+bfI/Xw/00n5sHSDq1cbP5iPv\n5CBd7PPSmQTFqjhJb5EpyIJdo+KvDiGo8DxAH06rQTnrz3q4M128NtJLgjdZaRQm\n9Uhraq7RS3uIxxcT/UHCzRgV8cgd/q3t7JoUkrQCS/teOtwiYPB9BR5+0brBffal\nvYcqAmavPeLenf2QChOt37wAJEVpdtK3anEemwwcIQKBgQDeS2oIuM7uLTXWOQG2\nfxZgu9NBQ+5vumyxKVFQafUdwxvo8c+iXqq2D4hPSCgbgCdam27c+KXZ3udppoT1\nf8SwsDzu+8m25V2g309nhRMVjUo1syiE2NhaXr94I9oMtaYoyccU7YLJ1nhf+xWJ\nP3I0VIRGOyEJUBiKbsQJp61OuwKBgQDJnhMFlvluFSwWNAD/iRnsKSNZAWEhj8Bc\nofNqbXcsXXf7nHFhTerUKv4U734e7j9o8a/VwYW9Rx4l9UcVi5HacktALgiTJ19y\nDN0Zrrd70OvrxGCVeJq6Hub+Dx1GX8TAkn8nKQm3tuCP/c3xe2ttF6mXQHPuG5dG\nsOwlBs3l4QKBgGOXwg/aTMuk8cPikoPi+HGqdQF+n+rqyRuueUHf1vPYoD6DaBVE\n+JLM7rMmjuGTTw5nKQpTVGsCVQeelV8wOT04GHSx1jPdG0+h/P9SPbSgMqlQdUzf\noj8KyBnZZi3fjGwlys3zg29OaWwHICT3igEsBH86qphzjCspaScyOpFVAoGAZGK/\nh933DZefHuL/yDwEWzDUd8GXEjXYCodcgpZEayOS1QW88jzwenl5jwT73/yyN9d2\nvFCh/W9GlJG+tfyLP5/+1dLV1Ccbf9bl057Jnu2UOgzKJkIpkBhI3SC7a8nNVjDa\n/K2TOBTnVOqDOwQ/pc7NUxD1aA320WzP91Oe+yECgYAw05DKPn5f5irD43j28hiK\nRZGaFjX3RU9EINIM+7bOJENu7iHMlYklXMbzCGDJIYx7ZRrxFFv0rGbQ81j6vVYH\nf3zGeGxTt4lhNd+jUVR3LYNGYkmUHMi1CgWTCdSSju5MCTMcq8IIMP9LirR1GAZS\nybNWWXmuOnAoTWHvOo+n7g==\n-----END PRIVATE KEY-----\n",
+  "client_email": "fire-extinguisher@gen-lang-client-0000457993.iam.gserviceaccount.com",
+  "client_id": "107920376078285282933",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/fire-extinguisher%40gen-lang-client-0000457993.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
