@@ -6,18 +6,19 @@ import pandas as pd
 # เช็คว่าไฟล์กุญแจอยู่ในโฟลเดอร์ credentials และชื่อ key.json หรือยัง
 import json
 
-# --- 1. การดึงความลับ (Secrets) ---
-    try:
-    # ดึงค่า String จาก Secrets
-        secret_raw = st.secrets["gcp_service_account"]
-    # แปลง String (JSON) เป็น Dictionary
-        key_data = json.loads(secret_raw)
+# บรรทัดที่ 10 ต้องชิดซ้ายสุด
+try:
+    # ตั้งแต่บรรทัดที่ 11 เป็นต้นไป ต้องย่อหน้าเข้าไปเท่ากัน
+    secret_raw = st.secrets["gcp_service_account"]
+    key_data = json.loads(secret_raw)
 
-        scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-        creds = ServiceAccountCredentials.from_json_keyfile_dict(key_data, scope)
-        client = gspread.authorize(creds)
-    except Exception as e:
-        st.error(f"เกิดข้อผิดพลาดในการเชื่อมต่อกุญแจ: {e}")
+    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(key_data, scope)
+    client = gspread.authorize(creds)
+# บรรทัดที่ 19 ต้องกลับมาชิดซ้ายสุดให้ตรงกับ try
+except Exception as e:
+    # บรรทัดนี้ย่อหน้าเข้าไปภายใต้ except
+    st.error(f"เกิดข้อผิดพลาดในการเชื่อมต่อกุญแจ: {e}")
 
 
 # --- 2. ดึงข้อมูลจาก Google Sheets ---
