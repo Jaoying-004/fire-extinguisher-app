@@ -7,12 +7,9 @@ import pandas as pd
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 # เช็คว่าไฟล์กุญแจอยู่ในโฟลเดอร์ credentials และชื่อ key.json หรือยัง
 import json
+key_data = dict(st.secrets["gcp_service_account"])
 
-# อ่านไฟล์กุญแจด้วย encoding='utf-8' เพื่อแก้ปัญหาภาษาไทย
-# แก้ชื่อไฟล์ให้ตรงกับที่วางไว้ใน GitHub
-with open("key.json", "r", encoding="utf-8") as f:
-    key_data = json.load(f)
-
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 creds = ServiceAccountCredentials.from_json_keyfile_dict(key_data, scope)
 client = gspread.authorize(creds)
 
