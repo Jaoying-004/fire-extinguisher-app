@@ -9,7 +9,8 @@ scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/au
 import json
 
 # อ่านไฟล์กุญแจด้วย encoding='utf-8' เพื่อแก้ปัญหาภาษาไทย
-with open("credentials/key.json", "r", encoding="utf-8") as f:
+# แก้ชื่อไฟล์ให้ตรงกับที่วางไว้ใน GitHub
+with open("service_account.json", "r", encoding="utf-8") as f:
     key_data = json.load(f)
 
 creds = ServiceAccountCredentials.from_json_keyfile_dict(key_data, scope)
