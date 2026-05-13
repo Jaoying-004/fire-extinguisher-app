@@ -5,18 +5,25 @@ import pandas as pd
 
 # --- 1. ตั้งค่าการเชื่อมต่อ (ใช้วิธีเดิมที่เราจัดระเบียบไว้) ---
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+
 # เช็คว่าไฟล์กุญแจอยู่ในโฟลเดอร์ credentials และชื่อ key.json หรือยัง
 import json
+import streamlit as st
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 
-# --- 1. ตั้งค่าการเชื่อมต่อผ่าน Streamlit Secrets ---
-# ดึงข้อมูลจากช่อง Secrets ที่เราใส่ ''' { ... } ''' คร่อมไว้
-key_dict_json = st.secrets["gcp_service_account"]
-key_data = json.loads(key_dict_json)
+# --- 1. การดึงความลับ (Secrets) ---
+try:
+    # ดึงค่า String จาก Secrets
+    secret_raw = st.secrets["gcp_service_account"]
+    # แปลง String (JSON) เป็น Dictionary
+    key_data = json.loads(secret_raw)
 
-# ใช้สิทธิ์การเข้าถึง (Scope) เดิมที่เราตั้งไว้
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_dict(key_data, scope)
-client = gspread.authorize(creds)
+    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(key_data, scope)
+    client = gspread.authorize(creds)
+except Exception as e:
+    st.error(f"เกิดข้อผิดพลาดในการเชื่อมต่อกุญแจ: {e}")
 
 
 # --- 2. ดึงข้อมูลจาก Google Sheets ---
