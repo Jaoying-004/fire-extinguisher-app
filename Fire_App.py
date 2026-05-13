@@ -7,18 +7,17 @@ import pandas as pd
 import json
 
 # บรรทัดที่ 10 ต้องชิดซ้ายสุด
+# --- 1. การดึงความลับ (Secrets) ---
 try:
-    # ตั้งแต่บรรทัดที่ 11 เป็นต้นไป ต้องย่อหน้าเข้าไปเท่ากัน
-    secret_raw = st.secrets["gcp_service_account"]
-    key_data = json.loads(secret_raw)
+    # ดึงค่าจาก Secrets ออกมาเป็น Dictionary ได้เลย (ไม่ต้องใช้ json.loads)
+    key_data = st.secrets["gcp_service_account"]
 
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     creds = ServiceAccountCredentials.from_json_keyfile_dict(key_data, scope)
     client = gspread.authorize(creds)
-# บรรทัดที่ 19 ต้องกลับมาชิดซ้ายสุดให้ตรงกับ try
 except Exception as e:
-    # บรรทัดนี้ย่อหน้าเข้าไปภายใต้ except
     st.error(f"เกิดข้อผิดพลาดในการเชื่อมต่อกุญแจ: {e}")
+    st.stop()  # ใส่คำสั่งนี้เพื่อให้แอปหยุดทำงานตรงนี้ถ้าต่อกุญแจไม่ติด จะได้ไม่ไป Error บรรทัดล่างต่อครับ
 
 
 # --- 2. ดึงข้อมูลจาก Google Sheets ---
