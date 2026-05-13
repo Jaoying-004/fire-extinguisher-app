@@ -4,12 +4,14 @@ from oauth2client.service_account import ServiceAccountCredentials
 import pandas as pd
 
 # เช็คว่าไฟล์กุญแจอยู่ในโฟลเดอร์ credentials และชื่อ key.json หรือยัง
+import streamlit as st
 import json
-
+# --- วางตรงนี้เพื่อเช็คหัวข้อที่มีใน Secrets ---
+st.write("ตรวจสอบหัวข้อใน Secrets:", list(st.secrets.keys()))
 # บรรทัดที่ 10 ต้องชิดซ้ายสุด
 # --- 1. การดึงความลับ (Secrets) ---
 try:
-    # ดึงค่าจาก Secrets ออกมาเป็น Dictionary ได้เลย (ไม่ต้องใช้ json.loads)
+    # ดึงค่าจาก Secrets ออกมาใช้ตรงๆ
     key_data = st.secrets["gcp_service_account"]
 
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -17,7 +19,7 @@ try:
     client = gspread.authorize(creds)
 except Exception as e:
     st.error(f"เกิดข้อผิดพลาดในการเชื่อมต่อกุญแจ: {e}")
-    st.stop()  # ใส่คำสั่งนี้เพื่อให้แอปหยุดทำงานตรงนี้ถ้าต่อกุญแจไม่ติด จะได้ไม่ไป Error บรรทัดล่างต่อครับ
+    st.stop()
 
 
 # --- 2. ดึงข้อมูลจาก Google Sheets ---
@@ -111,3 +113,4 @@ with st.sidebar.form("check_form"):
         except Exception as e:
             st.sidebar.error(f"❌ เกิดข้อผิดพลาด: {e}")
 
+st.write("ตรวจสอบหัวข้อใน Secrets:", list(st.secrets.keys()))
