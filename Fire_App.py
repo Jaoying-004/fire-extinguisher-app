@@ -44,6 +44,32 @@ with tab1:
 
 with tab1:
     st.subheader("รายการที่ตรวจเช็คแล้ววันนี้")
+    from datetime import datetime
+        # 1. ดึงข้อมูลทั้งหมดจากแท็บ Inspection_Log
+        log_rows = log_sheet.get_all_values()
+
+        if len(log_rows) > 1:
+            # แยกหัวตารางและข้อมูลออกมา
+            header = log_rows[0]
+            data = log_rows[1:]
+
+            # 2. สร้างวันที่ของ "วันนี้" ในรูปแบบปี-เดือน-วัน (YYYY-MM-DD)
+            today_str = datetime.now().strftime("%Y-%m-%d")
+
+            # 3. กรองข้อมูลเฉพาะแถวที่คอลัมน์ Timestamp (แถวแรก index 0) ตรงกับวันนี้
+            # เราใช้ .startswith เพราะใน Sheets อาจมีเวลาต่อท้าย เช่น 2026-05-14 10:30:00
+            today_data = [row for row in data if row[0].startswith(today_str)]
+
+            if today_data:
+                # 4. แปลงเป็น DataFrame และแสดงผล
+                df_log = pd.DataFrame(today_data, columns=header)
+                st.dataframe(df_log, use_container_width=True)
+            else:
+                # กรณีวันนี้ยังไม่มีใครบันทึกข้อมูลเลย
+                st.info(f"📌 ยังไม่มีข้อมูลการตรวจบันทึกในวันที่ {today_str}")
+        else:
+            st.info("ยังไม่มีข้อมูลการตรวจบันทึกในแท็บ Log")
+
     # ดึงข้อมูลจากแท็บ Inspection_Log
     log_rows = log_sheet.get_all_values()
     if len(log_rows) > 1:
@@ -67,33 +93,6 @@ with tab2:
 if st.button("🔄 อัปเดตข้อมูลล่าสุด"):
     st.rerun()
 
-from datetime import datetime
-
-# 1. ดึงข้อมูลทั้งหมดมาก่อน (ใส่ try-except เพื่อป้องกัน API Error)
-try:
-    all_logs = log_sheet.get_all_values()
-    header = all_logs[0]  # เก็บหัวตารางไว้ (Timestamp, ID, Inspector, etc.)
-    data = all_logs[1:]  # เก็บข้อมูลแถวที่เหลือ
-
-    # 2. หาค่าวันที่ของ "วันนี้" ในรูปแบบที่ตรงกับใน Sheets (เช่น YYYY-MM-DD)
-    today_str = datetime.now().strftime("%Y-%m-%d")
-
-    # 3. กรองข้อมูล: เลือกมาเฉพาะแถวที่คอลัมน์ Timestamp (คอลัมน์แรก) ขึ้นต้นด้วยวันที่วันนี้
-    today_logs = [row for row in data if row[0].startswith(today_str)]
-
-    # 4. นำไปแสดงผลในตาราง
-    if today_logs:
-        import pandas as pd
-
-        df = pd.DataFrame(today_logs, columns=header)
-        st.table(df)  # หรือ st.dataframe(df)
-    else:
-        st.info("📌 ยังไม่มีการตรวจเช็คในวันนี้")
-
-except Exception as e:
-    st.error(f"ไม่สามารถดึงข้อมูลได้: {e}")
-
-
 # --- 4. ส่วนของแบบฟอร์มการตรวจเช็ค (เพิ่มต่อท้าย) ---
 st.sidebar.header("📝 แบบฟอร์มบันทึกการตรวจ")
 
@@ -115,6 +114,8 @@ options = get_tank_options()
 query_params = st.query_params
 default_index = 0
 target_tank = query_params.get("tank_id")
+is_locked = False  # ตั้งค่าเริ่มต้นไว้ก่อน (กันพัง)
+default_index = 0
 
 # 2. หาว่ารหัสถังที่ส่งมา อยู่ในลำดับที่เท่าไหร่ของรายการ
 if target_tank and target_tank in options:
