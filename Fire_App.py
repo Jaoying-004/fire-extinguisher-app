@@ -152,16 +152,21 @@ with st.sidebar.form("check_form"):
     inspector = st.text_input("ชื่อผู้ตรวจ")
     # --- ส่วนเช็คลิสต์ตามประเภท ---
     if tank_type == "ผงเคมีแห้ง":
+        st.info("รายการตรวจเช็ค: ผงเคมีแห้ง")
         q1 = st.radio("1. เกจวัดความดัน (ปกติ/ไม่ปกติ)", ["ปกติ", "ไม่ปกติ"])
         q2 = st.radio("2. สายฉีด (ปกติ/ไม่ปกติ)", ["ปกติ", "ไม่ปกติ"])
         q3 = st.radio("3. สภาพตัวถัง (ไม่บุบ/บุบพัง)", ["ปกติ", "ไม่ปกติ"])
         q4 = st.radio("4. ซีลและสลัก (ครบ/ไม่ครบ)", ["ปกติ", "ไม่ปกติ"])
 
     elif tank_type == "CO2":
+        st.info("รายการตรวจเช็ค: CO2")
         q1 = st.radio("1. น้ำหนักถัง (ได้มาตรฐานหรือไม่)", ["ปกติ", "ไม่ปกติ"])
         q2 = st.radio("2. คันบีบและสลัก", ["ปกติ", "ไม่ปกติ"])
         q3 = st.radio("3. หัวฉีด (ไม่มีน้ำแข็งเกาะ/ไม่อุดตัน)", ["ปกติ", "ไม่ปกติ"])
-
+        
+    else:
+        # กรณีทั่วไปถ้าหาประเภทไม่เจอ
+        status = st.radio("สถานะถังโดยรวม", ["ปกติ", "ไม่ปกติ"])
 
     # --- ส่วนแนบรูป (บังคับให้แนบเพื่อยืนยันว่าไปจริง) ---
     img_file = st.file_uploader("📸 แนบรูปถ่ายขณะตรวจเช็ค", type=['jpg', 'png', 'jpeg'])
@@ -172,7 +177,7 @@ with st.sidebar.form("check_form"):
     log_sheet = client.open(sheet_name).worksheet("Inspection_Log")
 
     if submit_button:
-        
+
         from datetime import datetime
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         # --- 1. จัดการรูปภาพก่อนบันทึกอย่างอื่น ---
