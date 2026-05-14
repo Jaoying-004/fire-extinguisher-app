@@ -66,13 +66,6 @@ with tab1:
     else:
         st.info("ยังไม่มีข้อมูลการตรวจบันทึกในแท็บ Log")
 
-    # ดึงข้อมูลจากแท็บ Inspection_Log
-    log_rows = log_sheet.get_all_values()
-    if len(log_rows) > 1:
-        df_log = pd.DataFrame(log_rows[1:], columns=log_rows[0])
-        st.dataframe(df_log, use_container_width=True)
-    else:
-        st.info("ยังไม่มีข้อมูลการตรวจบันทึกในแท็บ Log")
 
 with tab2:
     st.subheader("ฐานข้อมูลสถานะถังดับเพลิงล่าสุด")
@@ -91,13 +84,7 @@ if st.button("🔄 อัปเดตข้อมูลล่าสุด"):
 
 # --- 4. ส่วนของแบบฟอร์มการตรวจเช็ค (เพิ่มต่อท้าย) ---
 st.sidebar.header("📝 แบบฟอร์มบันทึกการตรวจ")
-
-# สร้างรายการ ID ถังดับเพลิงจากตารางเพื่อให้เลือกง่ายๆ
-target_id = st.sidebar.selectbox("เลือกชื่อถังที่ต้องการตรวจ", df_master['ID'].tolist())
-
 # ฟอร์มกรอกข้อมูล
-
-
 @st.cache_data(ttl=600)
 def get_tank_options():
     # ย้ายโค้ดดึงข้อมูลชื่อถังมาไว้ในนี้
