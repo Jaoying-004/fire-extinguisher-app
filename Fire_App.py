@@ -15,7 +15,12 @@ try:
     # ดึงค่าจาก Secrets ออกมาใช้ตรงๆ
     key_data = st.secrets["gcp_service_account"]
 
-    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    scope = [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive",
+        "https://www.googleapis.com/auth/drive.file"
+    ]
+
     creds = ServiceAccountCredentials.from_json_keyfile_dict(key_data, scope)
     client = gspread.authorize(creds)
 except Exception as e:
