@@ -46,29 +46,29 @@ with tab1:
     st.subheader("รายการที่ตรวจเช็คแล้ววันนี้")
     from datetime import datetime
         # 1. ดึงข้อมูลทั้งหมดจากแท็บ Inspection_Log
-        log_rows = log_sheet.get_all_values()
+    log_rows = log_sheet.get_all_values()
 
-        if len(log_rows) > 1:
+    if len(log_rows) > 1:
             # แยกหัวตารางและข้อมูลออกมา
-            header = log_rows[0]
-            data = log_rows[1:]
+        header = log_rows[0]
+        data = log_rows[1:]
 
             # 2. สร้างวันที่ของ "วันนี้" ในรูปแบบปี-เดือน-วัน (YYYY-MM-DD)
-            today_str = datetime.now().strftime("%Y-%m-%d")
+        today_str = datetime.now().strftime("%Y-%m-%d")
 
             # 3. กรองข้อมูลเฉพาะแถวที่คอลัมน์ Timestamp (แถวแรก index 0) ตรงกับวันนี้
             # เราใช้ .startswith เพราะใน Sheets อาจมีเวลาต่อท้าย เช่น 2026-05-14 10:30:00
-            today_data = [row for row in data if row[0].startswith(today_str)]
+        today_data = [row for row in data if row[0].startswith(today_str)]
 
-            if today_data:
+        if today_data:
                 # 4. แปลงเป็น DataFrame และแสดงผล
-                df_log = pd.DataFrame(today_data, columns=header)
-                st.dataframe(df_log, use_container_width=True)
-            else:
-                # กรณีวันนี้ยังไม่มีใครบันทึกข้อมูลเลย
-                st.info(f"📌 ยังไม่มีข้อมูลการตรวจบันทึกในวันที่ {today_str}")
+            df_log = pd.DataFrame(today_data, columns=header)
+            st.dataframe(df_log, use_container_width=True)
         else:
-            st.info("ยังไม่มีข้อมูลการตรวจบันทึกในแท็บ Log")
+                # กรณีวันนี้ยังไม่มีใครบันทึกข้อมูลเลย
+            st.info(f"📌 ยังไม่มีข้อมูลการตรวจบันทึกในวันที่ {today_str}")
+    else:
+        st.info("ยังไม่มีข้อมูลการตรวจบันทึกในแท็บ Log")
 
     # ดึงข้อมูลจากแท็บ Inspection_Log
     log_rows = log_sheet.get_all_values()
