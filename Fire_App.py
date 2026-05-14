@@ -35,10 +35,6 @@ log_sheet = client.open(sheet_name).worksheet("Inspection_Log")
 st.title("🔥 FireExtinguisher")
 
 tab1, tab2 = st.tabs(["📅 รายการตรวจวันนี้", "📋 ฐานข้อมูลถังทั้งหมด"])
-with tab1:
-    # คราวนี้บรรทัดนี้จะทำงานได้แล้ว เพราะเรารู้จัก log_sheet จากข้างบนแล้ว
-    log_rows = log_sheet.get_all_values()
-    # ... โค้ดส่วนที่เหลือ ...
 
 #ดึงข้อมูลจากชีตมาโชว์
 
@@ -123,6 +119,14 @@ if target_tank and target_tank in options:
     is_locked = True
 
 with st.sidebar.form("check_form"):
+    # ต้องมีคำว่า selected_tank มารับค่าตรงนี้ เพื่อเอาไปใช้บันทึกลง Sheets
+    selected_tank = st.selectbox(
+        "เลือกชื่อถังที่ต้องการตรวจ",
+        options,
+        index=default_index,
+        disabled=is_locked  # ย้ายคำสั่งล็อกมาไว้ที่ตัวนี้แทน!
+    )
+
     inspector = st.text_input("ชื่อผู้ตรวจ")
     status = st.radio("สถานะถัง", ["ปกติ", "ไม่ปกติ (ต้องแก้ไข)"])
     remarks = st.text_area("หมายเหตุ (ถ้ามี)")
@@ -134,7 +138,6 @@ with st.sidebar.form("check_form"):
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         new_log_entry = [now, target_id, inspector, status, remarks]
         log_sheet.append_row(new_log_entry)
-
         st.sidebar.info("📌 บันทึกประวัติลง Log เรียบร้อย")
 
 # 3. อัปเดตข้อมูลในแผ่นงานหลัก (Master List)
