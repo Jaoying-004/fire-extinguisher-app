@@ -63,12 +63,36 @@ with tab2:
         st.dataframe(df_master, use_container_width=True)
     else:
         st.warning("⚠️ ไม่พบข้อมูลในแผ่นงานฐานข้อมูล")
-
-
-
 # เพิ่มปุ่มกด Refresh ข้อมูล
 if st.button("🔄 อัปเดตข้อมูลล่าสุด"):
     st.rerun()
+
+from datetime import datetime
+
+# 1. ดึงข้อมูลทั้งหมดมาก่อน (ใส่ try-except เพื่อป้องกัน API Error)
+try:
+    all_logs = log_sheet.get_all_values()
+    header = all_logs[0]  # เก็บหัวตารางไว้ (Timestamp, ID, Inspector, etc.)
+    data = all_logs[1:]  # เก็บข้อมูลแถวที่เหลือ
+
+    # 2. หาค่าวันที่ของ "วันนี้" ในรูปแบบที่ตรงกับใน Sheets (เช่น YYYY-MM-DD)
+    today_str = datetime.now().strftime("%Y-%m-%d")
+
+    # 3. กรองข้อมูล: เลือกมาเฉพาะแถวที่คอลัมน์ Timestamp (คอลัมน์แรก) ขึ้นต้นด้วยวันที่วันนี้
+    today_logs = [row for row in data if row[0].startswith(today_str)]
+
+    # 4. นำไปแสดงผลในตาราง
+    if today_logs:
+        import pandas as pd
+
+        df = pd.DataFrame(today_logs, columns=header)
+        st.table(df)  # หรือ st.dataframe(df)
+    else:
+        st.info("📌 ยังไม่มีการตรวจเช็คในวันนี้")
+
+except Exception as e:
+    st.error(f"ไม่สามารถดึงข้อมูลได้: {e}")
+
 
 # --- 4. ส่วนของแบบฟอร์มการตรวจเช็ค (เพิ่มต่อท้าย) ---
 st.sidebar.header("📝 แบบฟอร์มบันทึกการตรวจ")
@@ -77,14 +101,40 @@ st.sidebar.header("📝 แบบฟอร์มบันทึกการต�
 target_id = st.sidebar.selectbox("เลือกชื่อถังที่ต้องการตรวจ", df_master['ID'].tolist())
 
 # ฟอร์มกรอกข้อมูล
+
+
+@st.cache_data(ttl=600)
+def get_tank_options():
+    # ย้ายโค้ดดึงข้อมูลชื่อถังมาไว้ในนี้
+    rows = sheet.get_all_values()
+    return [row[0] for row in rows[1:]] # สมมติว่ารหัสถังอยู่คอลัมน์แรก
+
+options = get_tank_options()
+
+# 1. ดึงค่าจาก URL (ถ้ามี) เช่น ?tank_id=OF01
+query_params = st.query_params
+default_index = 0
+target_tank = query_params.get("tank_id")
+
+# 2. หาว่ารหัสถังที่ส่งมา อยู่ในลำดับที่เท่าไหร่ของรายการ
+if target_tank and target_tank in options:
+    default_index = options.index(target_tank)
+    is_locked = True
+
+selected_tank = st.selectbox(
+        "เลือกชื่อถังที่ต้องการตรวจ",
+        options,
+        index=default_index,
+        disabled=is_locked  # ล็อกตรงนี้! (ค่า is_locked ถูกตั้งไว้ที่บรรทัด 98 แล้ว)
+    )
+
 with st.sidebar.form("check_form"):
     inspector = st.text_input("ชื่อผู้ตรวจ")
     status = st.radio("สถานะถัง", ["ปกติ", "ไม่ปกติ (ต้องแก้ไข)"])
     remarks = st.text_area("หมายเหตุ (ถ้ามี)")
-
     submit_button = st.form_submit_button("บันทึกข้อมูล")
-
     log_sheet = client.open(sheet_name).worksheet("Inspection_Log")
+
     if submit_button:
         from datetime import datetime
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -113,28 +163,6 @@ with st.sidebar.form("check_form"):
         except Exception as e:
             st.sidebar.error(f"❌ เกิดข้อผิดพลาด: {e}")
 
-@st.cache_data(ttl=600)
-def get_tank_options():
-    # ย้ายโค้ดดึงข้อมูลชื่อถังมาไว้ในนี้
-    rows = sheet.get_all_values()
-    return [row[0] for row in rows[1:]] # สมมติว่ารหัสถังอยู่คอลัมน์แรก
 
-options = get_tank_options()
-
-# 1. ดึงค่าจาก URL (ถ้ามี) เช่น ?tank_id=OF01
-query_params = st.query_params
-default_index = 0
-target_tank = query_params.get("tank_id")
-
-# 2. หาว่ารหัสถังที่ส่งมา อยู่ในลำดับที่เท่าไหร่ของรายการ
-if target_tank and target_tank in options:
-    default_index = options.index(target_tank)
-
-# 3. ใส่ index ลงใน selectbox
-selected_tank = st.selectbox(
-    "เลือกชื่อถังที่ต้องการตรวจ",
-    options,
-    index=default_index
-)
 
 
