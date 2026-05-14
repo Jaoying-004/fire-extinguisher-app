@@ -92,7 +92,7 @@ with tab2:
 # เพิ่มปุ่มกด Refresh ข้อมูล
 if st.button("🔄 อัปเดตข้อมูลล่าสุด"):
     st.rerun()
-    
+
 # --- 4. ส่วนของแบบฟอร์มการตรวจเช็ค (เพิ่มต่อท้าย) ---
 st.sidebar.header("📝 แบบฟอร์มบันทึกการตรวจ")
 
@@ -121,13 +121,6 @@ default_index = 0
 if target_tank and target_tank in options:
     default_index = options.index(target_tank)
     is_locked = True
-
-selected_tank = st.selectbox(
-        "เลือกชื่อถังที่ต้องการตรวจ",
-        options,
-        index=default_index,
-        disabled=is_locked  # ล็อกตรงนี้! (ค่า is_locked ถูกตั้งไว้ที่บรรทัด 98 แล้ว)
-    )
 
 with st.sidebar.form("check_form"):
     inspector = st.text_input("ชื่อผู้ตรวจ")
