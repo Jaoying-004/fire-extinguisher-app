@@ -82,6 +82,7 @@ with tab2:
 if st.button("🔄 อัปเดตข้อมูลล่าสุด"):
     st.rerun()
 
+
 # --- 4. ส่วนของแบบฟอร์มการตรวจเช็ค (เพิ่มต่อท้าย) ---
 st.sidebar.header("📝 แบบฟอร์มบันทึกการตรวจ")
 # ฟอร์มกรอกข้อมูล
@@ -123,15 +124,15 @@ with st.sidebar.form("check_form"):
     if submit_button:
         from datetime import datetime
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        new_log_entry = [now, target_id, inspector, status, remarks]
+        new_log_entry = [now, selected_tank, inspector, status, remarks]
         log_sheet.append_row(new_log_entry)
         st.sidebar.info("📌 บันทึกประวัติลง Log เรียบร้อย")
 
 # 3. อัปเดตข้อมูลในแผ่นงานหลัก (Master List)
         try:
     # ค้นหาว่า ID ที่เราเลือก อยู่ในแถว (Row) ไหนของแผ่นงานหลัก
-            cell = sheet.find(target_id)
-
+            cell = sheet.find(selected_tank)
+    new_log_entry = [now, selected_tank, inspector, status, remarks]
     # สมมติว่า:
     # คอลัมน์ที่ 6 คือ Last Inspected (วันที่ตรวจ)
     # คอลัมน์ที่ 7 คือ Status (สถานะ)
@@ -139,7 +140,7 @@ with st.sidebar.form("check_form"):
             sheet.update_cell(cell.row, 7, now)
             sheet.update_cell(cell.row, 6, status)
 
-            st.sidebar.success(f"✅ อัปเดตสถานะถัง {target_id} ในตารางหลักแล้ว!")
+            st.sidebar.success(f"✅ อัปเดตสถานะถัง {selected_tank} ในตารางหลักแล้ว!")
 
     # สั่งให้แอปรีเฟรชเพื่อดึงข้อมูลใหม่มาโชว์ในตารางบนหน้าจอ
             st.rerun()
