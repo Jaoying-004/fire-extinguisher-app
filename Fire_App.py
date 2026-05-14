@@ -163,7 +163,7 @@ with st.sidebar.form("check_form"):
         q1 = st.radio("1. น้ำหนักถัง (ได้มาตรฐานหรือไม่)", ["ปกติ", "ไม่ปกติ"])
         q2 = st.radio("2. คันบีบและสลัก", ["ปกติ", "ไม่ปกติ"])
         q3 = st.radio("3. หัวฉีด (ไม่มีน้ำแข็งเกาะ/ไม่อุดตัน)", ["ปกติ", "ไม่ปกติ"])
-        
+
     else:
         # กรณีทั่วไปถ้าหาประเภทไม่เจอ
         status = st.radio("สถานะถังโดยรวม", ["ปกติ", "ไม่ปกติ"])
@@ -177,29 +177,27 @@ with st.sidebar.form("check_form"):
     log_sheet = client.open(sheet_name).worksheet("Inspection_Log")
 
     if submit_button:
-
         from datetime import datetime
-        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        # --- 1. จัดการรูปภาพก่อนบันทึกอย่างอื่น ---
-        image_link = "ไม่มีรูปแนบ"  # ค่าเริ่มต้นถ้าไม่ได้เลือกรูป
-        if img_file is not None:
-            # ใส่ ID โฟลเดอร์จริงๆ ของคุณที่นี่
-            FOLDER_ID = "1abc...xyz"
-            # เรียกใช้ฟังก์ชันอัปโหลด (ต้องแน่ใจว่าวางฟังก์ชันนี้ไว้ด้านบนแล้ว)
-            image_link = upload_to_drive(img_file, FOLDER_ID)
-
-        # --- 2. เตรียมข้อมูล (ตรวจสอบให้แน่ใจว่าใส่ image_link ลงไปในลิสต์ด้วย) ---
-        # ลำดับต้องตรงกับหัวตารางใน Google Sheets นะครับ
-        new_log_entry = [now, selected_tank, inspector, status, remarks, image_link]
-
-        # --- 3. บันทึกลง Sheets ---
-        log_sheet.append_row(new_log_entry)
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # สร้างตัวแปร now ไว้ที่นี่
+        image_link = "ไม่มีรูปแนบ"
         try:
+            # 1. อัปโหลดรูปภาพ (ถ้ามี)
+            if img_file is not None:
+                FOLDER_ID = "1abc...xyz"  # ใส่ ID จริงของคุณ
+                image_link = upload_to_drive(img_file, FOLDER_ID)
+
+            # 2. บันทึกลง Log Sheet (ใช้ now และ image_link ได้แล้ว)
+            new_log_entry = [now, selected_tank, inspector, status, remarks, image_link]
+            log_sheet.append_row(new_log_entry)
+
+            # 3. อัปเดตตารางหลัก (Master List)
             cell = sheet.find(selected_tank)
-            sheet.update_cell(cell.row, 7, now)
-            sheet.update_cell(cell.row, 6, status)
-            st.sidebar.success(f"✅ บันทึกข้อมูลและรูปภาพ ({selected_tank}) เรียบร้อย!")
+            sheet.update_cell(cell.row, 7, now)  # อัปเดตวันที่
+            sheet.update_cell(cell.row, 6, status)  # อัปเดตสถานะ
+
+            st.sidebar.success(f"✅ บันทึกข้อมูลถัง {selected_tank} เรียบร้อย!")
             st.rerun()
+
         except Exception as e:
             st.sidebar.error(f"❌ เกิดข้อผิดพลาด: {e}")
 
