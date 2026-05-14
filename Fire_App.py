@@ -113,6 +113,14 @@ with st.sidebar.form("check_form"):
         except Exception as e:
             st.sidebar.error(f"❌ เกิดข้อผิดพลาด: {e}")
 
+@st.cache_data(ttl=600)
+def get_tank_options():
+    # ย้ายโค้ดดึงข้อมูลชื่อถังมาไว้ในนี้
+    rows = sheet.get_all_values()
+    return [row[0] for row in rows[1:]] # สมมติว่ารหัสถังอยู่คอลัมน์แรก
+
+options = get_tank_options()
+
 # 1. ดึงค่าจาก URL (ถ้ามี) เช่น ?tank_id=OF01
 query_params = st.query_params
 default_index = 0
@@ -129,10 +137,4 @@ selected_tank = st.selectbox(
     index=default_index
 )
 
-@st.cache_data(ttl=600)
-def get_tank_options():
-    # ย้ายโค้ดดึงข้อมูลชื่อถังมาไว้ในนี้
-    rows = sheet.get_all_values()
-    return [row[0] for row in rows[1:]] # สมมติว่ารหัสถังอยู่คอลัมน์แรก
 
-options = get_tank_options()
