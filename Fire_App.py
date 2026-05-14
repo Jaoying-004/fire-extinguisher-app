@@ -113,4 +113,26 @@ with st.sidebar.form("check_form"):
         except Exception as e:
             st.sidebar.error(f"❌ เกิดข้อผิดพลาด: {e}")
 
+# 1. ดึงค่าจาก URL (ถ้ามี) เช่น ?tank_id=OF01
+query_params = st.query_params
+default_index = 0
+target_tank = query_params.get("tank_id")
 
+# 2. หาว่ารหัสถังที่ส่งมา อยู่ในลำดับที่เท่าไหร่ของรายการ
+if target_tank and target_tank in options:
+    default_index = options.index(target_tank)
+
+# 3. ใส่ index ลงใน selectbox
+selected_tank = st.selectbox(
+    "เลือกชื่อถังที่ต้องการตรวจ",
+    options,
+    index=default_index
+)
+
+@st.cache_data(ttl=600)
+def get_tank_options():
+    # ย้ายโค้ดดึงข้อมูลชื่อถังมาไว้ในนี้
+    rows = sheet.get_all_values()
+    return [row[0] for row in rows[1:]] # สมมติว่ารหัสถังอยู่คอลัมน์แรก
+
+options = get_tank_options()
