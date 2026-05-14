@@ -132,7 +132,7 @@ with st.sidebar.form("check_form"):
         try:
     # ค้นหาว่า ID ที่เราเลือก อยู่ในแถว (Row) ไหนของแผ่นงานหลัก
             cell = sheet.find(selected_tank)
-    new_log_entry = [now, selected_tank, inspector, status, remarks]
+            new_log_entry = [now, selected_tank, inspector, status, remarks]
     # สมมติว่า:
     # คอลัมน์ที่ 6 คือ Last Inspected (วันที่ตรวจ)
     # คอลัมน์ที่ 7 คือ Status (สถานะ)
