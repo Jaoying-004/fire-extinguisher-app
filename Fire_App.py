@@ -183,7 +183,7 @@ with st.sidebar.form("check_form"):
         try:
             # 1. อัปโหลดรูปภาพ (ถ้ามี)
             if img_file is not None:
-                FOLDER_ID = "1abc...xyz"  # ใส่ ID จริงของคุณ
+                FOLDER_ID = "1iRHhotsmY6k2mDWY8fasi0S8LVthSyTi"  # ใส่ ID จริงของคุณ
                 image_link = upload_to_drive(img_file, FOLDER_ID)
 
             # 2. บันทึกลง Log Sheet (ใช้ now และ image_link ได้แล้ว)
