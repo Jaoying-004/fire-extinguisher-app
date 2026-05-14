@@ -1,4 +1,3 @@
-import streamlit as st
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import pandas as pd
@@ -114,6 +113,12 @@ with st.sidebar.form("check_form"):
         index=default_index,
         disabled=is_locked  # ย้ายคำสั่งล็อกมาไว้ที่ตัวนี้แทน!
     )
+
+    # --- ดึงประเภทถังมาจาก Master List ---
+    # ประเภทถังอยู่ที่คอลัมน์ที่ 3 ใน Master List
+    tank_info = sheet.find(selected_tank)
+    tank_type = sheet.cell(tank_info.row, 3).value  # ดึงค่าประเภทถังออกมา
+    st.write(f"🔍 ประเภทถัง: **{tank_type}**")
 
     inspector = st.text_input("ชื่อผู้ตรวจ")
     status = st.radio("สถานะถัง", ["ปกติ", "ไม่ปกติ (ต้องแก้ไข)"])
