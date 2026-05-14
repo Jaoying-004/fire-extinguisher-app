@@ -6,9 +6,7 @@ import pandas as pd
 # เช็คว่าไฟล์กุญแจอยู่ในโฟลเดอร์ credentials และชื่อ key.json หรือยัง
 import streamlit as st
 import json
-# --- วางตรงนี้เพื่อเช็คหัวข้อที่มีใน Secrets ---
-st.write("ตรวจสอบหัวข้อใน Secrets:", list(st.secrets.keys()))
-# บรรทัดที่ 10 ต้องชิดซ้ายสุด
+
 # --- 1. การดึงความลับ (Secrets) ---
 try:
     # ดึงค่าจาก Secrets ออกมาใช้ตรงๆ
@@ -22,7 +20,7 @@ except Exception as e:
     st.stop()
 
 files = [s.title for s in client.openall()]
-st.write("ไฟล์ที่กุญแจนี้มองเห็น:", files)
+
 
 # --- 2. ดึงข้อมูลจาก Google Sheets ---
 sheet_name = "FireExtinguisher_MasterList_2026"
@@ -115,4 +113,4 @@ with st.sidebar.form("check_form"):
         except Exception as e:
             st.sidebar.error(f"❌ เกิดข้อผิดพลาด: {e}")
 
-st.write("ตรวจสอบหัวข้อใน Secrets:", list(st.secrets.keys()))
+
