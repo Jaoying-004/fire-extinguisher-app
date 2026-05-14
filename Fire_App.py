@@ -2,9 +2,13 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import pandas as pd
 
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseUpload
+import io
+
 # เช็คว่าไฟล์กุญแจอยู่ในโฟลเดอร์ credentials และชื่อ key.json หรือยัง
 import streamlit as st
-import json
+
 
 # --- 1. การดึงความลับ (Secrets) ---
 try:
@@ -105,6 +109,32 @@ if target_tank and target_tank in options:
     default_index = options.index(target_tank)
     is_locked = True
 
+
+def upload_to_drive(file, folder_id):
+    try:
+        # สร้าง Service สำหรับ Drive API โดยใช้ credentials เดิมที่คุณมี
+        # (หมายเหตุ: ตัวแปร creds ต้องเป็นชื่อเดียวกับที่คุณใช้ต่อ Sheets นะครับ)
+        drive_service = build('drive', 'v3', credentials=creds)
+
+        file_metadata = {
+            'name': file.name,
+            'parents': [folder_id]
+        }
+
+        # เตรียมไฟล์เพื่อส่งขึ้น Drive
+        media = MediaIoBaseUpload(io.BytesIO(file.getvalue()),
+                                  mimetype=file.type,
+                                  resumable=True)
+
+        uploaded_file = drive_service.files().create(body=file_metadata,
+                                                     media_body=media,
+                                                     fields='id, webViewLink').execute()
+
+        return uploaded_file.get('webViewLink')  # คืนค่าเป็นลิงก์รูปภาพ
+    except Exception as e:
+        st.error(f"เกิดข้อผิดพลาดในการอัปโหลดรูป: {e}")
+        return None
+
 with st.sidebar.form("check_form"):
     # ต้องมีคำว่า selected_tank มารับค่าตรงนี้ เพื่อเอาไปใช้บันทึกลง Sheets
     selected_tank = st.selectbox(
@@ -119,10 +149,25 @@ with st.sidebar.form("check_form"):
     tank_info = sheet.find(selected_tank)
     tank_type = sheet.cell(tank_info.row, 3).value  # ดึงค่าประเภทถังออกมา
     st.write(f"🔍 ประเภทถัง: **{tank_type}**")
-
     inspector = st.text_input("ชื่อผู้ตรวจ")
+    # --- ส่วนเช็คลิสต์ตามประเภท ---
+    if tank_type == "ผงเคมีแห้ง":
+        q1 = st.radio("1. เกจวัดความดัน (ปกติ/ไม่ปกติ)", ["ปกติ", "ไม่ปกติ"])
+        q2 = st.radio("2. สายฉีด (ปกติ/ไม่ปกติ)", ["ปกติ", "ไม่ปกติ"])
+        q3 = st.radio("3. สภาพตัวถัง (ไม่บุบ/บุบพัง)", ["ปกติ", "ไม่ปกติ"])
+        q4 = st.radio("4. ซีลและสลัก (ครบ/ไม่ครบ)", ["ปกติ", "ไม่ปกติ"])
+
+    elif tank_type == "CO2":
+        q1 = st.radio("1. น้ำหนักถัง (ได้มาตรฐานหรือไม่)", ["ปกติ", "ไม่ปกติ"])
+        q2 = st.radio("2. คันบีบและสลัก", ["ปกติ", "ไม่ปกติ"])
+        q3 = st.radio("3. หัวฉีด (ไม่มีน้ำแข็งเกาะ/ไม่อุดตัน)", ["ปกติ", "ไม่ปกติ"])
+
+
+    # --- ส่วนแนบรูป (บังคับให้แนบเพื่อยืนยันว่าไปจริง) ---
+    img_file = st.file_uploader("📸 แนบรูปถ่ายขณะตรวจเช็ค", type=['jpg', 'png', 'jpeg'])
     status = st.radio("สถานะถัง", ["ปกติ", "ไม่ปกติ (ต้องแก้ไข)"])
-    remarks = st.text_area("หมายเหตุ (ถ้ามี)")
+    # หมายเหตุ (กรณีมีข้อที่ไม่ปกติ)
+    remarks = st.text_area("ระบุรายละเอียดเพิ่มเติม (ถ้าไม่ปกติ)")
     submit_button = st.form_submit_button("บันทึกข้อมูล")
     log_sheet = client.open(sheet_name).worksheet("Inspection_Log")
 
@@ -132,6 +177,19 @@ with st.sidebar.form("check_form"):
         new_log_entry = [now, selected_tank, inspector, status, remarks]
         log_sheet.append_row(new_log_entry)
         st.sidebar.info("📌 บันทึกประวัติลง Log เรียบร้อย")
+
+        image_link = ""
+        if img_file is not None:
+            # ใส่ Folder ID ของ Google Drive คุณ (ต้องเป็นโฟลเดอร์ที่แชร์ให้ Service Account แล้ว)
+            FOLDER_ID = "ใส่_ID_โฟลเดอร์_ของคุณที่นี่"
+            image_link = upload_to_drive(img_file, FOLDER_ID)
+
+        # 2. เตรียมข้อมูลลง Sheets (เพิ่ม image_link เข้าไปในแถวด้วย)
+        # สมมติว่าใน Sheets ของคุณมีคอลัมน์รองรับลำดับที่ 6 เป็นลิงก์รูป
+        new_log_entry = [now, selected_tank, inspector, status, remarks, image_link]
+
+        log_sheet.append_row(new_log_entry)
+        st.sidebar.success("✅ บันทึกข้อมูลและรูปภาพเรียบร้อย!")
 
 # 3. อัปเดตข้อมูลในแผ่นงานหลัก (Master List)
         try:
