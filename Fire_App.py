@@ -172,42 +172,29 @@ with st.sidebar.form("check_form"):
     log_sheet = client.open(sheet_name).worksheet("Inspection_Log")
 
     if submit_button:
+        
         from datetime import datetime
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        new_log_entry = [now, selected_tank, inspector, status, remarks]
-        log_sheet.append_row(new_log_entry)
-        st.sidebar.info("📌 บันทึกประวัติลง Log เรียบร้อย")
-
-        image_link = ""
+        # --- 1. จัดการรูปภาพก่อนบันทึกอย่างอื่น ---
+        image_link = "ไม่มีรูปแนบ"  # ค่าเริ่มต้นถ้าไม่ได้เลือกรูป
         if img_file is not None:
-            # ใส่ Folder ID ของ Google Drive คุณ (ต้องเป็นโฟลเดอร์ที่แชร์ให้ Service Account แล้ว)
-            FOLDER_ID = "ใส่_ID_โฟลเดอร์_ของคุณที่นี่"
+            # ใส่ ID โฟลเดอร์จริงๆ ของคุณที่นี่
+            FOLDER_ID = "1abc...xyz"
+            # เรียกใช้ฟังก์ชันอัปโหลด (ต้องแน่ใจว่าวางฟังก์ชันนี้ไว้ด้านบนแล้ว)
             image_link = upload_to_drive(img_file, FOLDER_ID)
 
-        # 2. เตรียมข้อมูลลง Sheets (เพิ่ม image_link เข้าไปในแถวด้วย)
-        # สมมติว่าใน Sheets ของคุณมีคอลัมน์รองรับลำดับที่ 6 เป็นลิงก์รูป
+        # --- 2. เตรียมข้อมูล (ตรวจสอบให้แน่ใจว่าใส่ image_link ลงไปในลิสต์ด้วย) ---
+        # ลำดับต้องตรงกับหัวตารางใน Google Sheets นะครับ
         new_log_entry = [now, selected_tank, inspector, status, remarks, image_link]
 
+        # --- 3. บันทึกลง Sheets ---
         log_sheet.append_row(new_log_entry)
-        st.sidebar.success("✅ บันทึกข้อมูลและรูปภาพเรียบร้อย!")
-
-# 3. อัปเดตข้อมูลในแผ่นงานหลัก (Master List)
         try:
-    # ค้นหาว่า ID ที่เราเลือก อยู่ในแถว (Row) ไหนของแผ่นงานหลัก
             cell = sheet.find(selected_tank)
-            new_log_entry = [now, selected_tank, inspector, status, remarks]
-    # สมมติว่า:
-    # คอลัมน์ที่ 6 คือ Last Inspected (วันที่ตรวจ)
-    # คอลัมน์ที่ 7 คือ Status (สถานะ)
-    # คุณสามารถเปลี่ยนเลข 6 หรือ 7 ให้ตรงกับคอลัมน์ใน Sheets ของคุณได้เลยครับ
             sheet.update_cell(cell.row, 7, now)
             sheet.update_cell(cell.row, 6, status)
-
-            st.sidebar.success(f"✅ อัปเดตสถานะถัง {selected_tank} ในตารางหลักแล้ว!")
-
-    # สั่งให้แอปรีเฟรชเพื่อดึงข้อมูลใหม่มาโชว์ในตารางบนหน้าจอ
+            st.sidebar.success(f"✅ บันทึกข้อมูลและรูปภาพ ({selected_tank}) เรียบร้อย!")
             st.rerun()
-
         except Exception as e:
             st.sidebar.error(f"❌ เกิดข้อผิดพลาด: {e}")
 
