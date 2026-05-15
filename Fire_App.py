@@ -223,9 +223,9 @@ if st.button("📊 ส่งสรุปรายงานประจำเด�
         # st.write(df.columns.tolist())
 
         # สมมติว่าคอลัมน์แรกสุดของคุณคือรหัสถังเสมอ เราจะใช้ตำแหน่งแทนชื่อครับ
-        col_id = df.columns[2]  # คอลัมน์ที่ 2 (ปกติคือรหัสถัง)
-        col_status = df.columns[5]  # คอลัมน์ที่ 5 (ปกติคือสถานะ)
-        col_remark = df.columns[6]  # คอลัมน์ที่ 6 (ปกติคือหมายเหตุ)
+        col_id = df.columns[1]  # คอลัมน์ที่ 2 (ปกติคือรหัสถัง)
+        col_status = df.columns[3]  # คอลัมน์ที่ 5 (ปกติคือสถานะ)
+        col_remark = df.columns[4]  # คอลัมน์ที่ 6 (ปกติคือหมายเหตุ)
 
         # 1. เลือกเฉพาะบันทึกครั้งล่าสุดของแต่ละถัง โดยใช้ชื่อคอลัมน์ที่ดึงมา
         df_latest = df.drop_duplicates(subset=[col_id], keep='last')
