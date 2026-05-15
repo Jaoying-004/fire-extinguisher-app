@@ -173,15 +173,15 @@ def upload_image(image_file):
     result = cloudinary.uploader.upload(image_file)
     return result["secure_url"]  # ← ได้ URL รูปกลับมา
 
-    if submit_button:
-        from datetime import datetime
-        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        image_link = "ไม่มีรูปแนบ"
-        try:
+if submit_button:
+    from datetime import datetime
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    image_link = "ไม่มีรูปแนบ"
+    try:
             # 1. อัปโหลดรูปภาพ (ถ้ามี)
-            if img_file is not None:
-                result = cloudinary.uploader.upload(img_file)  # ✅ Cloudinary
-                image_link = result["secure_url"]
+        if img_file is not None:
+            result = cloudinary.uploader.upload(img_file)  # ✅ Cloudinary
+            image_link = result["secure_url"]
 
             # 2. บันทึกลง Log Sheet (ใช้ now และ image_link ได้แล้ว)
             new_log_entry = [now, selected_tank, inspector, status, remarks, image_link]
@@ -194,9 +194,8 @@ def upload_image(image_file):
 
             st.sidebar.success(f"✅ บันทึกข้อมูลถัง {selected_tank} เรียบร้อย!")
             st.rerun()
-
-        except Exception as e:
-            st.sidebar.error(f"❌ เกิดข้อผิดพลาด: {e}")
+    except Exception as e:
+        st.sidebar.error(f"❌ เกิดข้อผิดพลาด: {e}")
 
 
 
