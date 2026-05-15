@@ -123,7 +123,7 @@ def upload_to_drive(file, folder_id):
 
         file_metadata = {
             'name': file.name,
-            'parents': [folder_id]
+            'parents': ['1iRHhotsmY6k2mDWY8fasi0S8LVthSyTi?hl=th']
         }
 
         # เตรียมไฟล์เพื่อส่งขึ้น Drive
