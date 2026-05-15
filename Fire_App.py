@@ -115,7 +115,20 @@ if target_tank and target_tank in options:
     is_locked = True
 
 
+import cloudinary
+import cloudinary.uploader
 
+
+cloudinary.config(
+    cloud_name="drac2fch1",
+    api_key="111436524955713",
+    api_secret="dKOBl29NIqRzeZ-CALZ22fgmHI8"
+    )
+
+    # อัปโหลดรูป
+def upload_image(image_file):
+    result = cloudinary.uploader.upload(image_file)
+    return result["secure_url"]  # ← ได้ URL รูปกลับมา
 
 with st.sidebar.form("check_form"):
     # ต้องมีคำว่า selected_tank มารับค่าตรงนี้ เพื่อเอาไปใช้บันทึกลง Sheets
@@ -146,7 +159,7 @@ with st.sidebar.form("check_form"):
         q1 = st.radio("1. น้ำหนักถังปกติ (ยกประเมินด้วยมือต้องไม่เบาโหวง)", ["ใช่", "ไม่ใช่"])
         q2 = st.radio("2. คันบีบและสลักไม่เป็นสนิม ไม่หักงอ", ["ใช่", "ไม่ใช่"])
         q3 = st.radio("3. หัวฉีดไม่มีน้ำแข็งเกาะ/ไม่อุดตัน)", ["ใช่", "ไม่ใช่"])
-
+        q4 = st.radio("4. ระยะรอบถังไม่มีสิ่งกีดขวาง เข้าใข้งานถังได้สะดวก", ["ใช่", "ไม่ใช่"])
     else:
         # กรณีทั่วไปถ้าหาประเภทไม่เจอ
         status = st.radio("สถานะถังโดยรวม", ["ปกติ", "ไม่ปกติ"])
@@ -158,21 +171,6 @@ with st.sidebar.form("check_form"):
     remarks = st.text_area("ระบุรายละเอียดเพิ่มเติม (ถ้าไม่ปกติ)")
     submit_button = st.form_submit_button("บันทึกข้อมูล")
     log_sheet = client.open(sheet_name).worksheet("Inspection_Log")
-
-import cloudinary
-import cloudinary.uploader
-
-
-cloudinary.config(
-    cloud_name="drac2fch1",
-    api_key="111436524955713",
-    api_secret="dKOBl29NIqRzeZ-CALZ22fgmHI8"
-    )
-
-    # อัปโหลดรูป
-def upload_image(image_file):
-    result = cloudinary.uploader.upload(image_file)
-    return result["secure_url"]  # ← ได้ URL รูปกลับมา
 
 if submit_button:
     from datetime import datetime
