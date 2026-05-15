@@ -218,19 +218,26 @@ if st.button("📊 ส่งสรุปรายงานประจำเด�
     df = pd.DataFrame(all_data)
 
     if not df.empty:
-        # --- จุดสำคัญ: เลือกเฉพาะบันทึกครั้งล่าสุดของแต่ละถัง ---
-        # เปลี่ยน 'รหัสถัง' ให้ตรงกับชื่อหัวคอลัมน์ใน Sheets ของคุณ
-        df_latest = df.drop_duplicates(subset=['รหัสถัง'], keep='last')
+        # --- ตรวจสอบชื่อคอลัมน์จริง (กันพลาด) ---
+        # พิมพ์ชื่อคอลัมน์ออกมาดูที่หน้าจอแอปเลยครับ
+        # st.write(df.columns.tolist())
+
+        # สมมติว่าคอลัมน์แรกสุดของคุณคือรหัสถังเสมอ เราจะใช้ตำแหน่งแทนชื่อครับ
+        col_id = df.columns[2]  # คอลัมน์ที่ 2 (ปกติคือรหัสถัง)
+        col_status = df.columns[5]  # คอลัมน์ที่ 5 (ปกติคือสถานะ)
+        col_remark = df.columns[6]  # คอลัมน์ที่ 6 (ปกติคือหมายเหตุ)
+
+        # 1. เลือกเฉพาะบันทึกครั้งล่าสุดของแต่ละถัง โดยใช้ชื่อคอลัมน์ที่ดึงมา
+        df_latest = df.drop_duplicates(subset=[col_id], keep='last')
 
         total_tanks = len(df_latest)
-        # ตรวจสอบชื่อคอลัมน์ 'สถานะ' ให้ตรงกับใน Sheets (ภาษาไทยหรืออังกฤษ)
-        passed = len(df_latest[df_latest['Status'] == 'ปกติ'])
-        failed_df = df_latest[df_latest['Status'] == 'ไม่ปกติ (ต้องแก้ไข)']
+        passed = len(df_latest[df_latest[col_status] == 'ปกติ'])
+        failed_df = df_latest[df_latest[col_status] == 'ไม่ปกติ (ต้องแก้ไข)']
         failed_count = len(failed_df)
 
         pass_rate = (passed / total_tanks) * 100 if total_tanks > 0 else 0
 
-        # เตรียมข้อความสรุป
+        # 2. สร้างข้อความส่ง LINE
         msg = f"📊 Mr. SafePig สรุปผลประจำเดือน\n"
         msg += f"✅ ตรวจผ่าน: {pass_rate:.1f}% ({passed}/{total_tanks})\n"
         msg += f"❌ ไม่ผ่าน: {failed_count} รายการ\n"
@@ -238,8 +245,7 @@ if st.button("📊 ส่งสรุปรายงานประจำเด�
         if failed_count > 0:
             msg += "\n🔍 รายการที่ต้องแก้ไข:\n"
             for index, row in failed_df.iterrows():
-                # ตรวจสอบชื่อคอลัมน์ 'รหัสถัง' และ 'หมายเหตุ' ให้ตรงกับใน Sheets
-                msg += f"- {row['รหัสถัง']}: {row['หมายเหตุ']}\n"
+                msg += f"- {row[col_id]}: {row[col_remark]}\n"
         else:
             msg += "\n✅ ทุกถังอยู่ในสภาพปกติ"
 
