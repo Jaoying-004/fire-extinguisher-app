@@ -190,12 +190,57 @@ if submit_button:
             cell = sheet.find(selected_tank)
             sheet.update_cell(cell.row, 7, now)  # อัปเดตวันที่
             sheet.update_cell(cell.row, 6, status)  # อัปเดตสถานะ
-
-            st.sidebar.success(f"✅ บันทึกข้อมูลถัง {selected_tank} เรียบร้อย!")
+            st.sidebar.success(f"✅ บันทึกข้อมูลและรูปภาพถัง {selected_tank} เรียบร้อย!")
             st.rerun()
     except Exception as e:
         st.sidebar.error(f"❌ เกิดข้อผิดพลาด: {e}")
 
+# ส่วนของ Notification ในไลน์
+import requests
+def send_line_notify(message):
+    token = st.secrets["line_api"]["channel_access_token"]
+    user_id = st.secrets["line_api"]["user_id"]
+
+    url = "https://api.line.me/v2/bot/message/push"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {token}"
+    }
+    data = {
+        "to": user_id,
+        "messages": [{"type": "text", "text": message}]
+    }
+    requests.post(url, headers=headers, json=data)
+
+import pandas as pd
+
+if st.button("📊 ส่งสรุปรายงานประจำเดือนเข้า LINE"):
+    # 1. ดึงข้อมูลจาก Google Sheets (log_sheet คือตัวแปรที่คุณใช้เก็บหน้าบันทึก)
+    all_data = log_sheet.get_all_records()
+    df = pd.DataFrame(all_data)
+
+    # 2. คำนวณสถิติ
+    total_tanks = len(df)
+    # ตรวจสอบชื่อคอลัมน์ใน Sheets ของคุณด้วยนะ ว่าชื่อ 'สถานะ' หรือ 'status'
+    passed = len(df[df['Status'] == 'ปกติ'])
+    failed = len(df[df['Status'] == 'ไม่ผ่าน'])
+    pass_rate = (passed / total_tanks) * 100 if total_tanks > 0 else 0
+
+    # 3. เตรียมข้อความสรุป
+    msg = f"📊 Mr. SafePig สรุปผลประจำเดือน\n"
+    msg += f"✅ ตรวจผ่าน: {pass_rate:.1f}% ({passed}/{total_tanks})\n"
+    msg += f"❌ ไม่ผ่าน: {failed} รายการ\n"
+
+    if failed > 0:
+        msg += "\n🔍 รายการที่ต้องแก้ไข:\n"
+        # กรองเอาเฉพาะถังที่ไม่ผ่าน
+        bad_tanks = df[df['สถานะ'] == 'ไม่ผ่าน']
+        for index, row in bad_tanks.iterrows():
+            msg += f"- {row['รหัสถัง']}: {row['หมายเหตุ']}\n"
+
+    # 4. เรียกใช้ฟังก์ชันส่งไลน์ (ให้ชื่อตรงกับที่เราตั้งไว้ที่บรรทัด 200)
+    send_line_notify(msg)
+    st.success("🚀 ส่งรายงานสรุปเข้า LINE OA เรียบร้อยแล้ว!")
 
 
 
