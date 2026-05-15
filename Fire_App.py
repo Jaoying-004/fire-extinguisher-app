@@ -115,30 +115,7 @@ if target_tank and target_tank in options:
     is_locked = True
 
 
-def upload_to_drive(file, folder_id):
-    try:
-        # สร้าง Service สำหรับ Drive API โดยใช้ credentials เดิมที่คุณมี
-        # (หมายเหตุ: ตัวแปร creds ต้องเป็นชื่อเดียวกับที่คุณใช้ต่อ Sheets นะครับ)
-        drive_service = build('drive', 'v3', credentials=creds)
 
-        file_metadata = {
-            'name': file.name,
-            'parents': ['1iRHhotsmY6k2mDWY8fasi0S8LVthSyTi']
-        }
-
-        # เตรียมไฟล์เพื่อส่งขึ้น Drive
-        media = MediaIoBaseUpload(io.BytesIO(file.getvalue()),
-                                  mimetype=file.type,
-                                  resumable=True)
-
-        uploaded_file = drive_service.files().create(body=file_metadata,
-                                                     media_body=media,
-                                                     fields='id, webViewLink').execute()
-
-        return uploaded_file.get('webViewLink')  # คืนค่าเป็นลิงก์รูปภาพ
-    except Exception as e:
-        st.error(f"เกิดข้อผิดพลาดในการอัปโหลดรูป: {e}")
-        return None
 
 with st.sidebar.form("check_form"):
     # ต้องมีคำว่า selected_tank มารับค่าตรงนี้ เพื่อเอาไปใช้บันทึกลง Sheets
@@ -181,15 +158,30 @@ with st.sidebar.form("check_form"):
     submit_button = st.form_submit_button("บันทึกข้อมูล")
     log_sheet = client.open(sheet_name).worksheet("Inspection_Log")
 
+import cloudinary
+import cloudinary.uploader
+
+
+cloudinary.config(
+    cloud_name="drac2fch1",
+    api_key="111436524955713",
+    api_secret="dKOBl29NIqRzeZ-CALZ22fgmHI8"
+    )
+
+    # อัปโหลดรูป
+def upload_image(image_file):
+    result = cloudinary.uploader.upload(image_file)
+    return result["secure_url"]  # ← ได้ URL รูปกลับมา
+
     if submit_button:
         from datetime import datetime
-        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # สร้างตัวแปร now ไว้ที่นี่
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         image_link = "ไม่มีรูปแนบ"
         try:
             # 1. อัปโหลดรูปภาพ (ถ้ามี)
             if img_file is not None:
-                FOLDER_ID = "1iRHhotsmY6k2mDWY8fasi0S8LVthSyTi"  # ใส่ ID จริงของคุณ
-                image_link = upload_to_drive(img_file, FOLDER_ID)
+                result = cloudinary.uploader.upload(img_file)  # ✅ Cloudinary
+                image_link = result["secure_url"]
 
             # 2. บันทึกลง Log Sheet (ใช้ now และ image_link ได้แล้ว)
             new_log_entry = [now, selected_tank, inspector, status, remarks, image_link]
@@ -205,6 +197,7 @@ with st.sidebar.form("check_form"):
 
         except Exception as e:
             st.sidebar.error(f"❌ เกิดข้อผิดพลาด: {e}")
+
 
 
 
