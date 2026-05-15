@@ -1,11 +1,14 @@
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import pandas as pd
+import pytz
+from datetime import datetime
 
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaIoBaseUpload
-import io
 
+# ตั้งค่าเวลาไทยไว้ใช้ทั้งแอป
+tz = pytz.timezone('Asia/Bangkok')
+def get_now():
+    return datetime.now(tz)
 # เช็คว่าไฟล์กุญแจอยู่ในโฟลเดอร์ credentials และชื่อ key.json หรือยัง
 import streamlit as st
 
@@ -48,7 +51,6 @@ tab1, tab2 = st.tabs(["📅 รายการตรวจวันนี้", "
 
 with tab1:
     st.subheader("รายการที่ตรวจเช็คแล้ววันนี้")
-    from datetime import datetime
         # 1. ดึงข้อมูลทั้งหมดจากแท็บ Inspection_Log
     log_rows = log_sheet.get_all_values()
 
@@ -173,8 +175,8 @@ with st.sidebar.form("check_form"):
     log_sheet = client.open(sheet_name).worksheet("Inspection_Log")
 
 if submit_button:
-    from datetime import datetime
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    now_th = get_now()
+    now = now_th.strftime("%Y-%m-%d %H:%M:%S")
     image_link = "ไม่มีรูปแนบ"
     try:
             # 1. อัปโหลดรูปภาพ (ถ้ามี)
@@ -196,20 +198,29 @@ if submit_button:
 
 # ส่วนของ Notification ในไลน์
 import requests
+import streamlit as st
+
+
 def send_line_notify(message):
     token = st.secrets["line_api"]["channel_access_token"]
-    user_id = st.secrets["line_api"]["user_id"]
+    # 1. ดึงรายชื่อ ID ทั้งหมดออกมาเป็น List
+    target_ids = st.secrets["line_api"]["user_ids"]
 
     url = "https://api.line.me/v2/bot/message/push"
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {token}"
     }
-    data = {
-        "to": user_id,
-        "messages": [{"type": "text", "text": message}]
-    }
-    requests.post(url, headers=headers, json=data)
+
+    # 2. วนลูปส่งหาทุกคนในรายการ
+    for uid in target_ids:
+        data = {
+            "to": uid,
+            "messages": [{"type": "text", "text": message}]
+        }
+        # ส่งข้อมูล
+        requests.post(url, headers=headers, json=data)
+
 
 import pandas as pd
 
