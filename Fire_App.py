@@ -215,7 +215,7 @@ def send_line_notify(message):
     # 2. วนลูปส่งหาทุกคนในรายการ
     for uid in target_ids:
         data = {
-            "to": uid,
+            "to": "Cc41d99115e9081afa7a799a8964f1926",
             "messages": [{"type": "text", "text": message}]
         }
         # ส่งข้อมูล
