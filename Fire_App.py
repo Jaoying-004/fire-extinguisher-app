@@ -236,7 +236,7 @@ if st.button("📊 ส่งสรุปรายงานประจำเด�
         df[col_date] = pd.to_datetime(df[col_date], errors='coerce')
         # ลบแถวที่วันที่แปลงไม่ได้
         df = df.dropna(subset=[col_date])
-
+        now_dt = get_now()
         # เอาเฉพาะเดือน/ปีปัจจุบัน
         df_month = df[
             (df[col_date].dt.month == now_dt.month) &
