@@ -175,8 +175,8 @@ with st.sidebar.form("check_form"):
     log_sheet = client.open(sheet_name).worksheet("Inspection_Log")
 
 if submit_button:
-    now_th = get_now()
-    now = now_th.strftime("%Y-%m-%d %H:%M:%S")
+    now_dt = get_now()
+    now_str = now_dt.strftime("%Y-%m-%d %H:%M:%S")
     image_link = "ไม่มีรูปแนบ"
     try:
             # 1. อัปโหลดรูปภาพ (ถ้ามี)
@@ -185,12 +185,12 @@ if submit_button:
             image_link = result["secure_url"]
 
             # 2. บันทึกลง Log Sheet (ใช้ now และ image_link ได้แล้ว)
-            new_log_entry = [now, selected_tank, inspector, status, remarks, image_link]
+            new_log_entry = [now_str, selected_tank, inspector, status, remarks, image_link]
             log_sheet.append_row(new_log_entry)
 
             # 3. อัปเดตตารางหลัก (Master List)
             cell = sheet.find(selected_tank)
-            sheet.update_cell(cell.row, 7, now)  # อัปเดตวันที่
+            sheet.update_cell(cell.row, 7, now_str)  # อัปเดตวันที่
             sheet.update_cell(cell.row, 6, status)  # อัปเดตสถานะ
             st.sidebar.success(f"✅ บันทึกข้อมูลและรูปภาพถัง {selected_tank} เรียบร้อย!")
     except Exception as e:
@@ -221,45 +221,56 @@ def send_line_notify(message):
 
 
 import pandas as pd
-
 if st.button("📊 ส่งสรุปรายงานประจำเดือนเข้า LINE"):
     all_data = log_sheet.get_all_records()
     df = pd.DataFrame(all_data)
 
     if not df.empty:
-        # --- ตรวจสอบชื่อคอลัมน์จริง (กันพลาด) ---
-        # พิมพ์ชื่อคอลัมน์ออกมาดูที่หน้าจอแอปเลยครับ
-        # st.write(df.columns.tolist())
+        # ระบุตำแหน่งคอลัมน์
+        col_date = df.columns[0]  # คอลัมน์วันที่
+        col_id = df.columns[1]  # คอลัมน์ถัง
+        col_status = df.columns[3]  # คอลัมน์สถานะ
+        col_remark = df.columns[4]  # คอลัมน์หมายเหตุ
 
-        # สมมติว่าคอลัมน์แรกสุดของคุณคือรหัสถังเสมอ เราจะใช้ตำแหน่งแทนชื่อครับ
-        col_id = df.columns[1]  # คอลัมน์ที่ 2 (ปกติคือรหัสถัง)
-        col_status = df.columns[3]  # คอลัมน์ที่ 5 (ปกติคือสถานะ)
-        col_remark = df.columns[4]  # คอลัมน์ที่ 6 (ปกติคือหมายเหตุ)
+        # แปลงคอลัมน์วันที่เป็น datetime
+        df[col_date] = pd.to_datetime(df[col_date], errors='coerce')
+        # ลบแถวที่วันที่แปลงไม่ได้
+        df = df.dropna(subset=[col_date])
 
-        # 1. เลือกเฉพาะบันทึกครั้งล่าสุดของแต่ละถัง โดยใช้ชื่อคอลัมน์ที่ดึงมา
-        df_latest = df.drop_duplicates(subset=[col_id], keep='last')
+        # เอาเฉพาะเดือน/ปีปัจจุบัน
+        df_month = df[
+            (df[col_date].dt.month == now_dt.month) &
+            (df[col_date].dt.year == now_dt.year)
+        ]
 
-        total_tanks = len(df_latest)
-        passed = len(df_latest[df_latest[col_status] == 'ปกติ'])
-        failed_df = df_latest[df_latest[col_status] == 'ไม่ปกติ (ต้องแก้ไข)']
-        failed_count = len(failed_df)
+        if not df_month.empty:
+            # เรียงตามวันที่ก่อน เพื่อให้ keep='last' คือข้อมูลล่าสุดจริง
+            df_month = df_month.sort_values(by=col_date)
 
-        pass_rate = (passed / total_tanks) * 100 if total_tanks > 0 else 0
+            # เลือกเฉพาะบันทึกล่าสุดของแต่ละถังในเดือนนี้
+            df_latest = df_month.drop_duplicates(subset=[col_id], keep='last')
+            total_tanks = len(df_latest)
+            passed = len(df_latest[df_latest[col_status] == 'ปกติ'])
+            failed_df = df_latest[df_latest[col_status] == 'ไม่ปกติ (ต้องแก้ไข)']
+            failed_count = len(failed_df)
 
-        # 2. สร้างข้อความส่ง LINE
-        msg = f"📊 Mr. SafePig สรุปผลประจำเดือน\n"
-        msg += f"✅ ตรวจผ่าน: {pass_rate:.1f}% ({passed}/{total_tanks})\n"
-        msg += f"❌ ไม่ผ่าน: {failed_count} รายการ\n"
+            pass_rate = (passed / total_tanks) * 100 if total_tanks > 0 else 0
 
-        if failed_count > 0:
-            msg += "\n🔍 รายการที่ต้องแก้ไข:\n"
-            for index, row in failed_df.iterrows():
-                msg += f"- {row[col_id]}: {row[col_remark]}\n"
+            msg = f"📊 (For Testing❗❗) Mr. SafePig สรุปผลประจำเดือน {now_dt.strftime('%m/%Y')}\n"
+            msg += f"✅ ตรวจผ่าน: {pass_rate:.1f}% ({passed}/{total_tanks})\n"
+            msg += f"❌ ไม่ผ่าน: {failed_count} รายการ\n"
+
+            if failed_count > 0:
+                msg += "\n🔍 รายการที่ต้องแก้ไข:\n"
+                for _, row in failed_df.iterrows():
+                    msg += f"- {row[col_id]}: {row[col_remark]}\n"
+            else:
+                msg += "\n✅ ทุกถังอยู่ในสภาพปกติ"
+
+            send_line_notify(msg)
+            st.success("🚀 ส่งรายงานสรุปเข้า LINE OA เรียบร้อยแล้ว!")
         else:
-            msg += "\n✅ ทุกถังอยู่ในสภาพปกติ"
-
-        send_line_notify(msg)
-        st.success("🚀 ส่งรายงานสรุปเข้า LINE OA เรียบร้อยแล้ว!")
+            st.warning("ไม่พบข้อมูลของเดือนปัจจุบันในชีต")
 
 
 
