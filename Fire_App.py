@@ -128,6 +128,8 @@ def get_device_options(sheet_name):
 #-----------------------------------------------------------------------------
 query_params = st.query_params
 target_id = query_params.get("tank_id") # ดึงค่ารหัสอุปกรณ์จาก URL
+default_index = 0
+is_locked_by_qr = False
 
 if device_type == "ถังดับเพลิง":
     options = get_device_options("FireExtinguisher_Data")  # ชื่อ worksheet ของถังดับเพลิง
@@ -157,8 +159,6 @@ if device_type == "ถังดับเพลิง":
 else:  # Fire Alarm
     options = get_device_options("FireAlarm_Data")
     id_label = "เลือกโซน/รหัส Fire Alarm"
-    default_index = 0
-    is_locked_by_qr = False
     show_form = True
     form_disabled = False
 
