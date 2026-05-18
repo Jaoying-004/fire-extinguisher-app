@@ -179,7 +179,6 @@ if device_type == "ถังดับเพลิง" and selected_device:
     # ดักป้องกันพังกรณีหาถังไม่เจอ
     if tank_info is not None:
         tank_type = sheet.cell(tank_info.row, 3).value
-        st.write(f"🔍 ประเภทถัง: **{tank_type}**")
     else:
         tank_type = None
         st.warning(f"⚠️ ไม่พบข้อมูลของรหัส {selected_device} ในตาราง Master List")
@@ -207,7 +206,7 @@ with st.sidebar.form("check_form", clear_on_submit=True):
     # --- ส่วนเช็คลิสต์ตามประเภท ---
     if device_type == "ถังดับเพลิง":
         if tank_type == "ผงเคมีแห้ง":
-            st.info("รายการตรวจเช็ค: ผงเคมีแห้ง")
+            st.write(f"🔍 ประเภทถัง: **{tank_type}**")
             q1 = st.radio("1. เกจวัดความดันชี้ที่สีเขียว หน้าปัดไม่แตก", ["ใช่", "ไม่ใช่"], key="chk_dry_1")
             q2 = st.radio("2. สายฉีดไม่แตกลายงา ไม่อุดตัน", ["ใช่", "ไม่ใช่"], key="chk_dry_2")
             q3 = st.radio("3. สภาพตัวถังไม่บุบ ไม่มีสิ่งผิดปกติ", ["ใช่", "ไม่ใช่"], key="chk_dry_3")
@@ -215,7 +214,7 @@ with st.sidebar.form("check_form", clear_on_submit=True):
             q5 = st.radio("5. ระยะรอบถังไม่มีสิ่งกีดขวาง เข้าใข้งานถังได้สะดวก", ["ใช่", "ไม่ใช่"], key="chk_dry_5")
 
         elif tank_type == "CO2":
-            st.info("รายการตรวจเช็ค: CO2")
+            st.write(f"🔍 ประเภทถัง: **{tank_type}**")
             q1 = st.radio("1. น้ำหนักถังปกติ (ยกประเมินด้วยมือต้องไม่เบาโหวง)", ["ใช่", "ไม่ใช่"], key="chk_co2_1")
             q2 = st.radio("2. คันบีบและสลักไม่เป็นสนิม ไม่หักงอ", ["ใช่", "ไม่ใช่"], key="chk_co2_2")
             q3 = st.radio("3. หัวฉีดไม่มีน้ำแข็งเกาะ/ไม่อุดตัน)", ["ใช่", "ไม่ใช่"], key="chk_co2_3")
