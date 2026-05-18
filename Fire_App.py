@@ -157,16 +157,19 @@ if device_type == "ถังดับเพลิง":
 else:  # Fire Alarm
     options = get_device_options("FireAlarm_Data")
     id_label = "เลือกโซน/รหัส Fire Alarm"
+    default_index = 0
     is_locked_by_qr = False
     show_form = True
     form_disabled = False
 
+# ปุ่ม Selectbox
+# =======================================================
 selected_device = st.sidebar.selectbox(
     id_label,
     options,
-    index=default_index,
-    disabled=not is_locked_by_qr,  # ล็อกถ้าไม่มี QR
-    key="selected_extinguisher"
+    index=default_index, # ทีนี้พอสลับเป็น Fire Alarm ตัวแปรนี้จะมีค่าเป็น 0 และทำงานได้ฉลุยครับ
+    disabled=is_locked_by_qr,
+    key=f"select_{device_type}"
 )
 
 sheet = client.open(sheet_name).worksheet("FireExtinguisher_Data" if device_type == "ถังดับเพลิง" else "FireAlarm_Data")
