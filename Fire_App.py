@@ -137,6 +137,18 @@ if target_id and target_id in options:
 
 selected_device = st.sidebar.selectbox(id_label, options, index=default_index)
 
+
+tank_info = sheet.find(selected_device)
+# 2. เพิ่มเงื่อนไขเช็กว่าเจอไหม (ดักไว้ก่อนพัง)
+if tank_info is not None:
+    # ถ้าเจอ ให้ดึงค่าประเภทถังออกมาตามปกติ
+    tank_type = sheet.cell(tank_info.row, 3).value
+    st.write(f"🔍 ประเภทถัง: **{tank_type}**")
+else:
+    # ถ้าในชีตไม่มีรหัสนี้ ให้ตั้งค่าเริ่มต้นเป็น None หรือแจ้งเตือน
+    tank_type = None
+    st.warning(f"⚠️ ไม่พบข้อมูลของรหัส {selected_device} ในตาราง Master List")
+
 if device_type == "ถังดับเพลิง":
     options = get_device_options("FireExtinguisher_Data")  # ชื่อ worksheet ของถังดับเพลิง
     id_label = "เลือก/สแกนรหัสถังดับเพลิง"
@@ -264,6 +276,10 @@ if submit_button:
             sheet.update_cell(cell.row, 7, now_str)  # อัปเดตวันที่
             sheet.update_cell(cell.row, 6, status)  # อัปเดตสถานะ
             st.sidebar.success(f"✅ บันทึกข้อมูลและรูปภาพถัง {selected_tank} เรียบร้อย!")
+
+            st.rerun()
+        else:
+            st.sidebar.error(f"❌ ไม่สามารถอัปเดตสถานะได้เนื่องจากไม่พบรหัส {selected_device} ในตาราง Master List")
     except Exception as e:
         st.sidebar.error(f"❌ เกิดข้อผิดพลาด: {e}")
 
