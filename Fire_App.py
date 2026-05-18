@@ -149,13 +149,14 @@ else:
     tank_type = None
     st.warning(f"⚠️ ไม่พบข้อมูลของรหัส {selected_device} ในตาราง Master List")
 
+#-----------------------------------------------------------------------------
+
 if device_type == "ถังดับเพลิง":
     options = get_device_options("FireExtinguisher_Data")  # ชื่อ worksheet ของถังดับเพลิง
     id_label = "เลือก/สแกนรหัสถังดับเพลิง"
 
     # ตรวจสอบว่ามี target_id จาก QR Code หรือไม่
     is_locked_by_qr = False
-
     if target_id and target_id in options:
         # มี QR Code และรหัสถูกต้อง
         default_index = options.index(target_id)
@@ -166,17 +167,7 @@ if device_type == "ถังดับเพลิง":
         if target_id:
             st.sidebar.error(f"⚠️ รหัสถัง '{target_id}' ไม่ถูกต้อง")
         st.sidebar.warning("⚠️ **กรุณาสแกน QR Code** ก่อนเริ่มตรวจสอบถังดับเพลิง")
-
-    # แสดง selectbox
-    selected_device = st.sidebar.selectbox(
-        id_label,
-        options,
-        index=default_index,
-        disabled=not is_locked_by_qr,  # ล็อกถ้าไม่มี QR
-        key="selected_extinguisher"
-    )
-
-    # ปุ่มปลดล็อก
+        # ปุ่มปลดล็อก
     if is_locked_by_qr:
         if st.sidebar.button("🔓 ปลดล็อกและสแกนใหม่"):
             st.query_params.clear()
@@ -186,29 +177,34 @@ if device_type == "ถังดับเพลิง":
     form_disabled = not is_locked_by_qr
 
 else:  # Fire Alarm
-    options = get_device_options("FireAlarm_Data")  # ชื่อ worksheet ของ Fire Alarm
+    options = get_device_options("FireAlarm_Data")
     id_label = "เลือกโซน/รหัส Fire Alarm"
-
-    # Fire Alarm ไม่ต้องสแกน QR
-    selected_device = st.sidebar.selectbox(
-        id_label,
-        options,
-        key="selected_firealarm"
-    )
-
     is_locked_by_qr = False
     show_form = True
     form_disabled = False
-###
-with st.form(key="inspection_form", clear_on_submit=True):
-    inspector = st.text_input("ชื่อผู้ตรวจ")
-    status = st.radio("สถานะถัง/อุปกรณ์", ["ปกติ", "ไม่ปกติ"])
-    remarks = st.text_area("ระบุรายละเอียดเพิ่มเติม")
 
-# ❌ เด้งออกมาระดับเดียวกับ with ทำให้ฟอร์มมองไม่เห็นปุ่มนี้
-    submit_button = st.form_submit_button("บันทึกข้อมูล")
+selected_device = st.sidebar.selectbox(
+    id_label,
+    options,
+    index=default_index,
+    disabled=not is_locked_by_qr,  # ล็อกถ้าไม่มี QR
+    key="selected_extinguisher"
+)
 
+sheet = client.open(sheet_name).worksheet("FireExtinguisher_Data" if device_type == "ถังดับเพลิง" else "FireAlarm_Data")
+if device_type == "ถังดับเพลิง" and selected_device:
+    tank_info = sheet.find(selected_device)
 
+    # ดักป้องกันพังกรณีหาถังไม่เจอ
+    if tank_info is not None:
+        tank_type = sheet.cell(tank_info.row, 3).value
+        st.write(f"🔍 ประเภทถัง: **{tank_type}**")
+    else:
+        tank_type = None
+        st.warning(f"⚠️ ไม่พบข้อมูลของรหัส {selected_device} ในตาราง Master List")
+else:
+    tank_type = None
+#-----------------------------------------------------------------------------------------------------------------
 #ส่วนของการจัดการรูปภาพ
 import cloudinary
 import cloudinary.uploader
@@ -222,44 +218,38 @@ cloudinary.config(
 def upload_image(image_file):
     result = cloudinary.uploader.upload(image_file)
     return result["secure_url"]  # ← ได้ URL รูปกลับมา
+#-------------------------------------------------------------------------------------------------------------------
+#ส่วนของแบบฟอร์มการตรวจเช็ค
+with st.sidebar.form("check_form", clear_on_submit=True):
+    inspector = st.text_input("ชื่อผู้ตรวจ", key="inspector_input")
+    # --- ส่วนเช็คลิสต์แยกประเภทอุปกรณ์ ---
 
-
-with st.sidebar.form("check_form"):
-    # ต้องมีคำว่า selected_tank มารับค่าตรงนี้ เพื่อเอาไปใช้บันทึกลง Sheets
-    selected_tank = st.selectbox(
-        "เลือกชื่อถังที่ต้องการตรวจ",
-        options,
-        index=default_index,
-        disabled=is_locked_by_qr  # ย้ายคำสั่งล็อกมาไว้ที่ตัวนี้แทน!
-    )
-    # --- ดึงประเภทถังมาจาก Master List ---
-    # ประเภทถังอยู่ที่คอลัมน์ที่ 3 ใน Master List
-    tank_info = sheet.find(selected_tank)
-    tank_type = sheet.cell(tank_info.row, 3).value  # ดึงค่าประเภทถังออกมา
-    st.write(f"🔍 ประเภทถัง: **{tank_type}**")
-    inspector = st.text_input("ชื่อผู้ตรวจ")
+    inspector = st.text_input("ชื่อผู้ตรวจ", key="inspector_input")
     # --- ส่วนเช็คลิสต์ตามประเภท ---
-    if tank_type == "ผงเคมีแห้ง":
-        st.info("รายการตรวจเช็ค: ผงเคมีแห้ง")
-        q1 = st.radio("1. เกจวัดความดันชี้ที่สีเขียว หน้าปัดไม่แตก", ["ใช่", "ไม่ใช่"])
-        q2 = st.radio("2. สายฉีดไม่แตกลายงา ไม่อุดตัน", ["ใช่", "ไม่ใช่"])
-        q3 = st.radio("3. สภาพตัวถังไม่บุบ ไม่มีสิ่งผิดปกติ", ["ใช่", "ไม่ใช่"])
-        q4 = st.radio("4. ซีลและสลักอยู่ครบ ไม่ฉีกขาด", ["ใช่", "ไม่ใช่"])
-        q5 = st.radio("5. ระยะรอบถังไม่มีสิ่งกีดขวาง เข้าใข้งานถังได้สะดวก", ["ใช่", "ไม่ใช่"])
+    if device_type == "ถังดับเพลิง":
+        if tank_type == "ผงเคมีแห้ง":
+            st.info("รายการตรวจเช็ค: ผงเคมีแห้ง")
+            q1 = st.radio("1. เกจวัดความดันชี้ที่สีเขียว หน้าปัดไม่แตก", ["ใช่", "ไม่ใช่"])
+            q2 = st.radio("2. สายฉีดไม่แตกลายงา ไม่อุดตัน", ["ใช่", "ไม่ใช่"])
+            q3 = st.radio("3. สภาพตัวถังไม่บุบ ไม่มีสิ่งผิดปกติ", ["ใช่", "ไม่ใช่"])
+            q4 = st.radio("4. ซีลและสลักอยู่ครบ ไม่ฉีกขาด", ["ใช่", "ไม่ใช่"])
+            q5 = st.radio("5. ระยะรอบถังไม่มีสิ่งกีดขวาง เข้าใข้งานถังได้สะดวก", ["ใช่", "ไม่ใช่"])
 
-    elif tank_type == "CO2":
-        st.info("รายการตรวจเช็ค: CO2")
-        q1 = st.radio("1. น้ำหนักถังปกติ (ยกประเมินด้วยมือต้องไม่เบาโหวง)", ["ใช่", "ไม่ใช่"])
-        q2 = st.radio("2. คันบีบและสลักไม่เป็นสนิม ไม่หักงอ", ["ใช่", "ไม่ใช่"])
-        q3 = st.radio("3. หัวฉีดไม่มีน้ำแข็งเกาะ/ไม่อุดตัน)", ["ใช่", "ไม่ใช่"])
-        q4 = st.radio("4. ระยะรอบถังไม่มีสิ่งกีดขวาง เข้าใข้งานถังได้สะดวก", ["ใช่", "ไม่ใช่"])
-    else:
-        # กรณีทั่วไปถ้าหาประเภทไม่เจอ
-        status = st.radio("สถานะถังโดยรวม", ["ปกติ", "ไม่ปกติ"])
+        elif tank_type == "CO2":
+            st.info("รายการตรวจเช็ค: CO2")
+            q1 = st.radio("1. น้ำหนักถังปกติ (ยกประเมินด้วยมือต้องไม่เบาโหวง)", ["ใช่", "ไม่ใช่"])
+            q2 = st.radio("2. คันบีบและสลักไม่เป็นสนิม ไม่หักงอ", ["ใช่", "ไม่ใช่"])
+            q3 = st.radio("3. หัวฉีดไม่มีน้ำแข็งเกาะ/ไม่อุดตัน)", ["ใช่", "ไม่ใช่"])
+            q4 = st.radio("4. ระยะรอบถังไม่มีสิ่งกีดขวาง เข้าใข้งานถังได้สะดวก", ["ใช่", "ไม่ใช่"])
+
+    elif device_type == "Fire Alarm":
+        st.info("🚨 ตรวจระบบ: Fire Alarm")
+        status = st.radio("สถานะโดยรวม", ["ปกติ", "ไม่ปกติ"])
+
 
     # --- ส่วนแนบรูป (บังคับให้แนบเพื่อยืนยันว่าไปจริง) ---
     img_file = st.file_uploader("📸 แนบรูปถ่ายขณะตรวจเช็ค", type=['jpg', 'png', 'jpeg'])
-    status = st.radio("สถานะถัง", ["ปกติ", "ไม่ปกติ (ต้องแก้ไข)"])
+    status = st.radio("สถานะโดยรวม", ["ปกติ", "ไม่ปกติ (ต้องแก้ไข)"])
     # หมายเหตุ (กรณีมีข้อที่ไม่ปกติ)
     remarks = st.text_area("ระบุรายละเอียดเพิ่มเติม (ถ้าไม่ปกติ)")
     submit_button = st.form_submit_button("บันทึกข้อมูล")
@@ -276,14 +266,14 @@ if submit_button:
             image_link = result["secure_url"]
 
             # 2. บันทึกลง Log Sheet (ใช้ now และ image_link ได้แล้ว)
-            new_log_entry = [now_str, selected_tank, inspector, status, remarks, image_link]
+            new_log_entry = [now_str, selected_device, inspector, status, remarks, image_link]
             log_sheet.append_row(new_log_entry)
 
             # 3. อัปเดตตารางหลัก (Master List)
-            cell = sheet.find(selected_tank)
+            cell = sheet.find(selected_device)
             sheet.update_cell(cell.row, 7, now_str)  # อัปเดตวันที่
             sheet.update_cell(cell.row, 6, status)  # อัปเดตสถานะ
-            st.sidebar.success(f"✅ บันทึกข้อมูลและรูปภาพถัง {selected_tank} เรียบร้อย!")
+            st.sidebar.success(f"✅ บันทึกข้อมูลและรูปภาพถัง {selected_device} เรียบร้อย!")
 
             st.rerun()
         else:
@@ -291,6 +281,7 @@ if submit_button:
     except Exception as e:
         st.sidebar.error(f"❌ เกิดข้อผิดพลาด: {e}")
 
+#------------------------------------------------------------------------------------------------------------------
 # ส่วนของ Notification ในไลน์
 import requests
 import streamlit as st
