@@ -117,7 +117,7 @@ def get_device_options(sheet_name):
     try:
         target_sheet = client.open(sheet_name_var).worksheet(sheet_name)
         rows = target_sheet.get_all_values()
-        return [row[0] for row in rows[1:]] # สมมติรหัสอุปกรณ์อยู่คอลัมน์แรก
+        return [row[1] for row in rows[1:]] # สมมติรหัสอุปกรณ์อยู่คอลัมน์แรก
     except:
         return []
 
