@@ -199,6 +199,14 @@ else:  # Fire Alarm
     is_locked_by_qr = False
     show_form = True
     form_disabled = False
+###
+with st.form(key="inspection_form", clear_on_submit=True):
+    inspector = st.text_input("ชื่อผู้ตรวจ")
+    status = st.radio("สถานะถัง/อุปกรณ์", ["ปกติ", "ไม่ปกติ"])
+    remarks = st.text_area("ระบุรายละเอียดเพิ่มเติม")
+
+# ❌ เด้งออกมาระดับเดียวกับ with ทำให้ฟอร์มมองไม่เห็นปุ่มนี้
+    submit_button = st.form_submit_button("บันทึกข้อมูล")
 
 
 #ส่วนของการจัดการรูปภาพ
