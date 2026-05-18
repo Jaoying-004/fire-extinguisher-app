@@ -96,31 +96,102 @@ if st.button("🔄 อัปเดตข้อมูลล่าสุด"):
 # --- 4. ส่วนของแบบฟอร์มการตรวจเช็ค (เพิ่มต่อท้าย) ---
 st.sidebar.header("📝 แบบฟอร์มบันทึกการตรวจ")
 # ฟอร์มกรอกข้อมูล
-@st.cache_data(ttl=600)
-def get_tank_options():
-    # ย้ายโค้ดดึงข้อมูลชื่อถังมาไว้ในนี้
-    rows = sheet.get_all_values()
-    return [row[0] for row in rows[1:]] # สมมติว่ารหัสถังอยู่คอลัมน์แรก
-
-options = get_tank_options()
-
-# 1. ดึงค่าจาก URL (ถ้ามี) เช่น ?tank_id=OF01
+# 1. เลือกประเภทอุปกรณ์ (ถังดับเพลิง / Fire Alarm)
+# ==========================================
+# รองรับการรับค่าประเภทอุปกรณ์จาก URL (ถ้ามี) เช่น ?type=fire_extinguisher&id=0F01
 query_params = st.query_params
+url_type = query_params.get("type", "ถังดับเพลิง") # ค่าเริ่มต้นถ้าไม่มีคือถังดับเพลิง
+
+device_type = st.sidebar.selectbox(
+    "เลือกประเภทอุปกรณ์ที่ต้องการตรวจ",
+    ["ถังดับเพลิง", "Fire Alarm"],
+    index=0 if url_type == "ถังดับเพลิง" else 1
+)
+
+# 2. ดึงข้อมูล Master List ตามประเภทที่เลือก
+# ==========================================
+sheet_name_var = "FireExtinguisher_MasterList_2026"
+@st.cache_data(ttl=600)
+def get_device_options(FireExtinguisher_MasterList_2026):
+    # ปรับให้รับ sheet_name ตามประเภทอุปกรณ์ เช่น "Master_Extinguisher" หรือ "Master_FireAlarm"
+    try:
+        target_sheet = client.open(sheet_name_var).worksheet(sheet_name)
+        rows = target_sheet.get_all_values()
+        return [row[0] for row in rows[1:]] # สมมติรหัสอุปกรณ์อยู่คอลัมน์แรก
+    except:
+        return []
+
+if device_type == "ถังดับเพลิง":
+    options = get_device_options("FireExtinguisher_Data") # ชื่อ Sheet ของถังดับเพลิง
+    id_label = "เลือก/สแกนรหัสถังดับเพลิง"
+else:
+    options = get_device_options("FireAlarm_Data") # ชื่อ Sheet ของ Fire Alarm
+    id_label = "เลือกโซน/รหัส Fire Alarm"
+
+# จัดการดึงค่า ID จาก URL (โค้ดส่วนนี้ยกมาจากรูปที่ 1 ของคุณ)
 default_index = 0
-target_tank = query_params.get("tank_id")
-is_locked = False  # ตั้งค่าเริ่มต้นไว้ก่อน (กันพัง)
-default_index = 0
+target_id = query_params.get("id") # เปลี่ยนชื่อตัวแปรให้กลางขึ้น (จาก target_tank)
 
-# 2. หาว่ารหัสถังที่ส่งมา อยู่ในลำดับที่เท่าไหร่ของรายการ
-if target_tank and target_tank in options:
-    default_index = options.index(target_tank)
-    is_locked = True
+if target_id and target_id in options:
+    default_index = options.index(target_id)
+
+selected_device = st.sidebar.selectbox(id_label, options, index=default_index)
+
+if device_type == "ถังดับเพลิง":
+    options = get_device_options("FireExtinguisher_Data")  # ชื่อ worksheet ของถังดับเพลิง
+    id_label = "เลือก/สแกนรหัสถังดับเพลิง"
+
+    # ตรวจสอบว่ามี target_id จาก QR Code หรือไม่
+    is_locked_by_qr = False
+
+    if target_id and target_id in options:
+        # มี QR Code และรหัสถูกต้อง
+        default_index = options.index(target_id)
+        is_locked_by_qr = True
+        st.sidebar.success(f"🔒 **ล็อกจาก QR Code**: {target_id}")
+    else:
+        # ไม่มี QR Code หรือรหัสผิด
+        if target_id:
+            st.sidebar.error(f"⚠️ รหัสถัง '{target_id}' ไม่ถูกต้อง")
+        st.sidebar.warning("⚠️ **กรุณาสแกน QR Code** ก่อนเริ่มตรวจสอบถังดับเพลิง")
+
+    # แสดง selectbox
+    selected_device = st.sidebar.selectbox(
+        id_label,
+        options,
+        index=default_index,
+        disabled=not is_locked_by_qr,  # ล็อกถ้าไม่มี QR
+        key="selected_extinguisher"
+    )
+
+    # ปุ่มปลดล็อก
+    if is_locked_by_qr:
+        if st.sidebar.button("🔓 ปลดล็อกและสแกนใหม่"):
+            st.query_params.clear()
+            st.rerun()
+
+    show_form = is_locked_by_qr
+    form_disabled = not is_locked_by_qr
+
+else:  # Fire Alarm
+    options = get_device_options("FireAlarm_Data")  # ชื่อ worksheet ของ Fire Alarm
+    id_label = "เลือกโซน/รหัส Fire Alarm"
+
+    # Fire Alarm ไม่ต้องสแกน QR
+    selected_device = st.sidebar.selectbox(
+        id_label,
+        options,
+        key="selected_firealarm"
+    )
+
+    is_locked_by_qr = False
+    show_form = True
+    form_disabled = False
 
 
+#ส่วนของการจัดการรูปภาพ
 import cloudinary
 import cloudinary.uploader
-
-
 cloudinary.config(
     cloud_name="drac2fch1",
     api_key="111436524955713",
@@ -132,15 +203,15 @@ def upload_image(image_file):
     result = cloudinary.uploader.upload(image_file)
     return result["secure_url"]  # ← ได้ URL รูปกลับมา
 
+
 with st.sidebar.form("check_form"):
     # ต้องมีคำว่า selected_tank มารับค่าตรงนี้ เพื่อเอาไปใช้บันทึกลง Sheets
     selected_tank = st.selectbox(
         "เลือกชื่อถังที่ต้องการตรวจ",
         options,
         index=default_index,
-        disabled=is_locked  # ย้ายคำสั่งล็อกมาไว้ที่ตัวนี้แทน!
+        disabled=is_locked_by_qr  # ย้ายคำสั่งล็อกมาไว้ที่ตัวนี้แทน!
     )
-
     # --- ดึงประเภทถังมาจาก Master List ---
     # ประเภทถังอยู่ที่คอลัมน์ที่ 3 ใน Master List
     tank_info = sheet.find(selected_tank)
@@ -199,8 +270,6 @@ if submit_button:
 # ส่วนของ Notification ในไลน์
 import requests
 import streamlit as st
-
-
 def send_line_notify(message):
     token = st.secrets["line_api"]["channel_access_token"]
     # 1. ดึงรายชื่อ ID ทั้งหมดออกมาเป็น List
