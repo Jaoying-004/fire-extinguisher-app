@@ -91,29 +91,27 @@ with tab2:
 
 with tab3:
     st.subheader("🚨 Emergency_Safety_Equipment")
+
     try:
-    # 1. ดึงข้อมูลจากชีต FireAlarm_Log (หรือชื่อแท็บเก็บประวัติไฟอลามของคุณ)
-        fa_log_sheet = client.open(sheet_name).worksheet("Emergency_Safety_Equipment")
+        # 1. สั่งเปิดหน้าแท็บฐานข้อมูลหลักของระบบ Fire Alarm
+        fa_sheet = client.open(sheet_name).worksheet("Emergency_Safety_Equipment")
+        fa_master_rows = fa_sheet.get_all_values()
 
-        import pandas as pd
-        fa_logs = fa_log_sheet.get_all_records()
+        if fa_master_rows:
+            # 2. แปลงเป็นตาราง DataFrame (เอาแถวที่ 1 เป็นหัวคอลัมน์)
+            df_fa_master = pd.DataFrame(fa_master_rows[1:], columns=fa_master_rows[0])
 
-        if fa_logs:
-            df_fa = pd.DataFrame(fa_logs)
-        # 2. กรองข้อมูลเอาเฉพาะของ "วันนี้" มาโชว์ (เหมือนกับที่คุณทำใน Tab 2)
-            today_str = get_now().strftime("%Y-%m-%d")
-        # สมมติคอลัมน์แรกชื่อ 'Timestamp' (เช็กให้ตรงกับหัวคอลัมน์ในตารางจริงของคุณนะครับ)
-            df_fa_today = df_fa[df_fa['Timestamp'].astype(str).str.startswith(today_str)]
-            if not df_fa_today.empty:
-            # แสดงผลตารางของระบบ Fire Alarm
-                st.dataframe(df_fa_today, use_container_width=True)
-            else:
-                st.info("ℹ️ ยังไม่มีการบันทึกประวัติข้อมูลระบบ Fire Alarm ในวันนี้")
+            # 3. ลบคอลัมน์ที่ไม่มีหัวข้อหรือคอลัมน์ว่างออก
+            df_fa_master = df_fa_master.loc[:, df_fa_master.columns != '']
+
+            # 4. แสดงผลตาราง Master ข้อมูลทั้งหมดบนหน้าจอตรงกลาง
+            st.dataframe(df_fa_master, use_container_width=True)
         else:
-            st.info("ℹ️ ไม่พบข้อมูลประวัติในตาราง FireAlarm_Log")
+            st.warning("⚠️ ไม่พบข้อมูลในแผ่นงานฐานข้อมูล FireAlarm_Data")
 
     except Exception as e:
-        st.warning("⚠️ ไม่สามารถโหลดตารางข้อมูลได้ หรือตาราง FireAlarm_Log ยังไม่พร้อมใช้งาน")
+        st.error(f"❌ ไม่สามารถโหลดตารางฐานข้อมูลได้เนื่องจาก: {e}")
+
 # เพิ่มปุ่มกด Refresh ข้อมูล
 if st.button("🔄 อัปเดตข้อมูลล่าสุด"):
     st.rerun()
