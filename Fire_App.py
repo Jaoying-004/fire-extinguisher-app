@@ -181,7 +181,7 @@ if device_type == "ถังดับเพลิง":
     form_disabled = not is_locked_by_qr
 
 else:  # Fire Alarm
-    options = get_device_options("FireAlarm_Data")
+    options = get_device_options("Emergency_Safety_Equipment")
     id_label = "เลือกโซน/รหัส Fire Alarm"
     show_form = True
     form_disabled = False
