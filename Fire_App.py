@@ -227,7 +227,7 @@ with st.sidebar.form("check_form"):
     # --- ดึงประเภทถังมาจาก Master List ---
     # ประเภทถังอยู่ที่คอลัมน์ที่ 3 ใน Master List
     tank_info = sheet.find(selected_tank)
-    tank_type = sheet.cell(tank_info.row, 1).value  # ดึงค่าประเภทถังออกมา
+    tank_type = sheet.cell(tank_info.row, 3).value  # ดึงค่าประเภทถังออกมา
     st.write(f"🔍 ประเภทถัง: **{tank_type}**")
     inspector = st.text_input("ชื่อผู้ตรวจ")
     # --- ส่วนเช็คลิสต์ตามประเภท ---
