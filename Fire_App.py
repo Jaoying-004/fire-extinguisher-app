@@ -121,27 +121,13 @@ def get_device_options(sheet_name):
     except:
         return []
 
-if device_type == "ถังดับเพลิง":
-    options = get_device_options("FireExtinguisher_Data") # ชื่อ Sheet ของถังดับเพลิง
-    id_label = "เลือก/สแกนรหัสถังดับเพลิง"
-else:
-    options = get_device_options("FireAlarm_Data") # ชื่อ Sheet ของ Fire Alarm
-    id_label = "เลือกโซน/รหัส Fire Alarm"
-
-# จัดการดึงค่า ID จาก URL (โค้ดส่วนนี้ยกมาจากรูปที่ 1 ของคุณ)
-default_index = 0
-target_id = query_params.get("id") # เปลี่ยนชื่อตัวแปรให้กลางขึ้น (จาก target_tank)
-
-if target_id and target_id in options:
-    default_index = options.index(target_id)
-
-selected_device = st.sidebar.selectbox(id_label, options, index=default_index)
-
 
 
 
 
 #-----------------------------------------------------------------------------
+query_params = st.query_params
+target_id = query_params.get("tank_id") # ดึงค่ารหัสอุปกรณ์จาก URL
 
 if device_type == "ถังดับเพลิง":
     options = get_device_options("FireExtinguisher_Data")  # ชื่อ worksheet ของถังดับเพลิง
