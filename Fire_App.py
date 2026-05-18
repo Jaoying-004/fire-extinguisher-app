@@ -196,7 +196,7 @@ selected_device = st.sidebar.selectbox(
     key=f"select_{device_type}"
 )
 
-sheet = client.open(sheet_name).worksheet("FireExtinguisher_Data" if device_type == "ถังดับเพลิง" else "FireAlarm_Data")
+sheet = client.open(sheet_name).worksheet("FireExtinguisher_Data" if device_type == "ถังดับเพลิง" else "Emergency_Safety_Equipment")
 if device_type == "ถังดับเพลิง" and selected_device:
     tank_info = sheet.find(selected_device)
 
