@@ -37,7 +37,7 @@ files = [s.title for s in client.openall()]
 sheet_name = "FireExtinguisher_MasterList_2026"
 
 # บรรทัดนี้คือการเปิดแท็บหลัก
-sheet = client.open(sheet_name).worksheet("FireExtinguisher")
+sheet = client.open(sheet_name).worksheet("FireExtinguisher_Data")
 
 # *** เพิ่มบรรทัดนี้ลงไปเพื่อให้โปรแกรมรู้จัก log_sheet ***
 log_sheet = client.open(sheet_name).worksheet("Inspection_Log")
@@ -112,7 +112,7 @@ device_type = st.sidebar.selectbox(
 # ==========================================
 sheet_name_var = "FireExtinguisher_MasterList_2026"
 @st.cache_data(ttl=600)
-def get_device_options(FireExtinguisher_MasterList_2026):
+def get_device_options(sheet_name):
     # ปรับให้รับ sheet_name ตามประเภทอุปกรณ์ เช่น "Master_Extinguisher" หรือ "Master_FireAlarm"
     try:
         target_sheet = client.open(sheet_name_var).worksheet(sheet_name)
