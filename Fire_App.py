@@ -45,7 +45,7 @@ log_sheet = client.open(sheet_name).worksheet("Inspection_Log")
 # --- 3. หน้าตาแอป (UI) และ Tabs ---
 st.title("🔥 FireExtinguisher")
 
-tab1, tab2 = st.tabs(["📅 รายการตรวจวันนี้", "📋 ฐานข้อมูลถังทั้งหมด"])
+tab1, tab2, tab3 = st.tabs(["📅 รายการตรวจวันนี้", "📋 FireExtinguisher_Data", "🚨 Emergency_Safety_Equipment"])
 
 #ดึงข้อมูลจากชีตมาโชว์
 
@@ -78,7 +78,7 @@ with tab1:
 
 
 with tab2:
-    st.subheader("ฐานข้อมูลสถานะถังดับเพลิงล่าสุด")
+    st.subheader("📋 FireExtinguisher_Data")
     # ดึงข้อมูลจากแท็บ MasterList (เหมือนที่คุณเคยเขียนไว้)
     master_rows = sheet.get_all_values()
     if master_rows:
@@ -88,6 +88,32 @@ with tab2:
         st.dataframe(df_master, use_container_width=True)
     else:
         st.warning("⚠️ ไม่พบข้อมูลในแผ่นงานฐานข้อมูล")
+
+with tab3:
+    st.subheader("🚨 Emergency_Safety_Equipment")
+    try:
+    # 1. ดึงข้อมูลจากชีต FireAlarm_Log (หรือชื่อแท็บเก็บประวัติไฟอลามของคุณ)
+        fa_log_sheet = client.open(sheet_name).worksheet("Emergency_Safety_Equipment")
+
+        import pandas as pd
+        fa_logs = fa_log_sheet.get_all_records()
+
+        if fa_logs:
+            df_fa = pd.DataFrame(fa_logs)
+        # 2. กรองข้อมูลเอาเฉพาะของ "วันนี้" มาโชว์ (เหมือนกับที่คุณทำใน Tab 2)
+            today_str = get_now().strftime("%Y-%m-%d")
+        # สมมติคอลัมน์แรกชื่อ 'Timestamp' (เช็กให้ตรงกับหัวคอลัมน์ในตารางจริงของคุณนะครับ)
+            df_fa_today = df_fa[df_fa['Timestamp'].astype(str).str.startswith(today_str)]
+            if not df_fa_today.empty:
+            # แสดงผลตารางของระบบ Fire Alarm
+                st.dataframe(df_fa_today, use_container_width=True)
+            else:
+                st.info("ℹ️ ยังไม่มีการบันทึกประวัติข้อมูลระบบ Fire Alarm ในวันนี้")
+        else:
+            st.info("ℹ️ ไม่พบข้อมูลประวัติในตาราง FireAlarm_Log")
+
+    except Exception as e:
+        st.warning("⚠️ ไม่สามารถโหลดตารางข้อมูลได้ หรือตาราง FireAlarm_Log ยังไม่พร้อมใช้งาน")
 # เพิ่มปุ่มกด Refresh ข้อมูล
 if st.button("🔄 อัปเดตข้อมูลล่าสุด"):
     st.rerun()
