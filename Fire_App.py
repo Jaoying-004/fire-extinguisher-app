@@ -45,7 +45,7 @@ log_sheet = client.open(sheet_name).worksheet("Inspection_Log")
 # --- 3. หน้าตาแอป (UI) และ Tabs ---
 st.title("🔥 FireExtinguisher")
 
-tab1, tab2, tab3 = st.tabs(["📅 รายการตรวจวันนี้", "📋 FireExtinguisher_Data", "🚨 Emergency_Safety_Equipment"])
+tab1, tab2, tab3, tab4 = st.tabs(["📅 รายการตรวจวันนี้", "📋 FireExtinguisher_Data", "🚨 Emergency_Safety_Equipment", "🔧 ติดตามการแก้ไข"])
 
 #ดึงข้อมูลจากชีตมาโชว์
 
@@ -112,6 +112,45 @@ with tab3:
     except Exception as e:
         st.error(f"❌ ไม่สามารถโหลดตารางฐานข้อมูลได้เนื่องจาก: {e}")
 
+try:
+    # ดึงข้อมูลจาก Sheet "Emergency_Safety_Equipment"
+    emergency_sheet = client.open(sheet_name).worksheet("Emergency_Safety_Equipment")
+    emergency_rows = emergency_sheet.get_all_values()
+
+    if emergency_rows and len(emergency_rows) > 1:
+        # แปลงเป็น DataFrame
+        df_emergency = pd.DataFrame(emergency_rows[1:], columns=emergency_rows[0])
+
+        # ลบคอลัมน์ว่าง (ถ้ามี)
+        df_emergency = df_emergency.loc[:, df_emergency.columns != '']
+
+        # แสดงจำนวนรายการ
+        st.info(f"📊 จำนวนอุปกรณ์ทั้งหมด: **{len(df_emergency)}** รายการ")
+        # ส่วนค้นหา/กรอง (Optional)
+        col1, col2 = st.columns([2, 1])
+
+        with col1:
+            # กรองตามคอลัมน์ (ปรับให้ตรงกับชีตจริง)
+            if 'Type' in df_emergency.columns:
+                type_filter = st.multiselect(
+                    "🔽 กรองตามประเภท",
+                    options=df_emergency['Type'].unique().tolist(),
+                    default=df_emergency['Type'].unique().tolist()
+                )
+                df_emergency = df_emergency[df_emergency['Type'].isin(type_filter)]
+
+        with col2:
+            search_term = st.text_input("🔍 ค้นหา")
+            if search_term:
+                # ค้นหาทุกคอลัมน์
+                mask = df_emergency.apply(lambda row: row.astype(str).str.contains(search_term, case=False).any(),
+                                          axis=1)
+                df_emergency = df_emergency[mask]
+    else:
+        st.warning("⚠️ ไม่พบข้อมูลในแผ่นงาน Emergency_Safety_Equipment")
+except Exception as e:
+    st.error(f"❌ เกิดข้อผิดพลาด: {e}")
+    st.info("กรุณาตรวจสอบว่ามี Sheet ชื่อ 'Emergency_Safety_Equipment' ใน Google Sheets")
 # เพิ่มปุ่มกด Refresh ข้อมูล
 if st.button("🔄 อัปเดตข้อมูลล่าสุด"):
     st.rerun()
@@ -375,6 +414,7 @@ if st.button("📊 ส่งสรุปรายงานประจำเด�
         else:
             st.warning("ไม่พบข้อมูลของเดือนปัจจุบันในชีต")
 
-
+#--------------------------------------------------------------------------------------------------------------------
+#โฟลวติดตามการแก้ไข
 
 
