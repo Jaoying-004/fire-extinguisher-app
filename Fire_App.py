@@ -30,12 +30,12 @@ except Exception as e:
     st.error(f"เกิดข้อผิดพลาดในการเชื่อมต่อกุญแจ: {e}")
     st.stop()
 
-files = [s.title for s in client.openall()]
+
 
 
 # --- 2. ดึงข้อมูลจาก Google Sheets ---
 sheet_name = "FireExtinguisher_MasterList_2026"
-
+spreadsheet = client.open(sheet_name)
 # บรรทัดนี้คือการเปิดแท็บหลัก
 sheet = client.open(sheet_name).worksheet("FireExtinguisher_Data")
 
