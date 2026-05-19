@@ -1,5 +1,5 @@
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+from google.oauth2.service_account import Credentials
 import pandas as pd
 import pytz
 from datetime import datetime
@@ -93,7 +93,7 @@ try:
         "https://www.googleapis.com/auth/drive.file"
     ]
 
-    creds = ServiceAccountCredentials.from_json_keyfile_dict(key_data, scope)
+    creds = Credentials.from_json_keyfile_dict(key_data, scope)
     client = gspread.authorize(creds)
 except Exception as e:
     st.error(f"เกิดข้อผิดพลาดในการเชื่อมต่อกุญแจ: {e}")
@@ -101,7 +101,7 @@ except Exception as e:
 
 @st.cache_resource
 def get_gspread_client():
-    creds = ServiceAccountCredentials.from_service_account_info(
+    creds = Credentials.from_service_account_info(
         st.secrets["gcp_service_account"],
         scopes=scope
     )
