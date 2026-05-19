@@ -196,18 +196,28 @@ selected_device = st.sidebar.selectbox(
     key=f"select_{device_type}"
 )
 
-sheet = client.open(sheet_name).worksheet("FireExtinguisher_Data" if device_type == "ถังดับเพลิง" else "Emergency_Safety_Equipment")
-if device_type == "ถังดับเพลิง" and selected_device:
-    tank_info = sheet.find(selected_device)
+#---------------------------------------------------------------------------------------------------------------
+# --- สั่งเปิดชีตหลักแยกตามหน้างานจริงของคุณ ---
+if device_type == "ถังดับเพลิง":
+    sheet = client.open(sheet_name).worksheet("FireExtinguisher_Data")
+else:
+    sheet = client.open(sheet_name).worksheet("Emergency_Safety_Equipment")
 
-    # ดักป้องกันพังกรณีหาถังไม่เจอ
-    if tank_info is not None:
-        tank_type = sheet.cell(tank_info.row, 3).value
+# --- โดดเข้าโฟลวการค้นหาข้อมูลในตารางหลัก ---
+if selected_device:
+    cell_info = sheet.find(selected_device)
+
+    if cell_info is not None:
+        # 💡 ดึงค่าจากคอลัมน์ที่ 3 ของชีตที่เปิดอยู่มาเก็บไว้ (เป็นได้ทั้งประเภทถัง และประเภทอุปกรณ์)
+        device_sub_type = sheet.cell(cell_info.row, 3).value
+
+        # แสดงผลบนหน้าจอให้ช่างเห็นชัดๆ
+        st.write(f"🔍 ประเภทอุปกรณ์: **{device_sub_type}**")
     else:
-        tank_type = None
+        device_sub_type = None
         st.warning(f"⚠️ ไม่พบข้อมูลของรหัส {selected_device} ในตาราง Master List")
 else:
-    tank_type = None
+    device_sub_type = None
 #-----------------------------------------------------------------------------------------------------------------
 #ส่วนของการจัดการรูปภาพ
 import cloudinary
@@ -229,16 +239,16 @@ with st.sidebar.form("check_form", clear_on_submit=True):
 
     # --- ส่วนเช็คลิสต์ตามประเภท ---
     if device_type == "ถังดับเพลิง":
-        if tank_type == "ผงเคมีแห้ง":
-            st.write(f"🔍 ประเภทถัง: **{tank_type}**")
+        if device_sub_type == "ผงเคมีแห้ง":
+            st.write(f"🔍 ประเภทถัง: **{device_sub_type}**")
             q1 = st.radio("1. เกจวัดความดันชี้ที่สีเขียว หน้าปัดไม่แตก", ["ใช่", "ไม่ใช่"], key="chk_dry_1")
             q2 = st.radio("2. สายฉีดไม่แตกลายงา ไม่อุดตัน", ["ใช่", "ไม่ใช่"], key="chk_dry_2")
             q3 = st.radio("3. สภาพตัวถังไม่บุบ ไม่มีสิ่งผิดปกติ", ["ใช่", "ไม่ใช่"], key="chk_dry_3")
             q4 = st.radio("4. ซีลและสลักอยู่ครบ ไม่ฉีกขาด", ["ใช่", "ไม่ใช่"], key="chk_dry_4")
             q5 = st.radio("5. ระยะรอบถังไม่มีสิ่งกีดขวาง เข้าใข้งานถังได้สะดวก", ["ใช่", "ไม่ใช่"], key="chk_dry_5")
 
-        elif tank_type == "CO2":
-            st.write(f"🔍 ประเภทถัง: **{tank_type}**")
+        elif device_sub_type == "CO2":
+            st.write(f"🔍 ประเภทถัง: **{device_sub_type}**")
             q1 = st.radio("1. น้ำหนักถังปกติ (ยกประเมินด้วยมือต้องไม่เบาโหวง)", ["ใช่", "ไม่ใช่"], key="chk_co2_1")
             q2 = st.radio("2. คันบีบและสลักไม่เป็นสนิม ไม่หักงอ", ["ใช่", "ไม่ใช่"], key="chk_co2_2")
             q3 = st.radio("3. หัวฉีดไม่มีน้ำแข็งเกาะ/ไม่อุดตัน)", ["ใช่", "ไม่ใช่"], key="chk_co2_3")
@@ -273,8 +283,8 @@ if submit_button:
 
             # 3. อัปเดตตารางหลัก (Master List)
             cell = sheet.find(selected_device)
-            sheet.update_cell(cell.row, 7, now_str)  # อัปเดตวันที่
-            sheet.update_cell(cell.row, 6, status)  # อัปเดตสถานะ
+            sheet.update_cell(cell.row, 6, now_str)  # อัปเดตวันที่
+            sheet.update_cell(cell.row, 5, status)  # อัปเดตสถานะ
             st.sidebar.success(f"✅ บันทึกข้อมูลและรูปภาพถัง {selected_device} เรียบร้อย!")
 
             st.rerun()
