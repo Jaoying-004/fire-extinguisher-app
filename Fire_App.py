@@ -11,7 +11,76 @@ def get_now():
     return datetime.now(tz)
 # เช็คว่าไฟล์กุญแจอยู่ในโฟลเดอร์ credentials และชื่อ key.json หรือยัง
 import streamlit as st
+#-----------------------------------------------------------------------------------------------------------------------
+#หน้าล็อคอิน
+st.set_page_config(
+    page_title="ระบบตรวจเช็คถังดับเพลิง",
+    page_icon="🧯",
+    layout="wide"
+)
 
+# -----------------------------
+# CSS
+# -----------------------------
+st.markdown("""
+<style>
+/* ซ่อนเมนู streamlit ถ้าต้องการ */
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
+
+/* พื้นหลังหลัก */
+.stApp {
+    background: linear-gradient(135deg, #f8fbff 0%, #eef4ff 100%);
+}
+
+/* กล่อง login */
+.login-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+}
+
+.login-card {
+    background: white;
+    padding: 2.2rem 2rem 1.8rem 2rem;
+    border-radius: 22px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.10);
+    width: 100%;
+    max-width: 460px;
+    border: 1px solid #e9eef7;
+}
+
+.login-title {
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1f3b73;
+    margin-bottom: 0.2rem;
+}
+
+.login-subtitle {
+    text-align: center;
+    color: #6b7280;
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+}
+
+.login-icon {
+    text-align: center;
+    font-size: 3rem;
+    margin-bottom: 0.4rem;
+}
+
+.login-note {
+    text-align: center;
+    font-size: 0.88rem;
+    color: #6b7280;
+    margin-top: 0.8rem;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # --- 1. การดึงความลับ (Secrets) ---
 try:
@@ -29,6 +98,122 @@ try:
 except Exception as e:
     st.error(f"เกิดข้อผิดพลาดในการเชื่อมต่อกุญแจ: {e}")
     st.stop()
+
+@st.cache_resource
+def get_gspread_client():
+    creds = ServiceAccountCredentials.from_service_account_info(
+        st.secrets["gcp_service_account"],
+        scopes=scope
+    )
+    return gspread.authorize(creds)
+
+client = get_gspread_client()
+workbook = client.open_by_key(st.secrets["sheet_id"])
+
+sheet_emp = workbook.worksheet("employee_list")
+sheet_log = workbook.worksheet("login_log")
+
+tz = pytz.timezone("Asia/Bangkok")
+
+def get_now():
+    return datetime.now(tz)
+
+# -----------------------------
+# AUTH FUNCTIONS
+# -----------------------------
+def is_valid_employee(emp_id):
+    records = sheet_emp.get_all_records()
+    for row in records:
+        if str(row.get("employee_id", "")).strip() == str(emp_id).strip():
+            return True
+    return False
+
+def has_logged_in_today(emp_id):
+    from datetime import datetime, date
+    today = date.today().isoformat()
+    records = sheet_log.get_all_records()
+    for row in records:
+        if (
+            str(row.get("employee_id", "")).strip() == str(emp_id).strip()
+            and str(row.get("date", "")).strip() == today
+        ):
+            return True
+    return False
+
+def save_login_log(emp_id):
+    now = get_now()
+    sheet_log.append_row([
+        str(emp_id).strip(),
+        now.date().isoformat(),
+        now.strftime("%H:%M:%S")
+    ])
+
+def check_auth_status():
+    if "authenticated" not in st.session_state:
+        st.session_state.authenticated = False
+
+    if "emp_id" not in st.session_state:
+        st.session_state.emp_id = ""
+
+    return st.session_state.authenticated
+
+# -----------------------------
+# LOGIN PAGE
+# -----------------------------
+def show_login_page():
+    col1, col2, col3 = st.columns([1, 1.2, 1])
+
+    with col2:
+        st.markdown('<div class="login-wrapper">', unsafe_allow_html=True)
+        st.markdown("""
+            <div class="login-card">
+                <div class="login-icon">🧯</div>
+                <div class="login-title">ระบบตรวจเช็คถังดับเพลิง</div>
+                <div class="login-subtitle">
+                    กรุณาเข้าสู่ระบบด้วยรหัสพนักงานก่อนใช้งาน
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+
+        with st.form("login_form", clear_on_submit=False):
+            emp_id = st.text_input(
+                "รหัสพนักงาน",
+                placeholder="กรอกรหัสพนักงาน",
+                key="login_emp_id"
+            )
+            submitted = st.form_submit_button("เข้าสู่ระบบ", use_container_width=True)
+
+        if submitted:
+            emp_id = emp_id.strip()
+
+            if not emp_id:
+                st.warning("กรุณากรอกรหัสพนักงาน")
+            elif not is_valid_employee(emp_id):
+                st.error("ไม่พบรหัสพนักงานนี้ในระบบ")
+            else:
+                st.session_state.authenticated = True
+                st.session_state.emp_id = emp_id
+
+                if not has_logged_in_today(emp_id):
+                    save_login_log(emp_id)
+
+                st.success("เข้าสู่ระบบสำเร็จ")
+                st.rerun()
+
+        st.markdown(
+            '<div class="login-note">เข้าใช้งานได้วันละ 1 ครั้งต่ออุปกรณ์/เบราว์เซอร์</div>',
+            unsafe_allow_html=True
+        )
+        st.markdown('</div>', unsafe_allow_html=True)
+
+
+
+
+
+
+
+
+
 
 
 
