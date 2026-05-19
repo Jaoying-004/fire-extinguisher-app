@@ -211,8 +211,6 @@ if selected_device:
         # 💡 ดึงค่าจากคอลัมน์ที่ 3 ของชีตที่เปิดอยู่มาเก็บไว้ (เป็นได้ทั้งประเภทถัง และประเภทอุปกรณ์)
         device_sub_type = sheet.cell(cell_info.row, 3).value
 
-        # แสดงผลบนหน้าจอให้ช่างเห็นชัดๆ
-        st.write(f"🔍 ประเภทอุปกรณ์: **{device_sub_type}**")
     else:
         device_sub_type = None
         st.warning(f"⚠️ ไม่พบข้อมูลของรหัส {selected_device} ในตาราง Master List")
@@ -256,6 +254,7 @@ with st.sidebar.form("check_form", clear_on_submit=True):
 
     elif device_type == "Fire Alarm":
         st.info("🚨 ตรวจระบบ: Fire Alarm")
+        st.write(f"🔍 ประเภทอุปกรณ์: **{device_sub_type}**")
         status = st.radio("สถานะโดยรวม", ["ปกติ", "ไม่ปกติ"])
 
 
@@ -278,12 +277,20 @@ if submit_button:
             image_link = result["secure_url"]
 
             # 2. บันทึกลง Log Sheet (ใช้ now และ image_link ได้แล้ว)
-            new_log_entry = [now_str, selected_device, inspector, status, remarks, image_link]
+            new_log_entry = [
+                now_str,  # คอลัมน์ 1: วันเวลาที่ตรวจ
+                selected_device,  # คอลัมน์ 2: รหัสอุปกรณ์ (ID)
+                device_sub_type,  # คอลัมน์ 3: ประเภทอุปกรณ์ (Type) 💡 เพิ่มตัวนี้เข้ามาแล้วครับ
+                inspector,  # คอลัมน์ 4: ชื่อผู้ตรวจ
+                status,  # คอลัมน์ 5: สถานะโดยรวม
+                remarks,  # คอลัมน์ 6: หมายเหตุ
+                image_link  # คอลัมน์ 7: ลิงก์รูปภาพ
+            ]
             log_sheet.append_row(new_log_entry)
 
             # 3. อัปเดตตารางหลัก (Master List)
             cell = sheet.find(selected_device)
-            sheet.update_cell(cell.row, 6, now_str)  # อัปเดตวันที่
+            sheet.update_cell(cell.row, 4, now_str)  # อัปเดตวันที่
             sheet.update_cell(cell.row, 5, status)  # อัปเดตสถานะ
             st.sidebar.success(f"✅ บันทึกข้อมูลและรูปภาพถัง {selected_device} เรียบร้อย!")
 
