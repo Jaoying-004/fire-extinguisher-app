@@ -93,6 +93,28 @@ with tab3:
     st.subheader("🚨 Emergency_Safety_Equipment")
 
     try:
+        # 1. สั่งเปิดหน้าแท็บฐานข้อมูลหลักของระบบ Fire Alarm
+        fa_sheet = client.open(sheet_name).worksheet("Emergency_Safety_Equipment")
+        fa_master_rows = fa_sheet.get_all_values()
+
+        if fa_master_rows:
+            # 2. แปลงเป็นตาราง DataFrame (เอาแถวที่ 1 เป็นหัวคอลัมน์)
+            df_fa_master = pd.DataFrame(fa_master_rows[1:], columns=fa_master_rows[0])
+
+            # 3. ลบคอลัมน์ที่ไม่มีหัวข้อหรือคอลัมน์ว่างออก
+            df_fa_master = df_fa_master.loc[:, df_fa_master.columns != '']
+
+            # 4. แสดงผลตาราง Master ข้อมูลทั้งหมดบนหน้าจอตรงกลาง
+            st.dataframe(df_fa_master, use_container_width=True)
+        else:
+            st.warning("⚠️ ไม่พบข้อมูลในแผ่นงานฐานข้อมูล FireAlarm_Data")
+
+    except Exception as e:
+        st.error(f"❌ ไม่สามารถโหลดตารางฐานข้อมูลได้เนื่องจาก: {e}")
+
+with tab4:
+    st.subheader("🔧 ติดตามการแก้ไข")
+    try:
         inspection_sheet = client.open(sheet_name).worksheet("Inspection_Log")
         inspection_rows = inspection_sheet.get_all_values()
 
@@ -103,9 +125,9 @@ with tab3:
             if 'Status' in df_inspection.columns:
                 df_need_repair = df_inspection[
                     df_inspection['Status'].str.strip() == 'ไม่ปกติ (ต้องแก้ไข)'
-                ]
+                    ]
 
-            # สถิติ
+                # สถิติ
                 col1, col2, col3 = st.columns(3)
                 with col1:
                     st.metric("📋 ทั้งหมด", len(df_inspection))
@@ -118,7 +140,7 @@ with tab3:
 
                 st.divider()
 
-            # ตาราง
+                # ตาราง
                 if not df_need_repair.empty:
                     st.warning(f"พบ {len(df_need_repair)} รายการ")
                     st.dataframe(df_need_repair, use_container_width=True)
@@ -127,11 +149,12 @@ with tab3:
 
     except Exception as e:
         st.error(f"❌ Error: {e}")
+
 # เพิ่มปุ่มกด Refresh ข้อมูล
 if st.button("🔄 อัปเดตข้อมูลล่าสุด"):
     st.rerun()
 
-#-------------------------------------------------------------------------------------------------------------------
+
 # --- 4. ส่วนของแบบฟอร์มการตรวจเช็ค (เพิ่มต่อท้าย) ---
 st.sidebar.header("📝 แบบฟอร์มบันทึกการตรวจ")
 # ฟอร์มกรอกข้อมูล
@@ -292,28 +315,48 @@ if submit_button:
             image_link = result["secure_url"]
 
             # 2. บันทึกลง Log Sheet (ใช้ now และ image_link ได้แล้ว)
-            new_log_entry = [
-                now_str,  # คอลัมน์ 1: วันเวลาที่ตรวจ
-                device_sub_type,  # คอลัมน์ 3: ประเภทอุปกรณ์ (Type) 💡 เพิ่มตัวนี้เข้ามาแล้วครับ
-                selected_device,  # คอลัมน์ 2: รหัสอุปกรณ์ (ID)
-                inspector,  # คอลัมน์ 4: ชื่อผู้ตรวจ
-                status,  # คอลัมน์ 5: สถานะโดยรวม
-                remarks,  # คอลัมน์ 6: หมายเหตุ
-                image_link  # คอลัมน์ 7: ลิงก์รูปภาพ
-            ]
-            log_sheet.append_row(new_log_entry)
+        new_log_entry = [
+            now_str,  # คอลัมน์ 1: วันเวลาที่ตรวจ
+            device_sub_type,  # คอลัมน์ 3: ประเภทอุปกรณ์ (Type) 💡 เพิ่มตัวนี้เข้ามาแล้วครับ
+            selected_device,  # คอลัมน์ 2: รหัสอุปกรณ์ (ID)
+            inspector,  # คอลัมน์ 4: ชื่อผู้ตรวจ
+            status,  # คอลัมน์ 5: สถานะโดยรวม
+            remarks,  # คอลัมน์ 6: หมายเหตุ
+            image_link  # คอลัมน์ 7: ลิงก์รูปภาพ
+        ]
+        log_sheet.append_row(new_log_entry)
+        if status == "ไม่ปกติ (ต้องแก้ไข)":
+            try:
+                    # เปิด Sheet Action_Required
+                action_sheet = client.open(sheet_name).worksheet("Action_Required")
+                cell = sheet.find(selected_device)
+                device_row = sheet.row_values(cell.row)
+                device_location = device_row[3] if len(device_row) > 3 else "-"  # ปรับ index ตาม Sheet
 
-            # 3. อัปเดตตารางหลัก (Master List)
-            cell = sheet.find(selected_device)
-            sheet.update_cell(cell.row, 4, now_str)  # อัปเดตวันที่
-            sheet.update_cell(cell.row, 5, status)  # อัปเดตสถานะ
-            st.sidebar.success(f"✅ บันทึกข้อมูลและรูปภาพถัง {selected_device} เรียบร้อย!")
-
-            st.rerun()
+                action_entry = [
+                    now_str,  # คอลัมน์ 1: วันเวลาที่ตรวจ
+                    device_sub_type,  # คอลัมน์ 3: ประเภทอุปกรณ์ (Type) 💡 เพิ่มตัวนี้เข้ามาแล้วครับ
+                    selected_device,  # คอลัมน์ 2: รหัสอุปกรณ์ (ID)
+                    inspector,  # คอลัมน์ 4: ชื่อผู้ตรวจ
+                    status,  # คอลัมน์ 5: สถานะโดยรวม
+                    remarks,  # คอลัมน์ 6: หมายเหตุ
+                    image_link  # คอลัมน์ 7: ลิงก์รูปภาพ
+                ]
+                action_sheet.append_row(action_entry)
+                st.success("✅ บันทึกข้อมูลเรียบร้อย")
+                st.warning(f"⚠️ รายการ {selected_device} ถูกส่งไปยัง 'Action_Required' เพื่อติดตามการแก้ไข")
+            except Exception as e:
+                    st.warning(f"⚠️ บันทึกลง Inspection_Logs แล้ว แต่ไม่สามารถส่งไป Action_Required: {e}")
         else:
-            st.sidebar.error(f"❌ ไม่สามารถอัปเดตสถานะได้เนื่องจากไม่พบรหัส {selected_device} ในตาราง Master List")
+                st.success("✅ บันทึกข้อมูลเรียบร้อย")
+            # 3. อัปเดตตารางหลัก (Master List)
+                cell = sheet.find(selected_device)
+                sheet.update_cell(cell.row, 4, now_str)  # อัปเดตวันที่
+                sheet.update_cell(cell.row, 5, status)  # อัปเดตสถานะ
+                st.sidebar.success(f"✅ บันทึกข้อมูลและรูปภาพถัง {selected_device} เรียบร้อย!")
+                st.rerun()
     except Exception as e:
-        st.sidebar.error(f"❌ เกิดข้อผิดพลาด: {e}")
+        st.sidebar.error(f"❌ เกิดข้อผิดพลาดในการบันทึก: {e}")
 
 #------------------------------------------------------------------------------------------------------------------
 # ส่วนของ Notification ในไลน์
