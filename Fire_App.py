@@ -454,7 +454,8 @@ def append_login_log(emp_id, date_str):
 
 # ─── 3. ฟังก์ชันตรวจล็อกอิน ────────────────────────────────────────
 def check_auth():
-    today = datetime.date.today().isoformat()
+    from datetime import datetime, date
+    today = date.today().isoformat()
 
     # กรณี session_state ยังเก็บสถานะล็อกอินวันนี้ไว้
     if st.session_state.get("authenticated") and st.session_state.get("last_login") == today:
