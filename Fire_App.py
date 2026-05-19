@@ -434,6 +434,59 @@ if st.button("📊 ส่งสรุปรายงานประจำเด�
             st.warning("ไม่พบข้อมูลของเดือนปัจจุบันในชีต")
 
 #--------------------------------------------------------------------------------------------------------------------
-#โฟลวติดตามการแก้ไข
+#โฟลวหน้าล็อคอิน
+
+wb = client.open_by_key(st.secrets["sheet_id"])
+sheet_emp  = wb.worksheet("employee_list")   # คอลัมน์ A: รหัสพนักงาน
+sheet_log  = wb.worksheet("login_log")       # คอลัมน์ A: รหัส, B: วันที่ (YYYY-MM-DD)
+
+# ─── 2. โหลดข้อมูลจาก Sheets (cache ลดโควต้า) ────────────────────
+@st.cache_data(ttl=600)
+def load_employees():
+    return set(sheet_emp.col_values(1))
+
+@st.cache_data(ttl=600)
+def load_login_log():
+    return sheet_log.get_all_records()  # [{'employee_id':..., 'date':...}, ...]
+
+def append_login_log(emp_id, date_str):
+    sheet_log.append_row([emp_id, date_str])
+
+# ─── 3. ฟังก์ชันตรวจล็อกอิน ────────────────────────────────────────
+def check_auth():
+    today = datetime.date.today().isoformat()
+
+    # กรณี session_state ยังเก็บสถานะล็อกอินวันนี้ไว้
+    if st.session_state.get("authenticated") and st.session_state.get("last_login") == today:
+        return True
+
+    # โหลด log มาเช็คว่ารหัสนี้เคยล็อกอินวันนี้หรือยัง
+    for entry in load_login_log():
+        if (entry["employee_id"] == st.session_state.get("emp_id")
+                and entry["date"] == today):
+            st.session_state["authenticated"] = True
+            st.session_state["last_login"]    = today
+            return True
+
+    # ยังไม่เคยล็อกอินวันนี้ → แสดงฟอร์มกรอกรหัส
+    emp_input = st.text_input("กรอกรหัสพนักงาน", key="emp_input")
+    if st.button("ล็อกอิน"):
+        if emp_input in load_employees():
+            append_login_log(emp_input, today)
+            st.session_state["emp_id"]         = emp_input
+            st.session_state["authenticated"]  = True
+            st.session_state["last_login"]     = today
+            st.experimental_rerun()  # รีโหลดหน้าใหม่ ให้กระโดดไปส่วนฟอร์มถัง
+        else:
+            st.error("รหัสพนักงานไม่ถูกต้อง")
+    return False
+
+# ─── 4. เรียกตรวจล็อกอินก่อนเข้าใช้งาน ────────────────────────────
+if not check_auth():
+    st.stop()  # หยุดแอปไว้ที่หน้าล็อกอิน
+
+# ถ้า authenticated แล้ว จึงมาฝั่งฟอร์มตรวจเช็คถัง
+st.header("ฟอร์มตรวจเช็คถังดับเพลิง")
+# … วาง st.text_input, st.selectbox ฯลฯ ต่อได้เลย …
 
 
