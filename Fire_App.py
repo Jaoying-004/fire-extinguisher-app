@@ -3,7 +3,31 @@ from oauth2client.service_account import ServiceAccountCredentials
 import pandas as pd
 import pytz
 from datetime import datetime
+from streamlit_cookies_controller import CookieController
 
+def verify_token_in_db(token):
+    """
+    ฟังก์ชันสำหรับเข้าไปเช็คในฐานข้อมูลว่า token นี้มีอยู่จริง
+    สถานะยัง active และยังไม่หมดอายุ (ยังเป็นของวันนี้) ใช่ไหม
+    """
+    # [ตัวอย่าง Logic ค้นหาใน DB]
+    # เช็คใน login_log ของคุณ ถ้าเจอ token ที่ถูกต้องและไม่หมดอายุ:
+    #     return emp_id  (ส่งรหัสพนักงานกลับไป)
+    # ถ้าไม่เจอ หรือหมดอายุแล้ว:
+    #     return None
+
+    # อันนี้โค้ดตัวอย่างแบบสมมติให้เห็นภาพ:
+    try:
+        # สมมติว่าคุณโหลดตาราง login_log ออกมาเป็น DataFrame
+        # df_log = load_login_log()
+        # matches = df_log[(df_log['token'] == token) & (df_log['status'] == 'active')]
+        # if not matches.empty:
+        #     return matches.iloc[0]['employee_id']
+        return None
+    except:
+        return None
+# 1. ประกาศตัวจัดการ Cookie (แนะนำให้ประกาศไว้ด้านบนสุดของแอป)
+controller = CookieController()
 
 # ตั้งค่าเวลาไทยไว้ใช้ทั้งแอป
 tz = pytz.timezone('Asia/Bangkok')
@@ -29,6 +53,31 @@ except Exception as e:
     st.stop()
 #-------------------------------------------------------------------------------------------------------------------
 #โฟลวหน้าล็อคอิน
+cookie_token = controller.get("emp_auth_token")
+
+# ใช้ Session State ของ Streamlit ร่วมด้วยเพื่อความเสถียรในการเปลี่ยนหน้าจอ
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+if "emp_id" not in st.session_state:
+    st.session_state.emp_id = None
+
+# FLOW ที่ 1: ตรวจสอบ Auto-Login (รันตอนเปิดเว็บ)
+# ==========================================
+if cookie_token and not st.session_state.logged_in:
+    # นำ cookie_token ที่ได้ ไปส่งเช็คกับฟังก์ชันหลังบ้านของคุณ
+    # สมมติว่าฟังก์ชันของคุณชื่อ verify_token_in_db(token) ซึ่งจะคืนค่า employee_id กลับมาถ้าผ่าน
+    valid_employee_id = verify_token_in_db(cookie_token)
+    if valid_employee_id:
+        # ถ้า Token ผ่าน -> ปรับ State ให้เข้าใช้งานได้เลย
+        st.session_state.logged_in = True
+        st.session_state.emp_id = valid_employee_id
+    else:
+        # ถ้า Token หมดอายุ/ไม่ถูกต้อง -> สั่งลบ Cookie บนเบราว์เซอร์ทิ้งทันที
+        controller.remove("emp_auth_token")
+
+import secrets
+def generate_token():
+    return secrets.token_urlsafe(32)
 wb = client.open_by_key(st.secrets["sheet_id"])
 sheet_emp = wb.worksheet("employee_list")   # คอลัมน์ A: รหัสพนักงาน
 sheet_log = wb.worksheet("login_log")       # หัวตาราง: employee_id | date
@@ -72,8 +121,9 @@ def check_auth():
 
     if st.button("ล็อกอิน"):
         if emp_input in load_employees():
-            append_login_log(emp_input, today)
+            new_token = append_login_log(emp_input, today)
             load_login_log.clear()   # กัน cache ค้าง
+            controller.set("emp_auth_token", new_token)
             st.session_state["emp_id"] = emp_input
             st.session_state["authenticated"] = True
             st.session_state["last_login"] = today
