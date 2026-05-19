@@ -463,7 +463,7 @@ def check_auth():
 
     # โหลด log มาเช็คว่ารหัสนี้เคยล็อกอินวันนี้หรือยัง
     for entry in load_login_log():
-        if (entry["employee_id"] == st.session_state.get("emp_id")
+        if (entry["employee_ID"] == st.session_state.get("emp_id")
                 and entry["date"] == today):
             st.session_state["authenticated"] = True
             st.session_state["last_login"]    = today
