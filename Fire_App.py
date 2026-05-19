@@ -263,7 +263,7 @@ url_type = query_params.get("type", "ถังดับเพลิง") # ค�
 
 device_type = st.sidebar.selectbox(
     "เลือกประเภทอุปกรณ์ที่ต้องการตรวจ",
-    ["ถังดับเพลิง", "Fire Alarm"],
+    ["ถังดับเพลิง", "Emergency Equipment"],
     index=0 if url_type == "ถังดับเพลิง" else 1
 )
 
