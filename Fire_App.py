@@ -44,7 +44,9 @@ if "last_login" not in st.session_state:
 # โหลดข้อมูลจาก Sheets
 @st.cache_data(ttl=600)
 def load_employees():
-    return set(sheet_emp.col_values(1))
+    values = sheet_emp.col_values(1)
+    cleaned = [str(v).strip() for v in values[1:] if str(v).strip()]
+    return set(cleaned)
 
 @st.cache_data(ttl=600)
 def load_login_log():
@@ -66,7 +68,7 @@ def check_auth():
 
     # แสดงหน้า login
     st.title("เข้าสู่ระบบ")
-    emp_input = st.text_input("กรอกรหัสพนักงาน", key="emp_input")
+    emp_input = st.text_input("กรอกรหัสพนักงาน", key="emp_input").strip()
 
     if st.button("ล็อกอิน"):
         if emp_input in load_employees():
