@@ -1,5 +1,5 @@
 import gspread
-from google.oauth2.service_account import Credentials
+from oauth2client.service_account import ServiceAccountCredentials
 import pandas as pd
 import pytz
 from datetime import datetime
@@ -11,77 +11,6 @@ def get_now():
     return datetime.now(tz)
 # เช็คว่าไฟล์กุญแจอยู่ในโฟลเดอร์ credentials และชื่อ key.json หรือยัง
 import streamlit as st
-#-----------------------------------------------------------------------------------------------------------------------
-#หน้าล็อคอิน
-st.set_page_config(
-    page_title="ระบบตรวจเช็คถังดับเพลิง",
-    page_icon="🧯",
-    layout="wide"
-)
-
-# -----------------------------
-# CSS
-# -----------------------------
-st.markdown("""
-<style>
-/* ซ่อนเมนู streamlit ถ้าต้องการ */
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
-header {visibility: hidden;}
-
-/* พื้นหลังหลัก */
-.stApp {
-    background: linear-gradient(135deg, #f8fbff 0%, #eef4ff 100%);
-}
-
-/* กล่อง login */
-.login-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 80vh;
-}
-
-.login-card {
-    background: white;
-    padding: 2.2rem 2rem 1.8rem 2rem;
-    border-radius: 22px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.10);
-    width: 100%;
-    max-width: 460px;
-    border: 1px solid #e9eef7;
-}
-
-.login-title {
-    text-align: center;
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: #1f3b73;
-    margin-bottom: 0.2rem;
-}
-
-.login-subtitle {
-    text-align: center;
-    color: #6b7280;
-    font-size: 0.95rem;
-    margin-bottom: 1.5rem;
-}
-
-.login-icon {
-    text-align: center;
-    font-size: 3rem;
-    margin-bottom: 0.4rem;
-}
-
-.login-note {
-    text-align: center;
-    font-size: 0.88rem;
-    color: #6b7280;
-    margin-top: 0.8rem;
-}
-</style>
-""", unsafe_allow_html=True)
-
 # --- 1. การดึงความลับ (Secrets) ---
 try:
     # ดึงค่าจาก Secrets ออกมาใช้ตรงๆ
@@ -92,146 +21,81 @@ try:
         "https://www.googleapis.com/auth/drive",
         "https://www.googleapis.com/auth/drive.file"
     ]
+
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(key_data, scope)
+    client = gspread.authorize(creds)
 except Exception as e:
     st.error(f"เกิดข้อผิดพลาดในการเชื่อมต่อกุญแจ: {e}")
     st.stop()
+#-------------------------------------------------------------------------------------------------------------------
+#โฟลวหน้าล็อคอิน
+wb = client.open_by_key(st.secrets["sheet_id"])
+sheet_emp = wb.worksheet("employee_list")   # คอลัมน์ A: รหัสพนักงาน
+sheet_log = wb.worksheet("login_log")       # หัวตาราง: employee_id | date
 
-@st.cache_resource
-def get_gspread_client():
-    creds = Credentials.from_service_account_info(
-        st.secrets["gcp_service_account"],
-        scopes=scope
-    )
-    return gspread.authorize(creds)
+# ตั้งค่าเริ่มต้น session
+if "authenticated" not in st.session_state:
+    st.session_state["authenticated"] = False
+if "emp_id" not in st.session_state:
+    st.session_state["emp_id"] = ""
+if "last_login" not in st.session_state:
+    st.session_state["last_login"] = ""
 
+# โหลดข้อมูลจาก Sheets
+@st.cache_data(ttl=600)
+def load_employees():
+    return set(sheet_emp.col_values(1))
 
-client = get_gspread_client()
-workbook = client.open_by_key(st.secrets["sheet_id"])
+@st.cache_data(ttl=600)
+def load_login_log():
+    return sheet_log.get_all_records()
 
-sheet_emp = workbook.worksheet("employee_list")
-sheet_log = workbook.worksheet("login_log")
+def append_login_log(emp_id, date_str):
+    sheet_log.append_row([emp_id, date_str])
 
-tz = pytz.timezone("Asia/Bangkok")
-
-def get_now():
-    return datetime.now(tz)
-
-# -----------------------------
-# AUTH FUNCTIONS
-# -----------------------------
-def is_valid_employee(emp_id):
-    records = sheet_emp.get_all_records()
-    for row in records:
-        if str(row.get("employee_id", "")).strip() == str(emp_id).strip():
-            return True
-    return False
-
-def has_logged_in_today(emp_id):
-    from datetime import datetime, date
+def check_auth():
+    from datetime import date
     today = date.today().isoformat()
-    records = sheet_log.get_all_records()
-    for row in records:
-        if (
-            str(row.get("employee_id", "")).strip() == str(emp_id).strip()
-            and str(row.get("date", "")).strip() == today
-        ):
-            return True
+
+    # ถ้า session ยังล็อกอินอยู่และเป็นวันนี้
+    if (
+        st.session_state["authenticated"]
+        and st.session_state["last_login"] == today
+    ):
+        return True
+
+    # แสดงหน้า login
+    st.title("เข้าสู่ระบบ")
+    emp_input = st.text_input("กรอกรหัสพนักงาน", key="emp_input")
+
+    if st.button("ล็อกอิน"):
+        if emp_input in load_employees():
+            append_login_log(emp_input, today)
+            load_login_log.clear()   # กัน cache ค้าง
+            st.session_state["emp_id"] = emp_input
+            st.session_state["authenticated"] = True
+            st.session_state["last_login"] = today
+            st.rerun()
+        else:
+            st.error("รหัสพนักงานไม่ถูกต้อง")
+
     return False
 
-def save_login_log(emp_id):
-    now = get_now()
-    sheet_log.append_row([
-        str(emp_id).strip(),
-        now.date().isoformat(),
-        now.strftime("%H:%M:%S")
-    ])
+if not check_auth():
+    st.stop()
 
-def check_auth_status():
-    if "authenticated" not in st.session_state:
-        st.session_state.authenticated = False
+st.header("ฟอร์มตรวจเช็คถังดับเพลิง")
 
-    if "emp_id" not in st.session_state:
-        st.session_state.emp_id = ""
-
-    return st.session_state.authenticated
-
-# -----------------------------
-# LOGIN PAGE
-# -----------------------------
-def show_login_page():
-    col1, col2, col3 = st.columns([1, 1.2, 1])
-
-    with col2:
-        st.markdown('<div class="login-wrapper">', unsafe_allow_html=True)
-        st.markdown("""
-            <div class="login-card">
-                <div class="login-icon">🧯</div>
-                <div class="login-title">ระบบตรวจเช็คถังดับเพลิง</div>
-                <div class="login-subtitle">
-                    กรุณาเข้าสู่ระบบด้วยรหัสพนักงานก่อนใช้งาน
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
-
-        with st.form("login_form", clear_on_submit=False):
-            emp_id = st.text_input(
-                "รหัสพนักงาน",
-                placeholder="กรอกรหัสพนักงาน",
-                key="login_emp_id"
-            )
-            submitted = st.form_submit_button("เข้าสู่ระบบ", use_container_width=True)
-
-        if submitted:
-            emp_id = emp_id.strip()
-
-            if not emp_id:
-                st.warning("กรุณากรอกรหัสพนักงาน")
-            elif not is_valid_employee(emp_id):
-                st.error("ไม่พบรหัสพนักงานนี้ในระบบ")
-            else:
-                st.session_state.authenticated = True
-                st.session_state.emp_id = emp_id
-
-                if not has_logged_in_today(emp_id):
-                    save_login_log(emp_id)
-
-                st.success("เข้าสู่ระบบสำเร็จ")
-                st.rerun()
-
-        st.markdown(
-            '<div class="login-note">เข้าใช้งานได้วันละ 1 ครั้งต่ออุปกรณ์/เบราว์เซอร์</div>',
-            unsafe_allow_html=True
-        )
-        st.markdown('</div>', unsafe_allow_html=True)
-
-
-
-
-
-
-
-
-
-
-
-
-
-# --- 2. ดึงข้อมูลจาก Google Sheets ---
+# --- 2. ดึงข้อมูลจาก Google Sheets --------------------------------------------------------------------------------------
 sheet_name = "FireExtinguisher_MasterList_2026"
 spreadsheet = client.open(sheet_name)
 # บรรทัดนี้คือการเปิดแท็บหลัก
 sheet = client.open(sheet_name).worksheet("FireExtinguisher_Data")
-
-# *** เพิ่มบรรทัดนี้ลงไปเพื่อให้โปรแกรมรู้จัก log_sheet ***
 log_sheet = client.open(sheet_name).worksheet("Inspection_Log")
-
 # --- 3. หน้าตาแอป (UI) และ Tabs ---
 st.title("🔥 FireExtinguisher")
-
 tab1, tab2, tab3, tab4 = st.tabs(["📅 รายการตรวจวันนี้", "📋 FireExtinguisher_Data", "🚨 Emergency_Safety_Equipment", "🔧 ติดตามการแก้ไข"])
-
 #ดึงข้อมูลจากชีตมาโชว์
-
 with tab1:
     st.subheader("รายการที่ตรวจเช็คแล้ววันนี้")
         # 1. ดึงข้อมูลทั้งหมดจากแท็บ Inspection_Log
@@ -258,7 +122,6 @@ with tab1:
             st.info(f"📌 ยังไม่มีข้อมูลการตรวจบันทึกในวันที่ {today_str}")
     else:
         st.info("ยังไม่มีข้อมูลการตรวจบันทึกในแท็บ Log")
-
 
 with tab2:
     st.subheader("📋 FireExtinguisher_Data")
@@ -337,8 +200,7 @@ with tab4:
 if st.button("🔄 อัปเดตข้อมูลล่าสุด"):
     st.rerun()
 
-
-# --- 4. ส่วนของแบบฟอร์มการตรวจเช็ค (เพิ่มต่อท้าย) ---
+# --- 4. ส่วนของแบบฟอร์มการตรวจเช็ค (เพิ่มต่อท้าย) ---------------------------------------------------------------------------
 st.sidebar.header("📝 แบบฟอร์มบันทึกการตรวจ")
 # ฟอร์มกรอกข้อมูล
 # 1. เลือกประเภทอุปกรณ์ (ถังดับเพลิง / Fire Alarm)
@@ -366,11 +228,7 @@ def get_device_options(sheet_name):
     except:
         return []
 
-
-
-
-
-#-----------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------------------------
 query_params = st.query_params
 target_id = query_params.get("tank_id") # ดึงค่ารหัสอุปกรณ์จาก URL
 default_index = 0
@@ -478,8 +336,7 @@ with st.sidebar.form("check_form", clear_on_submit=True):
         st.write(f"🔍 ประเภทอุปกรณ์: **{device_sub_type}**")
         status = st.radio("สถานะโดยรวม", ["ปกติ", "ไม่ปกติ"])
 
-
-    # --- ส่วนแนบรูป (บังคับให้แนบเพื่อยืนยันว่าไปจริง) ---
+    # --- ส่วนแนบรูป (บังคับให้แนบเพื่อยืนยันว่าไปจริง) ---------------------------------------------------------------------------
     img_file = st.file_uploader("📸 แนบรูปถ่ายขณะตรวจเช็ค", type=['jpg', 'png', 'jpeg'])
     status = st.radio("สถานะโดยรวม", ["ปกติ", "ไม่ปกติ (ต้องแก้ไข)"])
     # หมายเหตุ (กรณีมีข้อที่ไม่ปกติ)
@@ -563,7 +420,6 @@ def send_line_notify(message):
         # ส่งข้อมูล
     requests.post(url, headers=headers, json=data)
 
-
 import pandas as pd
 if st.button("📊 ส่งสรุปรายงานประจำเดือนเข้า LINE"):
     all_data = log_sheet.get_all_records()
@@ -617,60 +473,5 @@ if st.button("📊 ส่งสรุปรายงานประจำเด�
             st.warning("ไม่พบข้อมูลของเดือนปัจจุบันในชีต")
 
 #--------------------------------------------------------------------------------------------------------------------
-#โฟลวหน้าล็อคอิน
-
-wb = client.open_by_key(st.secrets["sheet_id"])
-sheet_emp  = wb.worksheet("employee_list")   # คอลัมน์ A: รหัสพนักงาน
-sheet_log  = wb.worksheet("login_log")       # คอลัมน์ A: รหัส, B: วันที่ (YYYY-MM-DD)
-
-# ─── 2. โหลดข้อมูลจาก Sheets (cache ลดโควต้า) ────────────────────
-@st.cache_data(ttl=600)
-def load_employees():
-    return set(sheet_emp.col_values(1))
-
-@st.cache_data(ttl=600)
-def load_login_log():
-    return sheet_log.get_all_records()  # [{'employee_id':..., 'date':...}, ...]
-
-def append_login_log(emp_id, date_str):
-    sheet_log.append_row([emp_id, date_str])
-
-# ─── 3. ฟังก์ชันตรวจล็อกอิน ────────────────────────────────────────
-def check_auth():
-    from datetime import datetime, date
-    today = date.today().isoformat()
-
-    # กรณี session_state ยังเก็บสถานะล็อกอินวันนี้ไว้
-    if st.session_state.get("authenticated") and st.session_state.get("last_login") == today:
-        return True
-
-    # โหลด log มาเช็คว่ารหัสนี้เคยล็อกอินวันนี้หรือยัง
-    for entry in load_login_log():
-        if (entry["employee_ID"] == st.session_state.get("emp_id")
-                and entry["date"] == today):
-            st.session_state["authenticated"] = True
-            st.session_state["last_login"]    = today
-            return True
-
-    # ยังไม่เคยล็อกอินวันนี้ → แสดงฟอร์มกรอกรหัส
-    emp_input = st.text_input("กรอกรหัสพนักงาน", key="emp_input")
-    if st.button("ล็อกอิน"):
-        if emp_input in load_employees():
-            append_login_log(emp_input, today)
-            st.session_state["emp_id"]         = emp_input
-            st.session_state["authenticated"]  = True
-            st.session_state["last_login"]     = today
-            st.experimental_rerun()  # รีโหลดหน้าใหม่ ให้กระโดดไปส่วนฟอร์มถัง
-        else:
-            st.error("รหัสพนักงานไม่ถูกต้อง")
-    return False
-
-# ─── 4. เรียกตรวจล็อกอินก่อนเข้าใช้งาน ────────────────────────────
-if not check_auth():
-    st.stop()  # หยุดแอปไว้ที่หน้าล็อกอิน
-
-# ถ้า authenticated แล้ว จึงมาฝั่งฟอร์มตรวจเช็คถัง
-st.header("ฟอร์มตรวจเช็คถังดับเพลิง")
-# … วาง st.text_input, st.selectbox ฯลฯ ต่อได้เลย …
 
 
