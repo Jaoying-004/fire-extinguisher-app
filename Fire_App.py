@@ -383,8 +383,8 @@ with st.sidebar.form("check_form", clear_on_submit=True):
             q3 = st.radio("3. หัวฉีดไม่มีน้ำแข็งเกาะ/ไม่อุดตัน)", ["ใช่", "ไม่ใช่"], key="chk_co2_3")
             q4 = st.radio("4. ระยะรอบถังไม่มีสิ่งกีดขวาง เข้าใข้งานถังได้สะดวก", ["ใช่", "ไม่ใช่"], key="chk_co2_4")
 
-    elif device_type == "Fire Alarm":
-        st.info("🚨 ตรวจระบบ: Fire Alarm")
+    elif device_type == "Emergency Equipment":
+        st.info("🚨 ตรวจระบบ: Emergency Equipment")
         st.write(f"🔍 ประเภทอุปกรณ์: **{device_sub_type}**")
         status = st.radio("สถานะโดยรวม", ["ปกติ", "ไม่ปกติ"])
 
@@ -443,10 +443,18 @@ if submit_button:
                 st.success("✅ บันทึกข้อมูลเรียบร้อย")
             # 3. อัปเดตตารางหลัก (Master List)
                 cell = sheet.find(selected_device)
-                sheet.update_cell(cell.row, 4, now_str)  # อัปเดตวันที่
-                sheet.update_cell(cell.row, 5, status)  # อัปเดตสถานะ
-                st.sidebar.success(f"✅ บันทึกข้อมูลและรูปภาพถัง {selected_device} เรียบร้อย!")
-                st.rerun()
+                if cell is not None:
+                    # 💡 ปรับเลขคอลัมน์ใหม่ให้ตรงตามหน้าแผ่นงานจริงเป๊ะๆ ครับ
+                    # อัปเดตช่อง Status -> ให้ลงคอลัมน์ E (คอลัมน์ที่ 5)
+                    sheet.update_cell(cell.row, 5, status)
+
+                    # อัปเดตช่อง Last Inspected -> ให้ลงคอลัมน์ F (คอลัมน์ที่ 6)
+                    sheet.update_cell(cell.row, 6, now_str)
+
+                    # อัปเดตช่อง ผู้ตรวจ -> ให้ลงคอลัมน์ G (คอลัมน์ที่ 7)
+                    sheet.update_cell(cell.row, 7, inspector)
+                    st.sidebar.success(f"✅ บันทึกข้อมูลและรูปภาพถัง {selected_device} เรียบร้อย!")
+                    st.rerun()
     except Exception as e:
         st.sidebar.error(f"❌ เกิดข้อผิดพลาดในการบันทึก: {e}")
 
