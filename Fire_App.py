@@ -279,8 +279,8 @@ if submit_button:
             # 2. บันทึกลง Log Sheet (ใช้ now และ image_link ได้แล้ว)
             new_log_entry = [
                 now_str,  # คอลัมน์ 1: วันเวลาที่ตรวจ
-                selected_device,  # คอลัมน์ 2: รหัสอุปกรณ์ (ID)
                 device_sub_type,  # คอลัมน์ 3: ประเภทอุปกรณ์ (Type) 💡 เพิ่มตัวนี้เข้ามาแล้วครับ
+                selected_device,  # คอลัมน์ 2: รหัสอุปกรณ์ (ID)
                 inspector,  # คอลัมน์ 4: ชื่อผู้ตรวจ
                 status,  # คอลัมน์ 5: สถานะโดยรวม
                 remarks,  # คอลัมน์ 6: หมายเหตุ
