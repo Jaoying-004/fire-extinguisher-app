@@ -92,9 +92,6 @@ try:
         "https://www.googleapis.com/auth/drive",
         "https://www.googleapis.com/auth/drive.file"
     ]
-
-    creds = Credentials.from_json_keyfile_dict(key_data, scope)
-    client = gspread.authorize(creds)
 except Exception as e:
     st.error(f"เกิดข้อผิดพลาดในการเชื่อมต่อกุญแจ: {e}")
     st.stop()
@@ -106,6 +103,7 @@ def get_gspread_client():
         scopes=scope
     )
     return gspread.authorize(creds)
+
 
 client = get_gspread_client()
 workbook = client.open_by_key(st.secrets["sheet_id"])
