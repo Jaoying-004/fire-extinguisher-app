@@ -93,69 +93,45 @@ with tab3:
     st.subheader("🚨 Emergency_Safety_Equipment")
 
     try:
-        # 1. สั่งเปิดหน้าแท็บฐานข้อมูลหลักของระบบ Fire Alarm
-        fa_sheet = client.open(sheet_name).worksheet("Emergency_Safety_Equipment")
-        fa_master_rows = fa_sheet.get_all_values()
+        inspection_sheet = client.open(sheet_name).worksheet("Inspection_Log")
+        inspection_rows = inspection_sheet.get_all_values()
 
-        if fa_master_rows:
-            # 2. แปลงเป็นตาราง DataFrame (เอาแถวที่ 1 เป็นหัวคอลัมน์)
-            df_fa_master = pd.DataFrame(fa_master_rows[1:], columns=fa_master_rows[0])
+        if inspection_rows and len(inspection_rows) > 1:
+            df_inspection = pd.DataFrame(inspection_rows[1:], columns=inspection_rows[0])
+            df_inspection = df_inspection.loc[:, df_inspection.columns != '']
 
-            # 3. ลบคอลัมน์ที่ไม่มีหัวข้อหรือคอลัมน์ว่างออก
-            df_fa_master = df_fa_master.loc[:, df_fa_master.columns != '']
+            if 'Status' in df_inspection.columns:
+                df_need_repair = df_inspection[
+                    df_inspection['Status'].str.strip() == 'ไม่ปกติ (ต้องแก้ไข)'
+                ]
 
-            # 4. แสดงผลตาราง Master ข้อมูลทั้งหมดบนหน้าจอตรงกลาง
-            st.dataframe(df_fa_master, use_container_width=True)
-        else:
-            st.warning("⚠️ ไม่พบข้อมูลในแผ่นงานฐานข้อมูล FireAlarm_Data")
+            # สถิติ
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("📋 ทั้งหมด", len(df_inspection))
+                with col2:
+                    st.metric("⚠️ ต้องแก้ไข", len(df_need_repair))
+                with col3:
+                    if len(df_inspection) > 0:
+                        percent = (len(df_need_repair) / len(df_inspection)) * 100
+                        st.metric("📊 %", f"{percent:.1f}%")
+
+                st.divider()
+
+            # ตาราง
+                if not df_need_repair.empty:
+                    st.warning(f"พบ {len(df_need_repair)} รายการ")
+                    st.dataframe(df_need_repair, use_container_width=True)
+                else:
+                    st.success("🎉 ไม่มีรายการที่ต้องแก้ไข")
 
     except Exception as e:
-        st.error(f"❌ ไม่สามารถโหลดตารางฐานข้อมูลได้เนื่องจาก: {e}")
-
-try:
-    # ดึงข้อมูลจาก Sheet "Emergency_Safety_Equipment"
-    emergency_sheet = client.open(sheet_name).worksheet("Emergency_Safety_Equipment")
-    emergency_rows = emergency_sheet.get_all_values()
-
-    if emergency_rows and len(emergency_rows) > 1:
-        # แปลงเป็น DataFrame
-        df_emergency = pd.DataFrame(emergency_rows[1:], columns=emergency_rows[0])
-
-        # ลบคอลัมน์ว่าง (ถ้ามี)
-        df_emergency = df_emergency.loc[:, df_emergency.columns != '']
-
-        # แสดงจำนวนรายการ
-        st.info(f"📊 จำนวนอุปกรณ์ทั้งหมด: **{len(df_emergency)}** รายการ")
-        # ส่วนค้นหา/กรอง (Optional)
-        col1, col2 = st.columns([2, 1])
-
-        with col1:
-            # กรองตามคอลัมน์ (ปรับให้ตรงกับชีตจริง)
-            if 'Type' in df_emergency.columns:
-                type_filter = st.multiselect(
-                    "🔽 กรองตามประเภท",
-                    options=df_emergency['Type'].unique().tolist(),
-                    default=df_emergency['Type'].unique().tolist()
-                )
-                df_emergency = df_emergency[df_emergency['Type'].isin(type_filter)]
-
-        with col2:
-            search_term = st.text_input("🔍 ค้นหา")
-            if search_term:
-                # ค้นหาทุกคอลัมน์
-                mask = df_emergency.apply(lambda row: row.astype(str).str.contains(search_term, case=False).any(),
-                                          axis=1)
-                df_emergency = df_emergency[mask]
-    else:
-        st.warning("⚠️ ไม่พบข้อมูลในแผ่นงาน Emergency_Safety_Equipment")
-except Exception as e:
-    st.error(f"❌ เกิดข้อผิดพลาด: {e}")
-    st.info("กรุณาตรวจสอบว่ามี Sheet ชื่อ 'Emergency_Safety_Equipment' ใน Google Sheets")
+        st.error(f"❌ Error: {e}")
 # เพิ่มปุ่มกด Refresh ข้อมูล
 if st.button("🔄 อัปเดตข้อมูลล่าสุด"):
     st.rerun()
 
-
+#-------------------------------------------------------------------------------------------------------------------
 # --- 4. ส่วนของแบบฟอร์มการตรวจเช็ค (เพิ่มต่อท้าย) ---
 st.sidebar.header("📝 แบบฟอร์มบันทึกการตรวจ")
 # ฟอร์มกรอกข้อมูล
