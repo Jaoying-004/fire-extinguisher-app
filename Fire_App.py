@@ -136,8 +136,6 @@ def check_auth():
 if not check_auth():
     st.stop()
 
-st.header("ฟอร์มตรวจเช็คถังดับเพลิง")
-
 # --- 2. ดึงข้อมูลจาก Google Sheets --------------------------------------------------------------------------------------
 sheet_name = "FireExtinguisher_MasterList_2026"
 spreadsheet = client.open(sheet_name)
@@ -454,6 +452,7 @@ if submit_button:
                     # อัปเดตช่อง ผู้ตรวจ -> ให้ลงคอลัมน์ G (คอลัมน์ที่ 7)
                     sheet.update_cell(cell.row, 7, inspector)
                     st.sidebar.success(f"✅ บันทึกข้อมูลและรูปภาพถัง {selected_device} เรียบร้อย!")
+                    st.query_params.clear()
                     st.rerun()
     except Exception as e:
         st.sidebar.error(f"❌ เกิดข้อผิดพลาดในการบันทึก: {e}")
