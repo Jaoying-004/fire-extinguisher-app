@@ -234,12 +234,12 @@ with tab2:
         st.warning("⚠️ ไม่พบข้อมูลในแผ่นงานฐานข้อมูล")
 
 with tab3:
+    em_sheet = spreadsheet.worksheet("Emergency_Safety_Equipment")
     df_fa_master = load_emergency_data()
     st.dataframe(df_fa_master, use_container_width=True)
     st.subheader("🚨 Emergency_Safety_Equipment")
 
     try:
-        em_sheet = spreadsheet.worksheet("Emergency_Safety_Equipment")
         # 1. สั่งเปิดหน้าแท็บฐานข้อมูลหลักของระบบ Fire Alarm
         fa_sheet = em_sheet
         fa_master_rows = fa_sheet.get_all_values()
