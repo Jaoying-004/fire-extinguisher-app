@@ -137,8 +137,8 @@ if not check_auth():
     st.stop()
 
 # --- 2. ดึงข้อมูลจาก Google Sheets --------------------------------------------------------------------------------------
-sheet_name = "FireExtinguisher_MasterList_2026"
-spreadsheet = client.open("Emergency_Safety_Equipment")
+sheet_name = "Emergency_Safety_Equipment"
+spreadsheet = client.open(sheet_name)
 # บรรทัดนี้คือการเปิดแท็บหลัก
 sheet = client.open(sheet_name).worksheet("FireExtinguisher_Data")
 log_sheet = client.open(sheet_name).worksheet("Inspection_Log")
