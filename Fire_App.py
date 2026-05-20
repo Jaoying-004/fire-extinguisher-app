@@ -185,7 +185,7 @@ spreadsheet = client.open(sheet_name)
 # บรรทัดนี้คือการเปิดแท็บหลัก
 sheet = spreadsheet.worksheet("FireExtinguisher_Data")
 log_sheet = spreadsheet.worksheet("Inspection_Log")
-em_sheet = spreadsheet.worksheet("Emergency_Safety_Equipment")
+
 # --- 3. หน้าตาแอป (UI) และ Tabs ---
 st.title("🔥 FireExtinguisher")
 tab1, tab2, tab3, tab4 = st.tabs(["📅 รายการตรวจวันนี้", "📋 FireExtinguisher_Data", "🚨 Emergency_Safety_Equipment", "🔧 ติดตามการแก้ไข"])
@@ -239,6 +239,7 @@ with tab3:
     st.subheader("🚨 Emergency_Safety_Equipment")
 
     try:
+        em_sheet = spreadsheet.worksheet("Emergency_Safety_Equipment")
         # 1. สั่งเปิดหน้าแท็บฐานข้อมูลหลักของระบบ Fire Alarm
         fa_sheet = em_sheet
         fa_master_rows = fa_sheet.get_all_values()
