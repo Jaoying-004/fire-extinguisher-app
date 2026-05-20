@@ -28,7 +28,7 @@ def get_cookie_safe(name):
     """ดึงค่าคุกกี้อย่างปลอดภัย ป้องกันปัญหาระบบพังกลางคัน"""
     try:
         if controller is not None:
-            val = controller.get(name)
+            val = get_cookie_safe(name)
             return val
     except Exception:
         pass
@@ -38,7 +38,7 @@ def set_cookie_safe(name, value, max_age_seconds):
     """บันทึกค่าคุกกี้อย่างปลอดภัย"""
     try:
         if controller is not None:
-            controller.set(name, value, max_age=max_age_seconds)
+            set_cookie_safe(name, value, max_age=max_age_seconds)
     except Exception:
         pass
 
@@ -158,7 +158,8 @@ except Exception as e:
     st.stop()
 #-------------------------------------------------------------------------------------------------------------------
 #โฟลวหน้าล็อคอิน
-cookie_token = controller.get("emp_auth_token")
+
+cookie_token = get_cookie_safe("emp_auth_token")
 
 SPREADSHEET_ID = "1M2kmH7RAK-LCd3My2HeuhYhBbVq6OQEgF8bL0zLYLwU"  # <-- เปลี่ยนตรงนี้เป็นไอดีชีตจริงของคุณ
 spreadsheet = client.open_by_key(SPREADSHEET_ID)
@@ -275,7 +276,7 @@ def check_auth():
             save_session_to_sheet(emp_input, new_token, expiry_date)
 
             # 1. ยิงคำสั่งบันทึกคุกกี้ลงเครื่องเบราว์เซอร์
-            controller.set("session_token", new_token)
+            set_cookie_safe("session_token", new_token)
 
             st.session_state["authenticated"] = True
             st.session_state["emp_id"] = emp_input
