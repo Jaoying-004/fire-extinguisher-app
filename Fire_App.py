@@ -44,33 +44,26 @@ import secrets
 def generate_token():
     return secrets.token_urlsafe(32)
 
-def verify_token_in_db(token):
-    """
-    ตรวจสอบ Token ในหน้า Auth_Sessions ของ Google Sheet
-    """
+
+def verify_token_in_sheet(token):
     try:
-        # 1. ค้นหา Token ในแผ่นงาน
-        # สมมติคอลัมน์ A: Session_Token, B: Employee_ID, C: Expires_At
+        # สมมติระบุว่า Sheet Auth_Sessions อยู่ที่ worksheet(1)
+        # ค้นหาแถวที่มี token นี้
         cell = sheet_sessions.find(token)
-        if not cell:
-            return None
+        if cell:
+            row_data = sheet_sessions.row_values(cell.row)
+            # ตัวอย่าง: [emp_id, token, expires_at]
+            emp_id = row_data[0]
+            expires_str = row_data[2]
 
-        # ดึงแถวข้อมูลที่พบ
-        row_values = sheet_sessions.row_values(cell.row)
-        emp_id = row_values[1]  # คอลัมน์ B (Employee_ID)
-        expires_str = row_values[2]  # คอลัมน์ C (Expires_At)
+            # แปลงวันเวลาเพื่อเปรียบเทียบ
+            expires_at = datetime.strptime(expires_str, "%Y-%m-%d %H:%M:%S")
 
-        # 2. ตรวจสอบวันหมดอายุ (Expiry Date)
-        expires_at = datetime.strptime(expires_str, "%Y-%m-%d %H:%M:%S")
-        if datetime.now() > expires_at:
-            # ลบ Token ที่หมดอายุออกจาก Google Sheet ทันทีเพื่อความสะอาด
-            sheet_sessions.delete_rows(cell.row)
-            return None
-
-        return emp_id
+            if datetime.now() < expires_at:
+                return emp_id  # Token ยังใช้งานได้
     except Exception as e:
-        st.error(f"เกิดข้อผิดพลาดในการตรวจสอบ Session: {e}")
-        return None
+        st.write(f"เกิดข้อผิดพลาดในการตรวจสอบ Session: {e}")
+    return None
 
 def save_session_to_db(token, emp_id):
     """
@@ -103,7 +96,7 @@ if "emp_id" not in st.session_state:
 cookie_token = controller.get(COOKIE_NAME)
 
 if cookie_token and not st.session_state.logged_in:
-    valid_employee_id = verify_token_in_db(cookie_token)
+    valid_employee_id = verify_token_in_sheet(cookie_token)
     if valid_employee_id:
         st.session_state.logged_in = True
         st.session_state.emp_id = valid_employee_id
