@@ -9,17 +9,6 @@ import time
 import uuid
 controller = CookieController()
 
-_ = controller.get_all()
-
-# 2. ป้องกัน TypeError หากค่าภายในตัวแปรคุกกี้ยังถูกบันทึกเป็น None ในระบบ
-saved_token = None
-try:
-    # ตรวจสอบว่า controller และค่าคุกกี้ภายในมีอยู่จริง ไม่ใช่ None
-    if controller and hasattr(controller, '_CookieController__cookies') and controller._CookieController__cookies is not None:
-        saved_token = controller.get("session_token")
-except Exception as e:
-    # หากเกิดข้อผิดพลาดในการโหลดในรอบแรกสุด ให้ปล่อยผ่านโดยกำหนดค่าเป็น None ชั่วคราว
-    saved_token = None
 
 # 2. ตั้งค่าเฉพาะสถานะควบคุม (State)
 if "authenticated" not in st.session_state:
@@ -35,9 +24,15 @@ if not st.session_state["cookie_initialized"]:
     st.session_state["cookie_initialized"] = True
     st.rerun()  # สั่งประมวลผลหน้าใหม่อีกครั้งทันทีพร้อมค่า Cookie ที่โหลดเสร็จแล้ว
 
-# อ่านค่า Token จาก Cookie
-saved_token = controller.get("session_token")
-
+saved_token = None
+try:
+    # ตรวจสอบก่อนว่าตัวแปร controller มีความพร้อมและมีข้อมูลอยู่จริง
+    if controller is not None:
+        # ใช้ดึงค่า "session_token" ตรงๆ ภายใต้ try-except ป้องกัน AttributeError/TypeError
+        saved_token = controller.get("session_token")
+except Exception as e:
+    # หากเกิดความผิดพลาดในแอปพลิเคชันรอบแรกสุด ให้ข้ามข้อผิดพลาดไปก่อน
+    saved_token = None
 
 
 
