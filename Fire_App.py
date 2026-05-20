@@ -175,30 +175,30 @@ def check_auth():
             new_token = str(uuid.uuid4())
             expiry_date = (datetime.now() + timedelta(days=SESSION_EXPIRY_DAYS)).strftime("%Y-%m-%d %H:%M:%S")
 
-            # 1. จัดเก็บบันทึกประวัติเซสชันและความปลอดภัยลงคลาวด์ Google Sheets
+            # 1. จัดเก็บบันทึกประวัติเซสชันลง Google Sheets
             save_session_to_sheet(emp_input, new_token, expiry_date)
-            # บันทึกประวัติการใช้กระดานงาน
-            sheet_log.append_row([emp_input, datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+            try:
+                sheet_log.append_row([emp_input, datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+            except Exception:
+                pass
 
-            # 2. บันทึกโทเค่นคุกกี้ลงบราวเซอร์เป้าหมายอย่างปลอดภัย
+            # 2. ✅ แก้ไข: บันทึกโทเค่นคุกกี้โดยใช้ตัวแปร COOKIE_NAME ป้องกันคีย์ชื่อไม่ตรงกัน
             set_cookie_safe(COOKIE_NAME, new_token, max_age_seconds=SESSION_EXPIRY_DAYS * 24 * 3600)
 
-            # 3. เซ็ตค่าหน่วยความจำชั่วคราวหลัก
+            # 3. อัปเดตสถานะหน่วยความจำ Streamlit
             st.session_state["authenticated"] = True
             st.session_state["emp_id"] = emp_input
             st.session_state["last_login"] = today
 
-            st.success("✅ เข้าสู่ระบบสำเร็จ")
+            st.success("✅ เข้าสู่ระบบสำเร็จ กำลังเตรียมเชื่อมต่อระบบ...")
+
+            # 4. ✅ หน่วงเวลาสั้นๆ (0.5 วินาที) เพื่อให้บราวเซอร์ดำเนินการเขียนคุกกี้ลง Disk ก่อนสั่งรีรันหน้าจอ
+            time.sleep(0.5)
             st.rerun()
         else:
             st.error("❌ ไม่พบรหัสพนักงานในฐานข้อมูลระบบ ตรวจเช็คใหม่อีกครั้ง")
 
     return False
-
-
-# ตรวจสอบสิทธิ์ของหน้าจอ หากไม่ผ่านให้หยุดการทำงานในทันทีตรงนี้
-if not check_auth():
-    st.stop()
 
 # ส่วนที่ 6: พื้นที่โปรแกรมจำลองหน้าจอหลักของการทำงาน (Main Program Interface)==================================================
 
