@@ -2,31 +2,11 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import pandas as pd
 import pytz
-from datetime import datetime
+from datetime import datetime, timedelta
 from streamlit_cookies_controller import CookieController
 
 
-def verify_token_in_db(token):
-    """
-    ฟังก์ชันสำหรับเข้าไปเช็คในฐานข้อมูลว่า token นี้มีอยู่จริง
-    สถานะยัง active และยังไม่หมดอายุ (ยังเป็นของวันนี้) ใช่ไหม
-    """
-    # [ตัวอย่าง Logic ค้นหาใน DB]
-    # เช็คใน login_log ของคุณ ถ้าเจอ token ที่ถูกต้องและไม่หมดอายุ:
-    #     return emp_id  (ส่งรหัสพนักงานกลับไป)
-    # ถ้าไม่เจอ หรือหมดอายุแล้ว:
-    #     return None
 
-    # อันนี้โค้ดตัวอย่างแบบสมมติให้เห็นภาพ:
-    try:
-        # สมมติว่าคุณโหลดตาราง login_log ออกมาเป็น DataFrame
-        # df_log = load_login_log()
-        # matches = df_log[(df_log['token'] == token) & (df_log['status'] == 'active')]
-        # if not matches.empty:
-        #     return matches.iloc[0]['employee_id']
-        return None
-    except:
-        return None
 # 1. ประกาศตัวจัดการ Cookie (แนะนำให้ประกาศไว้ด้านบนสุดของแอป)
 controller = CookieController()
 
@@ -55,33 +35,119 @@ except Exception as e:
 #-------------------------------------------------------------------------------------------------------------------
 #โฟลวหน้าล็อคอิน
 cookie_token = controller.get("emp_auth_token")
+SESSION_EXPIRY_DAYS = 1
+SPREADSHEET_ID = "1M2kmH7RAK-LCd3My2HeuhYhBbVq6OQEgF8bL0zLYLwU"  # <-- เปลี่ยนตรงนี้เป็นไอดีชีตจริงของคุณ
+spreadsheet = client.open_by_key(SPREADSHEET_ID)
+sheet_sessions  = spreadsheet.worksheet("Auth_Sessions")
+COOKIE_NAME = "emp_auth_token"
+import secrets
+def generate_token():
+    return secrets.token_urlsafe(32)
 
-# ใช้ Session State ของ Streamlit ร่วมด้วยเพื่อความเสถียรในการเปลี่ยนหน้าจอ
+def verify_token_in_db(token):
+    """
+    ตรวจสอบ Token ในหน้า Auth_Sessions ของ Google Sheet
+    """
+    try:
+        # 1. ค้นหา Token ในแผ่นงาน
+        # สมมติคอลัมน์ A: Session_Token, B: Employee_ID, C: Expires_At
+        cell = sheet_sessions.find(token)
+        if not cell:
+            return None
+
+        # ดึงแถวข้อมูลที่พบ
+        row_values = sheet_sessions.row_values(cell.row)
+        emp_id = row_values[1]  # คอลัมน์ B (Employee_ID)
+        expires_str = row_values[2]  # คอลัมน์ C (Expires_At)
+
+        # 2. ตรวจสอบวันหมดอายุ (Expiry Date)
+        expires_at = datetime.strptime(expires_str, "%Y-%m-%d %H:%M:%S")
+        if datetime.now() > expires_at:
+            # ลบ Token ที่หมดอายุออกจาก Google Sheet ทันทีเพื่อความสะอาด
+            sheet_sessions.delete_rows(cell.row)
+            return None
+
+        return emp_id
+    except Exception as e:
+        st.error(f"เกิดข้อผิดพลาดในการตรวจสอบ Session: {e}")
+        return None
+
+def save_session_to_db(token, emp_id):
+    """
+    บันทึก Session ลงใน Google Sheet
+    """
+    expires_at = (datetime.now() + timedelta(days=SESSION_EXPIRY_DAYS)).strftime("%Y-%m-%d %H:%M:%S")
+    # บันทึกเป็นแถวใหม่ [Token, Employee_ID, วันหมดอายุ]
+    sheet_sessions.append_row([token, emp_id, expires_at])
+
+def revoke_token_in_db(token):
+    """
+    ลบ Session ออกเมื่อผู้ใช้ Logout
+    """
+    try:
+        cell = sheet_sessions.find(token)
+        if cell:
+            sheet_sessions.delete_rows(cell.row)
+    except Exception:
+        pass
+
+
+
+# FLOW ที่ 1: ตรวจสอบ Auto-Login (รันตอนเปิดเว็บ)
+# ==========================================
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "emp_id" not in st.session_state:
     st.session_state.emp_id = None
 
-# FLOW ที่ 1: ตรวจสอบ Auto-Login (รันตอนเปิดเว็บ)
-# ==========================================
+cookie_token = controller.get(COOKIE_NAME)
+
 if cookie_token and not st.session_state.logged_in:
-    # นำ cookie_token ที่ได้ ไปส่งเช็คกับฟังก์ชันหลังบ้านของคุณ
-    # สมมติว่าฟังก์ชันของคุณชื่อ verify_token_in_db(token) ซึ่งจะคืนค่า employee_id กลับมาถ้าผ่าน
     valid_employee_id = verify_token_in_db(cookie_token)
     if valid_employee_id:
-        # ถ้า Token ผ่าน -> ปรับ State ให้เข้าใช้งานได้เลย
         st.session_state.logged_in = True
         st.session_state.emp_id = valid_employee_id
+        st.rerun()  # บังคับให้ Streamlit อัปเดตหน้าจอหลักทันที
     else:
-        # ถ้า Token หมดอายุ/ไม่ถูกต้อง -> สั่งลบ Cookie บนเบราว์เซอร์ทิ้งทันที
-        controller.remove("emp_auth_token")
+        # Token เสีย/หมดอายุ ทำลาย cookie ทิ้ง
+        controller.remove(COOKIE_NAME)
+        st.rerun()
 
-import secrets
-def generate_token():
-    return secrets.token_urlsafe(32)
+
+# FLOW ที่ 2: ขั้นตอนการทำงานตอน User ล็อกอินสำเร็จ (ตัวอย่างการเรียกใช้)
+# ==========================================================
+def handle_login_success(emp_id):
+    # 1. สร้าง token ใหม่ด้วยฟังก์ชันเดิมของคุณ
+    new_token = generate_token()
+
+    # 2. บันทึกลง Google Sheet
+    save_session_to_db(new_token, emp_id)
+
+    # 3. บันทึกลง Cookie บนบราวเซอร์ (มีอายุกี่วินาที)
+    max_age_seconds = SESSION_EXPIRY_DAYS * 24 * 3600
+    controller.set(COOKIE_NAME, new_token, max_age=max_age_seconds)
+
+    # 4. อัปเดตระดับระบบของ Streamlit และโหลดหน้าแสดงใหม่
+    st.session_state.logged_in = True
+    st.session_state.emp_id = emp_id
+    st.rerun()
+
+
+# FLOW ที่ 3: การ Logout
+# ==========================================================
+def handle_logout():
+    current_cookie = controller.get(COOKIE_NAME)
+    if current_cookie:
+        revoke_token_in_db(current_cookie)  # ลบออกจากฐานข้อมูล Google Sheet
+
+    controller.remove(COOKIE_NAME)  # ลบ Cookie ในเครื่องผู้ใช้
+    st.session_state.logged_in = False  # ล้างค่าใน state เพื่อความปลอดภัย
+    st.session_state.emp_id = None
+    st.rerun()
+
 
 #-----------------------------------------------------------------------------------------------------------------
-
+#การจัดการข้อมูล
 @st.cache_resource  # ✅ เพิ่มบรรทัดนี้
 def get_workbook(_client):
     return _client.open_by_key(st.secrets["sheet_id"])
