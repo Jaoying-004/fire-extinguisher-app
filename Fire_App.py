@@ -221,7 +221,7 @@ with tab3:
 
     try:
         # 1. สั่งเปิดหน้าแท็บฐานข้อมูลหลักของระบบ Fire Alarm
-        fa_sheet = client.open(em_sheet).worksheet("Emergency_Safety_Equipment")
+        fa_sheet = em_sheet
         fa_master_rows = fa_sheet.get_all_values()
 
         if fa_master_rows:
