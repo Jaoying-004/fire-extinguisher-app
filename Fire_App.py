@@ -79,29 +79,45 @@ import secrets
 def generate_token():
     return secrets.token_urlsafe(32)
 
-@st.cache_resource
+#-----------------------------------------------------------------------------------------------------------------
+
+@st.cache_resource  # ✅ เพิ่มบรรทัดนี้
 def get_workbook(_client):
     return _client.open_by_key(st.secrets["sheet_id"])
 
 wb = get_workbook(client)
 
-sheet_emp = wb.worksheet("employee_list")   # คอลัมน์ A: รหัสพนักงาน
-sheet_log = wb.worksheet("login_log")       # หัวตาราง: employee_id | date
+# ✅ เพิ่มฟังก์ชันนี้ (แทรกก่อนบรรทัด 88)
+@st.cache_resource
+def get_worksheet(_wb, sheet_name: str):
+    """เปิด worksheet พร้อม error handling"""
+    try:
+        return _wb.worksheet(sheet_name)
+    except gspread.exceptions.WorksheetNotFound:
+        st.error(f"❌ ไม่พบ worksheet '{sheet_name}'")
+        st.info("💡 Worksheets ที่มี:")
+        for ws in _wb.worksheets():
+            st.write(f"  - {ws.title}")
+        st.stop()
+    except Exception as e:
+        st.error(f"❌ Error: {e}")
+        st.stop()
 
-# ตั้งค่าเริ่มต้น session
-if "authenticated" not in st.session_state:
-    st.session_state["authenticated"] = False
-if "emp_id" not in st.session_state:
-    st.session_state["emp_id"] = ""
-if "last_login" not in st.session_state:
-    st.session_state["last_login"] = ""
+# ✅ แก้บรรทัด 88-89
+sheet_emp = get_worksheet(wb, "employee_list")   # คอลัมน์ A: รหัสพนักงาน
+sheet_log = get_worksheet(wb, "login_log")       # หัวตาราง: employee_id | date
 
-# โหลดข้อมูลจาก Sheets
-@st.cache_data(ttl=600)
+# บรรทัด 91-99 (ไม่ต้องแก้)
+# ไปต่อในส่วน session
+
+# ✅ แก้บรรทัด 100
+@st.cache_data(ttl=600)  # ✅ ใช้ cache_data ได้ เพราะ return เป็น set (immutable)
 def load_employees():
     values = sheet_emp.col_values(1)
     cleaned = [str(v).strip() for v in values[1:] if str(v).strip()]
     return set(cleaned)
+
+
 
 @st.cache_data(ttl=600)
 def load_login_log():
@@ -127,15 +143,20 @@ def check_auth():
 
     if st.button("ล็อกอิน"):
         if emp_input in load_employees():
+            # บันทึก login log
             new_token = append_login_log(emp_input, today)
-            load_login_log.clear()   # กัน cache ค้าง
-            controller.set("emp_auth_token", new_token)
-            st.session_state["emp_id"] = emp_input
+
+            # ❌ ลบบรรทัดนี้ออก: load_login_log.clear()
+
+            # อัพเดท session state
             st.session_state["authenticated"] = True
+            st.session_state["emp_id"] = emp_input
             st.session_state["last_login"] = today
+
+            st.success("✅ เข้าสู่ระบบสำเร็จ")
             st.rerun()
         else:
-            st.error("รหัสพนักงานไม่ถูกต้อง")
+            st.error("❌ ไม่พบรหัสพนักงานนี้")
 
     return False
 
