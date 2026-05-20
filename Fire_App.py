@@ -5,6 +5,7 @@ import pytz
 from datetime import datetime
 from streamlit_cookies_controller import CookieController
 
+
 def verify_token_in_db(token):
     """
     ฟังก์ชันสำหรับเข้าไปเช็คในฐานข้อมูลว่า token นี้มีอยู่จริง
@@ -166,18 +167,32 @@ def check_auth():
 if not check_auth():
     st.stop()
 
+#------------------------------กำหนดลิมิตของข้อมูล-------------------------------------------------------------------------
+@st.cache_data(ttl=60)
+def load_emergency_data():
+    rows = em_sheet.get_all_values()
+    if rows:
+        df = pd.DataFrame(rows[1:], columns=rows[0])
+        df = df.loc[:, df.columns != ""]
+        return df
+    return pd.DataFrame()
+df_fa_master = load_emergency_data()
+st.dataframe(df_fa_master, use_container_width=True)
+
 # --- 2. ดึงข้อมูลจาก Google Sheets --------------------------------------------------------------------------------------
 sheet_name = "FireExtinguisher_MasterList_2026"
 spreadsheet = client.open(sheet_name)
 # บรรทัดนี้คือการเปิดแท็บหลัก
-sheet = client.open(sheet_name).worksheet("FireExtinguisher_Data")
-log_sheet = client.open(sheet_name).worksheet("Inspection_Log")
-em_sheet = client.open(sheet_name).worksheet("Emergency_Safety_Equipment")
+sheet = spreadsheet.worksheet("FireExtinguisher_Data")
+log_sheet = spreadsheet.worksheet("Inspection_Log")
+em_sheet = spreadsheet.worksheet("Emergency_Safety_Equipment")
 # --- 3. หน้าตาแอป (UI) และ Tabs ---
 st.title("🔥 FireExtinguisher")
 tab1, tab2, tab3, tab4 = st.tabs(["📅 รายการตรวจวันนี้", "📋 FireExtinguisher_Data", "🚨 Emergency_Safety_Equipment", "🔧 ติดตามการแก้ไข"])
 #ดึงข้อมูลจากชีตมาโชว์
 with tab1:
+    df_fa_master = load_emergency_data()
+    st.dataframe(df_fa_master, use_container_width=True)
     st.subheader("รายการที่ตรวจเช็คแล้ววันนี้")
         # 1. ดึงข้อมูลทั้งหมดจากแท็บ Inspection_Log
     log_rows = log_sheet.get_all_values()
@@ -205,6 +220,8 @@ with tab1:
         st.info("ยังไม่มีข้อมูลการตรวจบันทึกในแท็บ Log")
 
 with tab2:
+    df_fa_master = load_emergency_data()
+    st.dataframe(df_fa_master, use_container_width=True)
     st.subheader("📋 FireExtinguisher_Data")
     # ดึงข้อมูลจากแท็บ MasterList (เหมือนที่คุณเคยเขียนไว้)
     master_rows = sheet.get_all_values()
@@ -217,6 +234,8 @@ with tab2:
         st.warning("⚠️ ไม่พบข้อมูลในแผ่นงานฐานข้อมูล")
 
 with tab3:
+    df_fa_master = load_emergency_data()
+    st.dataframe(df_fa_master, use_container_width=True)
     st.subheader("🚨 Emergency_Safety_Equipment")
 
     try:
