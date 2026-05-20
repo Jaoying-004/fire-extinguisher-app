@@ -99,15 +99,16 @@ def verify_token_in_sheet(token):
 #===================================================================******************************************
 # 4. ลอจิกตรวจสอบสถานะ Auto-login (วางถัดลงมา)
 if not st.session_state["authenticated"] and saved_token and saved_token != "None":
-    # นำ Token ไปตรวจสอบกับฐานข้อมูล Google Sheet
     emp_id = verify_token_in_sheet(saved_token)
     if emp_id:
         st.session_state["authenticated"] = True
         st.session_state["emp_id"] = emp_id
         st.rerun()
     else:
-        # Token เสีย หรือ หมดอายุแล้ว -> ลบ Cookie ทิ้ง
-        controller.remove("session_token")
+        try:
+            controller.remove("session_token")
+        except Exception:
+            pass
 
 #************************************************************************************************************
 
