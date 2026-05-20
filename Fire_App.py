@@ -34,13 +34,16 @@ except Exception as e:
     # หากเกิดความผิดพลาดในแอปพลิเคชันรอบแรกสุด ให้ข้ามข้อผิดพลาดไปก่อน
     saved_token = None
 
-
-
-st.write("--- DEBUG STATUS ---")
-st.write(f"1. มี Cookie ในเครื่องไหม: '{controller.get('emp_auth_token')}'")
-st.write(f"2. สถานะการดึงประวัติ Cookie สำเร็จหรือไม่: {st.session_state.get('cookie_checked')}")
-st.write(f"3. สถานะ Authenticated ในระบบตอนนี้: {st.session_state.get('authenticated')}")
+# --- DEBUG STATUS (ย้ายพิมพ์ตรวจสอบเข้าสู่ขอบเขตปลอดภัย) ---
+st.write("### --- DEBUG STATUS ---")
+st.write(f"มี Cookie ในเครื่องไหม: '{saved_token}'")
+st.write(f"สถานะการดึงประวัติ Cookie สำเร็จหรือไม่: {st.session_state['cookie_initialized']}")
+st.write(f"สถานะ Authenticated ในระบบตอนนี้: {st.session_state['authenticated']}")
 st.write("--------------------")
+
+if not st.session_state["authenticated"] and saved_token and saved_token != "None":
+    # นำค่า saved_token ไปตรวจสอบกับฐานข้อมูลของคุณต่อไป
+    pass
 # ตั้งค่าเวลาไทยไว้ใช้ทั้งแอป
 tz = pytz.timezone('Asia/Bangkok')
 def get_now():
@@ -97,18 +100,7 @@ def verify_token_in_sheet(token):
     return None
 
 #===================================================================******************************************
-# 4. ลอจิกตรวจสอบสถานะ Auto-login (วางถัดลงมา)
-if not st.session_state["authenticated"] and saved_token and saved_token != "None":
-    emp_id = verify_token_in_sheet(saved_token)
-    if emp_id:
-        st.session_state["authenticated"] = True
-        st.session_state["emp_id"] = emp_id
-        st.rerun()
-    else:
-        try:
-            controller.remove("session_token")
-        except Exception:
-            pass
+
 
 #************************************************************************************************************
 
