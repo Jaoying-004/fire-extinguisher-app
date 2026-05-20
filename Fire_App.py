@@ -9,19 +9,26 @@ import time
 import uuid
 controller = CookieController()
 
-# ประดับห้องพักข้อมูลเริ่มต้น
+# 2. ตั้งค่าเฉพาะสถานะควบคุม (State)
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
-if "cookie_checked" not in st.session_state:
-    st.session_state["cookie_checked"] = False
 
-# บังคับรอจังหวะเพื่อให้คุกกี้ตอบโต้กับ Streamlit สำเร็จ
-time.sleep(0.1)
+# ตัวแปรจำกัดจังหวะการอ่านค่าจาก Cookie ครั้งแรก
+if "cookie_initialized" not in st.session_state:
+    st.session_state["cookie_initialized"] = False
+
+if not st.session_state["cookie_initialized"]:
+    # หน่วงเวลาสั้นๆ เพื่อให้ Browser ส่งสัญญาณค่าเชื่อมต่อ Cookie
+    time.sleep(0.2)
+    st.session_state["cookie_initialized"] = True
+    st.rerun()  # สั่งประมวลผลหน้าใหม่อีกครั้งทันทีพร้อมค่า Cookie ที่โหลดเสร็จแล้ว
+
+# อ่านค่า Token จาก Cookie
 saved_token = controller.get("session_token")
 
 
-# 1. ประกาศตัวจัดการ Cookie (แนะนำให้ประกาศไว้ด้านบนสุดของแอป)
-controller = CookieController()
+
+
 st.write("--- DEBUG STATUS ---")
 st.write(f"1. มี Cookie ในเครื่องไหม: '{controller.get('emp_auth_token')}'")
 st.write(f"2. สถานะการดึงประวัติ Cookie สำเร็จหรือไม่: {st.session_state.get('cookie_checked')}")
@@ -81,6 +88,22 @@ def verify_token_in_sheet(token):
     except Exception as e:
         st.write(f"เกิดข้อผิดพลาดในการตรวจสอบ Session: {e}")
     return None
+
+#===================================================================******************************************
+# 4. ลอจิกตรวจสอบสถานะ Auto-login (วางถัดลงมา)
+if not st.session_state["authenticated"] and saved_token and saved_token != "None":
+    # นำ Token ไปตรวจสอบกับฐานข้อมูล Google Sheet
+    emp_id = verify_token_in_sheet(saved_token)
+    if emp_id:
+        st.session_state["authenticated"] = True
+        st.session_state["emp_id"] = emp_id
+        st.rerun()
+    else:
+        # Token เสีย หรือ หมดอายุแล้ว -> ลบ Cookie ทิ้ง
+        controller.remove("session_token")
+
+#************************************************************************************************************
+
 
 
 def save_session_to_sheet(emp_id, token, expires_at):
