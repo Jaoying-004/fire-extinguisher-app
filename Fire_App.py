@@ -169,15 +169,16 @@ if not check_auth():
 
 #------------------------------กำหนดลิมิตของข้อมูล-------------------------------------------------------------------------
 @st.cache_data(ttl=60)
-def load_emergency_data():
-    rows = em_sheet.get_all_values()
-    if rows:
-        df = pd.DataFrame(rows[1:], columns=rows[0])
-        df = df.loc[:, df.columns != ""]
-        return df
-    return pd.DataFrame()
-df_fa_master = load_emergency_data()
-st.dataframe(df_fa_master, use_container_width=True)
+def load_sheet_data(worksheet_name):
+    ws = spreadsheet.worksheet(worksheet_name)
+    rows = ws.get_all_values()
+
+    if not rows:
+        return pd.DataFrame()
+
+    df = pd.DataFrame(rows[1:], columns=rows[0])
+    df = df.loc[:, df.columns != ""]
+    return df
 
 # --- 2. ดึงข้อมูลจาก Google Sheets --------------------------------------------------------------------------------------
 sheet_name = "FireExtinguisher_MasterList_2026"
@@ -191,73 +192,51 @@ st.title("🔥 FireExtinguisher")
 tab1, tab2, tab3, tab4 = st.tabs(["📅 รายการตรวจวันนี้", "📋 FireExtinguisher_Data", "🚨 Emergency_Safety_Equipment", "🔧 ติดตามการแก้ไข"])
 #ดึงข้อมูลจากชีตมาโชว์
 with tab1:
-    df_fa_master = load_emergency_data()
-    st.dataframe(df_fa_master, use_container_width=True)
+    df = load_sheet_data("Inspection_Log")
     st.subheader("รายการที่ตรวจเช็คแล้ววันนี้")
-        # 1. ดึงข้อมูลทั้งหมดจากแท็บ Inspection_Log
-    log_rows = log_sheet.get_all_values()
 
-    if len(log_rows) > 1:
-            # แยกหัวตารางและข้อมูลออกมา
-        header = log_rows[0]
-        data = log_rows[1:]
-
-            # 2. สร้างวันที่ของ "วันนี้" ในรูปแบบปี-เดือน-วัน (YYYY-MM-DD)
+    if not df.empty:
         today_str = datetime.now().strftime("%Y-%m-%d")
+        first_col = df.columns[0]
 
-            # 3. กรองข้อมูลเฉพาะแถวที่คอลัมน์ Timestamp (แถวแรก index 0) ตรงกับวันนี้
-            # เราใช้ .startswith เพราะใน Sheets อาจมีเวลาต่อท้าย เช่น 2026-05-14 10:30:00
-        today_data = [row for row in data if row[0].startswith(today_str)]
+        df_today = df[df[first_col].astype(str).str.startswith(today_str, na=False)]
 
-        if today_data:
-                # 4. แปลงเป็น DataFrame และแสดงผล
-            df_log = pd.DataFrame(today_data, columns=header)
-            st.dataframe(df_log, use_container_width=True)
+        if not df_today.empty:
+            st.dataframe(df_today, use_container_width=True)
         else:
-                # กรณีวันนี้ยังไม่มีใครบันทึกข้อมูลเลย
-            st.info(f"📌 ยังไม่มีข้อมูลการตรวจบันทึกในวันที่ {today_str}")
+            st.info(f"📌 ยังไม่มีข้อมูลการตรวจบันทึกในวันนี้ {today_str}")
     else:
         st.info("ยังไม่มีข้อมูลการตรวจบันทึกในแท็บ Log")
 
+
 with tab2:
-    df_fa_master = load_emergency_data()
-    st.dataframe(df_fa_master, use_container_width=True)
+    df = load_sheet_data("FireExtinguisher_Data")
     st.subheader("📋 FireExtinguisher_Data")
-    # ดึงข้อมูลจากแท็บ MasterList (เหมือนที่คุณเคยเขียนไว้)
-    master_rows = sheet.get_all_values()
-    if master_rows:
-        df_master = pd.DataFrame(master_rows[1:], columns=master_rows[0])
-        # ลบคอลัมน์ที่ไม่มีชื่อออก
-        df_master = df_master.loc[:, df_master.columns != '']
-        st.dataframe(df_master, use_container_width=True)
-    else:
-        st.warning("⚠️ ไม่พบข้อมูลในแผ่นงานฐานข้อมูล")
-
-with tab3:
-    em_sheet = spreadsheet.worksheet("Emergency_Safety_Equipment")
-    df_fa_master = load_emergency_data()
-    st.dataframe(df_fa_master, use_container_width=True)
-    st.subheader("🚨 Emergency_Safety_Equipment")
-
     try:
-        # 1. สั่งเปิดหน้าแท็บฐานข้อมูลหลักของระบบ Fire Alarm
-        fa_sheet = em_sheet
-        fa_master_rows = fa_sheet.get_all_values()
+        df_tab2 = load_sheet_data("FireExtinguisher_Data")
 
-        if fa_master_rows:
-            # 2. แปลงเป็นตาราง DataFrame (เอาแถวที่ 1 เป็นหัวคอลัมน์)
-            df_fa_master = pd.DataFrame(fa_master_rows[1:], columns=fa_master_rows[0])
-
-            # 3. ลบคอลัมน์ที่ไม่มีหัวข้อหรือคอลัมน์ว่างออก
-            df_fa_master = df_fa_master.loc[:, df_fa_master.columns != '']
-
-            # 4. แสดงผลตาราง Master ข้อมูลทั้งหมดบนหน้าจอตรงกลาง
-            st.dataframe(df_fa_master, use_container_width=True)
+        if df_tab2.empty:
+            st.warning("⚠️ ไม่พบข้อมูล")
         else:
-            st.warning("⚠️ ไม่พบข้อมูลในแผ่นงานฐานข้อมูล FireAlarm_Data")
+            st.dataframe(df_tab2, use_container_width=True)
 
     except Exception as e:
-        st.error(f"❌ ไม่สามารถโหลดตารางฐานข้อมูลได้เนื่องจาก: {e}")
+        st.error(f"❌ {type(e).__name__}: {e}")
+
+
+with tab3:
+    df = load_sheet_data("Emergency_Safety_Equipment")
+    st.subheader("🚨 Emergency_Safety_Equipment")
+    try:
+        df_tab3 = load_sheet_data("Emergency_Safety_Equipment")
+
+        if df_tab3.empty:
+            st.warning("⚠️ ไม่พบข้อมูล")
+        else:
+            st.dataframe(df_tab3, use_container_width=True)
+
+    except Exception as e:
+        st.error(f"❌ {type(e).__name__}: {e}")
 
 with tab4:
     st.subheader("🔧 ติดตามการแก้ไข")
