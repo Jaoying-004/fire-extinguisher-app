@@ -4,18 +4,22 @@ import pandas as pd
 import pytz
 from datetime import datetime, timedelta
 from streamlit_cookies_controller import CookieController
-
+import streamlit as st
 
 
 # 1. ประกาศตัวจัดการ Cookie (แนะนำให้ประกาศไว้ด้านบนสุดของแอป)
 controller = CookieController()
-
+st.write("--- DEBUG STATUS ---")
+st.write(f"1. มี Cookie ในเครื่องไหม: '{controller.get('emp_auth_token')}'")
+st.write(f"2. สถานะการดึงประวัติ Cookie สำเร็จหรือไม่: {st.session_state.get('cookie_checked')}")
+st.write(f"3. สถานะ Authenticated ในระบบตอนนี้: {st.session_state.get('authenticated')}")
+st.write("--------------------")
 # ตั้งค่าเวลาไทยไว้ใช้ทั้งแอป
 tz = pytz.timezone('Asia/Bangkok')
 def get_now():
     return datetime.now(tz)
 # เช็คว่าไฟล์กุญแจอยู่ในโฟลเดอร์ credentials และชื่อ key.json หรือยัง
-import streamlit as st
+
 # --- 1. การดึงความลับ (Secrets) ---
 try:
     # ดึงค่าจาก Secrets ออกมาใช้ตรงๆ
