@@ -248,17 +248,26 @@ st.write(f"สวัสดีครับ ยินดีต้อนรับ�
 # [เขียนส่วนที่เหลือของกระบวนการควบคุม การดำเนินเรื่องตรวจเช็คถังดับเพลิงและระบบหน้าของคุณด้านล่างนี้ได้เลย]
 # ปุ่มควบคุมการออกจากระบบ (Logout Service)
 if st.button("ออกจากระบบ"):
+    # 1. ค้นหาและล้างเซสชันในฐานข้อมูล Google Sheet เพื่อความปลอดภัย
     current_token = get_cookie_safe(COOKIE_NAME)
     if current_token:
-        revoke_token_in_sheet(current_token)  # ลบประวัติสิทธิ์ชั่วคราวคีย์เวิร์ดในแผ่นงาน
+        revoke_token_in_sheet(current_token)  # ลบประวัติสิทธิ์ในชีตระบบ
 
-    remove_cookie_safe(COOKIE_NAME)  # ถอดความจำจำหลักคุกกี้บราวเซอร์ออก
+    # 2. ถอนการติดตั้งคุกกี้ออกจากหน้าเครื่องบราวเซอร์
+    remove_cookie_safe(COOKIE_NAME)
 
-    # ทำความสะอาดคลีนค่าตัวแปรใน streamlit state ทั้งสิ้น
-    for key in list(st.session_state.keys()):
-        del st.session_state[key]
+    # 3. ✅ วิธีแก้ไข: คลีนเฉพาะค่าที่เกี่ยวกับสิทธิ์ล็อกเอาต์เท่านั้น ห้ามลบ "cookie_initialized"
+    auth_keys_to_clear = ["authenticated", "emp_id", "emp_name", "last_login"]
+    for key in auth_keys_to_clear:
+        if key in st.session_state:
+            del st.session_state[key]
 
-    st.success("กำลังกลับสู่หน้าจอล็อกอิน...")
+    # บังคับประกาศอย่างเป็นทางการว่าพ้นสิทธิ์การเข้าถึงแล้ว
+    st.session_state["authenticated"] = False
+
+    # 4. แสดงผลข้อความและส่งผู้ใช้กลับไปยังหน้าล็อกอินแบบทันทีทันใด
+    st.success("ออกจากระบบสำเร็จ...")
+    time.sleep(0.4)  # มอบเวลาเศษเสี้ยววินาทีให้เบราว์เซอร์จัดการเขียนดิสก์ลบคุกกี้
     st.rerun()
 
 #จบส่วนล็อคอิน==========================================================================================================
