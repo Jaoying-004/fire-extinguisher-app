@@ -7,6 +7,30 @@ from streamlit_cookies_controller import CookieController
 import streamlit as st
 import time
 import uuid
+
+# ตั้งค่าเวลาไทยไว้ใช้ทั้งแอป
+tz = pytz.timezone('Asia/Bangkok')
+def get_now():
+    return datetime.now(tz)
+# --- 1. การดึงความลับ (Secrets) ---
+try:
+    # ดึงค่าจาก Secrets ออกมาใช้ตรงๆ
+    key_data = st.secrets["gcp_service_account"]
+
+    scope = [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive",
+        "https://www.googleapis.com/auth/drive.file"
+    ]
+
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(key_data, scope)
+    client = gspread.authorize(creds)
+except Exception as e:
+    st.error(f"เกิดข้อผิดพลาดในการเชื่อมต่อกุญแจ: {e}")
+    st.stop()
+
+#ส่วนที่ 1 ของล็อคอิน======================================================================================================
+
 controller = CookieController()
 COOKIE_NAME = "emp_auth_token"
 SESSION_EXPIRY_DAYS = 1
@@ -16,7 +40,6 @@ if "authenticated" not in st.session_state:
 # ตัวแปรจำกัดจังหวะการอ่านค่าจาก Cookie ครั้งแรก
 if "cookie_initialized" not in st.session_state:
     st.session_state["cookie_initialized"] = False
-
 
 if not st.session_state["cookie_initialized"]:
     # หน่วงเวลาสั้นๆ เพื่อให้ Browser ส่งสัญญาณค่าเชื่อมต่อ Cookie
@@ -50,234 +73,117 @@ def remove_cookie_safe(name):
     except Exception:
         pass
 
-
-def check_employee_id(emp_id):
-    # TODO: ค้นหาใน Google Sheets ว่ามี รหัสพนักงาน นี้จริงไหม
-    return True if emp_id.strip() != "" else False
-
-def save_session_to_sheet(emp_id, token, expires_at):
-    # TODO: บันทึกลง Google Sheet ประวัติเซสชัน
-    pass
-
-def verify_token_in_sheet(token):
-    # TODO: ตรวจหา Token ในระบบ และตรวจอายุ หากพบและ valid ให้คืนค่ารหัสพนักงาน
-    # ขอจำลองคืนค่าว่างไว้สำหรับตัวอย่างโครงสร้าง
-    return None
-
-def revoke_token_in_sheet(token):
-    # TODO: ลบสิทธิ์ของ Token นี้ออกจากฐานข้อมูล
-    pass
-
-saved_token = get_cookie_safe(COOKIE_NAME)
-# ตรวจสอบสถานะการตรวจสอบสิทธิ์อัตโนมัติ
-if not st.session_state["authenticated"] and saved_token and saved_token != "None":
-    emp_id = verify_token_in_sheet(saved_token)
-    if emp_id:
-        st.session_state["authenticated"] = True
-        st.session_state["emp_id"] = emp_id
-        st.rerun()
-    else:
-        # หากเซสชันหมดอายุในแผ่นงาน ให้เช็ดข้อมูลทิ้ง
-        remove_cookie_safe(COOKIE_NAME)
-
-# --- DEBUG STATUS (ย้ายพิมพ์ตรวจสอบเข้าสู่ขอบเขตปลอดภัย) ---
-st.write("### --- DEBUG STATUS ---")
-st.write(f"มี Cookie ในเครื่องไหม: '{saved_token}'")
-st.write(f"สถานะการดึงประวัติ Cookie สำเร็จหรือไม่: {st.session_state['cookie_initialized']}")
-st.write(f"สถานะ Authenticated ในระบบตอนนี้: {st.session_state['authenticated']}")
-st.write("--------------------")
-
-if not st.session_state["authenticated"]:
-    st.subheader("เข้าสู่ระบบด้วยรหัสพนักงาน")
-    emp_input = st.text_input("รหัสพนักงาน", placeholder="กรุณากรอกรหัสพนักงานของคุณ")
-
-    if st.button("ตกลง"):
-        if check_employee_id(emp_input):
-            # สร้าง Session Token แบบสุ่ม
-            new_token = str(uuid.uuid4())
-            expiry_date = (datetime.now() + timedelta(days=SESSION_EXPIRY_DAYS)).strftime("%Y-%m-%d %H:%M:%S")
-
-            # 1. บันทึกประวัติสิทธิ์เข้าระบบลงชีต
-            save_session_to_sheet(emp_input, new_token, expiry_date)
-
-            # 2. บันทึก Cookie ลงเครื่องผู้ใช้งานอย่างปลอดภัยผ่านเซฟแวรปเปอร์
-            set_cookie_safe(COOKIE_NAME, new_token, max_age_seconds=SESSION_EXPIRY_DAYS * 24 * 3600)
-
-            # 3. อัปเดตสถานะหน่วยความจำ Streamlit
-            st.session_state["authenticated"] = True
-            st.session_state["emp_id"] = emp_input
-            st.rerun()
-        else:
-            st.error("ไม่สามารถตรวจสอบพบรหัสประจักษ์ข้อมูลในระบบ")
-
-else:
-    # หน้าจอหลักหลังเข้าระบบแล้ว (Main Board)
-    st.title("ระบบตรวจเช็คอุปกรณ์ดับเพลิง 🚒")
-    st.write(f"ยินดีต้อนรับผู้ใช้งาน: **{st.session_state.get('emp_id')}**")
-
-    # ดำเนินส่วนโค้ดการจัดการระบบการทำงานของคุณต่อไปที่นี่...
-
-    # ------------------
-    # ปุ่มออกจากระบบ (Logout)
-    if st.button("ออกจากระบบ"):
-        current_token = get_cookie_safe(COOKIE_NAME)
-        if current_token:
-            revoke_token_in_sheet(current_token)  # เพิกถอนสิทธิ์จากคลาวด์
-
-        remove_cookie_safe(COOKIE_NAME)  # ล้างคุกกี้ความปลอดภัยฝั่งเบราว์เซอร์
-
-        # คลีนตัวแปรหน่วยความจำทั้งหมดของ session_state
-        for key in list(st.session_state.keys()):
-            del st.session_state[key]
-
-        st.rerun()
-
-#==================================================================================================================
-# ตั้งค่าเวลาไทยไว้ใช้ทั้งแอป
-tz = pytz.timezone('Asia/Bangkok')
-def get_now():
-    return datetime.now(tz)
-# เช็คว่าไฟล์กุญแจอยู่ในโฟลเดอร์ credentials และชื่อ key.json หรือยัง
-
-
-# --- 1. การดึงความลับ (Secrets) ---
-try:
-    # ดึงค่าจาก Secrets ออกมาใช้ตรงๆ
-    key_data = st.secrets["gcp_service_account"]
-
-    scope = [
-        "https://www.googleapis.com/auth/spreadsheets",
-        "https://www.googleapis.com/auth/drive",
-        "https://www.googleapis.com/auth/drive.file"
-    ]
-
-    creds = ServiceAccountCredentials.from_json_keyfile_dict(key_data, scope)
-    client = gspread.authorize(creds)
-except Exception as e:
-    st.error(f"เกิดข้อผิดพลาดในการเชื่อมต่อกุญแจ: {e}")
-    st.stop()
-#-------------------------------------------------------------------------------------------------------------------
-#โฟลวหน้าล็อคอิน
-
-cookie_token = get_cookie_safe("emp_auth_token")
-
-SPREADSHEET_ID = "1M2kmH7RAK-LCd3My2HeuhYhBbVq6OQEgF8bL0zLYLwU"  # <-- เปลี่ยนตรงนี้เป็นไอดีชีตจริงของคุณ
-spreadsheet = client.open_by_key(SPREADSHEET_ID)
-sheet_sessions  = spreadsheet.worksheet("Auth_Sessions")
-
-import secrets
-def generate_token():
-    return secrets.token_urlsafe(32)
-
-
-def verify_token_in_sheet(token):
-    try:
-        # สมมติระบุว่า Sheet Auth_Sessions อยู่ที่ worksheet(1)
-        # ค้นหาแถวที่มี token นี้
-        cell = sheet_sessions.find(token)
-        if cell:
-            row_data = sheet_sessions.row_values(cell.row)
-            # ตัวอย่าง: [emp_id, token, expires_at]
-            emp_id = row_data[0]
-            expires_str = row_data[2]
-
-            # แปลงวันเวลาเพื่อเปรียบเทียบ
-            expires_at = datetime.strptime(expires_str, "%Y-%m-%d %H:%M:%S")
-
-            if datetime.now() < expires_at:
-                return emp_id  # Token ยังใช้งานได้
-    except Exception as e:
-        st.write(f"เกิดข้อผิดพลาดในการตรวจสอบ Session: {e}")
-    return None
-
-#===================================================================******************************************
-
-
-#************************************************************************************************************
-
-
-
-
 #-----------------------------------------------------------------------------------------------------------------
-#การจัดการข้อมูล
+# ส่วนที่ 2: การเชื่อมต่อแผ่นงานและฐานข้อมูล Google Sheet (Database Connection)
 @st.cache_resource  # ✅ เพิ่มบรรทัดนี้
 def get_workbook(_client):
     return _client.open_by_key(st.secrets["sheet_id"])
 
-wb = get_workbook(client)
+try:
+    wb = get_workbook(client)
+except Exception as e:
+    st.error(f"ไม่สามารถเข้าถึงแผ่นงาน Google Sheet ได้: {e}")
+    st.stop()
 
 # ✅ เพิ่มฟังก์ชันนี้ (แทรกก่อนบรรทัด 88)
 @st.cache_resource
 def get_worksheet(_wb, sheet_name: str):
-    """เปิด worksheet พร้อม error handling"""
+    """เปิดตารางงานแผ่นชีตที่กำหนดตามชื่อ"""
     try:
         return _wb.worksheet(sheet_name)
     except gspread.exceptions.WorksheetNotFound:
-        st.error(f"❌ ไม่พบ worksheet '{sheet_name}'")
-        st.info("💡 Worksheets ที่มี:")
-        for ws in _wb.worksheets():
-            st.write(f"  - {ws.title}")
-        st.stop()
-    except Exception as e:
-        st.error(f"❌ Error: {e}")
+        st.error(f"❌ ไม่พบชีตชื่อ '{sheet_name}' โปรดรักษาความสอดคล้องชื่อแผ่นงาน")
         st.stop()
 
-# ✅ แก้บรรทัด 88-89
 sheet_emp = get_worksheet(wb, "employee_list")   # คอลัมน์ A: รหัสพนักงาน
 sheet_log = get_worksheet(wb, "login_log")       # หัวตาราง: employee_id | date
+sheet_sessions = get_worksheet(wb, "Auth_Sessions")
 
-# บรรทัด 91-99 (ไม่ต้องแก้)
-# ไปต่อในส่วน session
-
-# ✅ แก้บรรทัด 100
+#ส่วนที่ 3 =========================================================================================================
 @st.cache_data(ttl=600)  # ✅ ใช้ cache_data ได้ เพราะ return เป็น set (immutable)
 def load_employees():
     values = sheet_emp.col_values(1)
     cleaned = [str(v).strip() for v in values[1:] if str(v).strip()]
     return set(cleaned)
 
+def save_session_to_sheet(emp_id, token, expires_at):
+    """บันทึกรหัสลับพนักงานและ Token กำหนดวันเวลาหมดอายุลงสู่ Google Sheets"""
+    try:
+        sheet_sessions.append_row([emp_id, token, expires_at])
+    except Exception as e:
+        st.error(f"ไม่สามารถบันทึกเซสชันลงชีตระบบได้: {e}")
 
 
-@st.cache_data(ttl=600)
-def load_login_log():
-    return sheet_log.get_all_records()
+def verify_token_in_sheet(token):
+    """ตรวจสอบความถูกต้องและเช็ควันหมดอายุจากเซสชันของชีตจริง"""
+    try:
+        cell = sheet_sessions.find(token)
+        if cell:
+            row_data = sheet_sessions.row_values(cell.row)
+            # โครงสร้างตาราง: [emp_id, token, expires_at]
+            emp_id = row_data[0]
+            expires_str = row_data[2]
 
-def append_login_log(emp_id, date_str):
-    sheet_log.append_row([emp_id, date_str])
+            expires_at = datetime.strptime(expires_str, "%Y-%m-%d %H:%M:%S")
+            if datetime.now() < expires_at:
+                return emp_id  # เซสชันยังไม่หมดอายุ คืนรหัสใช้งานให้ทำงานต่อได้
+    except Exception:
+        pass
+    return None
 
+def revoke_token_in_sheet(token):
+    """ทำการเพิกถอน ลบแถวประจักษ์ข้อมูลเซสชันนั้นเมื่อทำการ Logout"""
+    try:
+        cell = sheet_sessions.find(token)
+        if cell:
+            sheet_sessions.delete_rows(cell.row)
+    except Exception:
+        pass
+
+# ส่วนที่ 4: การจัดกระบวนการทำงานและตรวจสอบสิทธิ์อัตโนมัติ (Execution Flow)
+
+saved_token = get_cookie_safe(COOKIE_NAME)
+
+# ตรวจเข้าสู่ระบบประยุกต์ใช้อัตโนมัติ (Auto login จาก Cookie เกิม)
+if not st.session_state["authenticated"] and saved_token and saved_token != "None":
+    emp_id = verify_token_in_sheet(saved_token)
+    if emp_id:
+        st.session_state["authenticated"] = True
+        st.session_state["emp_id"] = emp_id
+        st.session_state["last_login"] = datetime.now().date().isoformat()
+        st.rerun()
+    else:
+        # หากเซสชันหมดสภาพหรือไม่ผ่าน ให้ล้างคุกกี้ออกจากเครื่องเบราว์เซอร์ทันที
+        remove_cookie_safe(COOKIE_NAME)
+
+# ส่วนที่ 5: ฟังก์ชันควบคุมและควบคุมระบบแสดงผล หน้าจอหลัก / หน้าจอล็อกอิน==========================================================
 def check_auth():
-    from datetime import date
-    import streamlit as st
+    today = datetime.now().date().isoformat()
 
-    today = date.today().isoformat()
-
-    # initialize session state
-    if "authenticated" not in st.session_state:
-        st.session_state["authenticated"] = False
-    if "last_login" not in st.session_state:
-        st.session_state["last_login"] = None
-    if "emp_id" not in st.session_state:
-        st.session_state["emp_id"] = None
-
-    # ถ้า login แล้วและเป็นวันเดียวกัน
-    if st.session_state["authenticated"] and st.session_state["last_login"] == today:
+    # ตรวจเช็คว่าผ่านกระบวนการยืนยันตัวตนสำเร็จแล้วหรือไม่
+    if st.session_state["authenticated"]:
         return True
 
-    # แสดงหน้า login
-    st.title("เข้าสู่ระบบ")
-    emp_input = st.text_input("กรอกรหัสพนักงาน", key="emp_input").strip()
+    # แสดงหน้าจอล็อกอินกลางกรณีผู้ใช้ไม่มีสิทธิ์ (สะพานเชื่อมฟังก์ชันหลัก)
+    st.title("ระบบตรวจเช็คอุปกรณ์ดับเพลิง 🚒")
+    st.subheader("กรุณาเข้าสู่ระบบ")
+    emp_input = st.text_input("กรอกรหัสพนักงาน", key="emp_input", placeholder="รหัสพนักงานของคุณ").strip()
 
     if st.button("ล็อกอิน"):
         if emp_input in load_employees():
+            # สุ่มสร้างโทเค็นมาตรฐานปลอดภัยสูง
             new_token = str(uuid.uuid4())
-            expiry_date = (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d %H:%M:%S")
+            expiry_date = (datetime.now() + timedelta(days=SESSION_EXPIRY_DAYS)).strftime("%Y-%m-%d %H:%M:%S")
 
-            # บันทึกลง Google Sheet
+            # 1. จัดเก็บบันทึกประวัติเซสชันและความปลอดภัยลงคลาวด์ Google Sheets
             save_session_to_sheet(emp_input, new_token, expiry_date)
+            # บันทึกประวัติการใช้กระดานงาน
+            sheet_log.append_row([emp_input, datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
 
-            # 1. ยิงคำสั่งบันทึกคุกกี้ลงเครื่องเบราว์เซอร์
-            set_cookie_safe("session_token", new_token)
+            # 2. บันทึกโทเค่นคุกกี้ลงบราวเซอร์เป้าหมายอย่างปลอดภัย
+            set_cookie_safe(COOKIE_NAME, new_token, max_age_seconds=SESSION_EXPIRY_DAYS * 24 * 3600)
 
+            # 3. เซ็ตค่าหน่วยความจำชั่วคราวหลัก
             st.session_state["authenticated"] = True
             st.session_state["emp_id"] = emp_input
             st.session_state["last_login"] = today
@@ -285,12 +191,39 @@ def check_auth():
             st.success("✅ เข้าสู่ระบบสำเร็จ")
             st.rerun()
         else:
-            st.error("❌ ไม่พบรหัสพนักงานนี้")
+            st.error("❌ ไม่พบรหัสพนักงานในฐานข้อมูลระบบ ตรวจเช็คใหม่อีกครั้ง")
 
     return False
 
+
+# ตรวจสอบสิทธิ์ของหน้าจอ หากไม่ผ่านให้หยุดการทำงานในทันทีตรงนี้
 if not check_auth():
     st.stop()
+
+# ส่วนที่ 6: พื้นที่โปรแกรมจำลองหน้าจอหลักของการทำงาน (Main Program Interface)==================================================
+
+st.title("ยินดีต้อนรับเข้าใช้งานหน้าการตรวจเช็คตรวจสอบระบบ 🚒")
+st.write(f"สวัสดีคุณพนักงานรหัสพิเศษ: **{st.session_state.get('emp_id')}**")
+
+# [เขียนส่วนที่เหลือของกระบวนการควบคุม การดำเนินเรื่องตรวจเช็คถังดับเพลิงและระบบหน้าของคุณด้านล่างนี้ได้เลย]
+
+st.write("---")
+# ปุ่มควบคุมการออกจากระบบ (Logout Service)
+if st.button("ออกจากระบบ"):
+    current_token = get_cookie_safe(COOKIE_NAME)
+    if current_token:
+        revoke_token_in_sheet(current_token)  # ลบประวัติสิทธิ์ชั่วคราวคีย์เวิร์ดในแผ่นงาน
+
+    remove_cookie_safe(COOKIE_NAME)  # ถอดความจำจำหลักคุกกี้บราวเซอร์ออก
+
+    # ทำความสะอาดคลีนค่าตัวแปรใน streamlit state ทั้งสิ้น
+    for key in list(st.session_state.keys()):
+        del st.session_state[key]
+
+    st.success("กำลังกลับสู่หน้าจอล็อกอิน...")
+    st.rerun()
+
+#จบส่วนล็อคอิน==========================================================================================================
 
 #------------------------------กำหนดลิมิตของข้อมูล-------------------------------------------------------------------------
 @st.cache_data(ttl=60)
