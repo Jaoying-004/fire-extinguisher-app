@@ -106,6 +106,27 @@ def load_employees():
     cleaned = [str(v).strip() for v in values[1:] if str(v).strip()]
     return set(cleaned)
 
+
+@st.cache_data(ttl=600)  # ดึงข้อมูลและเก็บ cache ไว้เพื่อความรวดเร็วในการโหลดระบบ
+def get_employee_name_by_id(emp_id):
+    """ค้นหาชื่อจริงของพนักงานจาก Google Sheet โดยใช้รหัสพนักงาน"""
+    try:
+        # ดึงข้อมูลแถวทั้งหมดจากคอลัมน์ A (รหัส) และ B (ชื่อ)
+        all_emp_ids = sheet_emp.col_values(1)  # คอลัมน์ A
+        all_names = sheet_emp.col_values(2)  # คอลัมน์ B
+
+        # ค้นหาตำแหน่งของรหัสพนักงาน (ข้ามหัวตารางแถวที่ 1)
+        cleaned_emp_ids = [str(x).strip() for x in all_emp_ids]
+        target_emp_id = str(emp_id).strip()
+
+        if target_emp_id in cleaned_emp_ids:
+            index = cleaned_emp_ids.index(target_emp_id)
+            return all_names[index]  # คืนค่าชื่อพนักงานในแถวเดียวกัน
+    except Exception as e:
+        pass
+    return ""  # คืนค่าว่างกรณีไม่พบชื่อจริง หรือชีตระบบเกิดข้อผิดพลาด
+
+
 def save_session_to_sheet(emp_id, token, expires_at):
     """บันทึกรหัสลับพนักงานและ Token กำหนดวันเวลาหมดอายุลงสู่ Google Sheets"""
     try:
@@ -162,6 +183,16 @@ def check_auth():
 
     # ตรวจเช็คว่าผ่านกระบวนการยืนยันตัวตนสำเร็จแล้วหรือไม่
     if st.session_state["authenticated"]:
+        # ป้องกันกรณีที่ session_state หลุดค่า emp_id ให้เอาคุกกี้กลับไปดึงใหม่อีกครั้ง
+        if "emp_id" not in st.session_state or st.session_state["emp_id"] is None:
+            saved_token = get_cookie_safe(COOKIE_NAME)
+            if saved_token:
+                extracted_emp_id = verify_token_in_sheet(saved_token)
+                if extracted_emp_id:
+                    st.session_state["emp_id"] = extracted_emp_id
+                else:
+                    st.session_state["authenticated"] = False
+                    return False
         return True
 
     # แสดงหน้าจอล็อกอินกลางกรณีผู้ใช้ไม่มีสิทธิ์ (สะพานเชื่อมฟังก์ชันหลัก)
@@ -203,11 +234,18 @@ def check_auth():
 # ส่วนที่ 6: พื้นที่โปรแกรมจำลองหน้าจอหลักของการทำงาน (Main Program Interface)==================================================
 
 st.title("ยินดีต้อนรับเข้าใช้งานหน้าการตรวจเช็คตรวจสอบระบบ 🚒")
-st.write(f"สวัสดีคุณพนักงานรหัสพิเศษ: **{st.session_state.get('emp_id')}**")
+# ดึงชื่อแสดงผลแบบปลอดภัย
+current_user = st.session_state.get("emp_id")
+
+if "emp_name" not in st.session_state or not st.session_state["emp_name"]:
+    if current_user and current_user != "None":
+        st.session_state["emp_name"] = get_employee_name_by_id(current_user)
+    else:
+        st.session_state["emp_name"] = ""
+
+st.write(f"สวัสดีครับ ยินดีต้อนรับคุณ: **{st.session_state.get('emp_id')}**")
 
 # [เขียนส่วนที่เหลือของกระบวนการควบคุม การดำเนินเรื่องตรวจเช็คถังดับเพลิงและระบบหน้าของคุณด้านล่างนี้ได้เลย]
-
-st.write("---")
 # ปุ่มควบคุมการออกจากระบบ (Logout Service)
 if st.button("ออกจากระบบ"):
     current_token = get_cookie_safe(COOKIE_NAME)
@@ -450,7 +488,12 @@ def upload_image(image_file):
 #-------------------------------------------------------------------------------------------------------------------
 #ส่วนของแบบฟอร์มการตรวจเช็ค
 with st.sidebar.form("check_form", clear_on_submit=True):
-    inspector = st.text_input("ชื่อผู้ตรวจ", key="inspector_input")
+    default_name = st.session_state.get("emp_name", "")
+    inspector = st.text_input(
+        "ชื่อผู้ตรวจ",
+        value=default_name,  # 👈 ดึงข้อมูลชื่อจากชีตเติมให้โดยอัตโนมัติ
+        key="inspector_input",  # 👈 ปรับเป็น True หากป้องกันไม่ให้แก้ไขสิทธิ์ชื่อ หรือเว้นไว้เพื่อให้ผู้เขียนแก้ต่อได้
+    )
 
     # --- ส่วนเช็คลิสต์ตามประเภท ---
     if device_type == "ถังดับเพลิง":
