@@ -78,7 +78,13 @@ if cookie_token and not st.session_state.logged_in:
 import secrets
 def generate_token():
     return secrets.token_urlsafe(32)
-wb = client.open_by_key(st.secrets["1M2kmH7RAK-LCd3My2HeuhYhBbVq6OQEgF8bL0zLYLwU"])
+
+@st.cache_resource
+def get_workbook(_client):
+    return _client.open_by_key(st.secrets["sheet_id"])
+
+wb = get_workbook(client)
+
 sheet_emp = wb.worksheet("employee_list")   # คอลัมน์ A: รหัสพนักงาน
 sheet_log = wb.worksheet("login_log")       # หัวตาราง: employee_id | date
 
