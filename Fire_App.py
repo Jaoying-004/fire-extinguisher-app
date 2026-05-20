@@ -128,13 +128,20 @@ def append_login_log(emp_id, date_str):
 
 def check_auth():
     from datetime import date
+    import streamlit as st
+
     today = date.today().isoformat()
 
-    # ถ้า session ยังล็อกอินอยู่และเป็นวันนี้
-    if (
-        st.session_state["authenticated"]
-        and st.session_state["last_login"] == today
-    ):
+    # initialize session state
+    if "authenticated" not in st.session_state:
+        st.session_state["authenticated"] = False
+    if "last_login" not in st.session_state:
+        st.session_state["last_login"] = None
+    if "emp_id" not in st.session_state:
+        st.session_state["emp_id"] = None
+
+    # ถ้า login แล้วและเป็นวันเดียวกัน
+    if st.session_state["authenticated"] and st.session_state["last_login"] == today:
         return True
 
     # แสดงหน้า login
@@ -143,12 +150,8 @@ def check_auth():
 
     if st.button("ล็อกอิน"):
         if emp_input in load_employees():
-            # บันทึก login log
             new_token = append_login_log(emp_input, today)
 
-            # ❌ ลบบรรทัดนี้ออก: load_login_log.clear()
-
-            # อัพเดท session state
             st.session_state["authenticated"] = True
             st.session_state["emp_id"] = emp_input
             st.session_state["last_login"] = today
