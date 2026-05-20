@@ -5,6 +5,19 @@ import pytz
 from datetime import datetime, timedelta
 from streamlit_cookies_controller import CookieController
 import streamlit as st
+import time
+import uuid
+controller = CookieController()
+
+# ประดับห้องพักข้อมูลเริ่มต้น
+if "authenticated" not in st.session_state:
+    st.session_state["authenticated"] = False
+if "cookie_checked" not in st.session_state:
+    st.session_state["cookie_checked"] = False
+
+# บังคับรอจังหวะเพื่อให้คุกกี้ตอบโต้กับ Streamlit สำเร็จ
+time.sleep(0.1)
+saved_token = controller.get("session_token")
 
 
 # 1. ประกาศตัวจัดการ Cookie (แนะนำให้ประกาศไว้ด้านบนสุดของแอป)
@@ -69,13 +82,17 @@ def verify_token_in_sheet(token):
         st.write(f"เกิดข้อผิดพลาดในการตรวจสอบ Session: {e}")
     return None
 
-def save_session_to_db(token, emp_id):
-    """
-    บันทึก Session ลงใน Google Sheet
-    """
-    expires_at = (datetime.now() + timedelta(days=SESSION_EXPIRY_DAYS)).strftime("%Y-%m-%d %H:%M:%S")
-    # บันทึกเป็นแถวใหม่ [Token, Employee_ID, วันหมดอายุ]
-    sheet_sessions.append_row([token, emp_id, expires_at])
+
+def save_session_to_sheet(emp_id, token, expires_at):
+    try:
+        # สมมติว่า sheet_session คือหน้าแผ่นงาน (Worksheet) ชื่อ Auth_Sessions ของคุณ
+        # เปิดหน้า Sheet ที่ต้องการเก็บข้อมูล Session
+        sheet_session = spreadsheet.worksheet("Auth_Sessions")
+
+        # บันทึกข้อมูลเรียงตามคอลัมน์: [รหัสพนักงาน, Token สุ่ม, วันเวลาหมดอายุ]
+        sheet_session.append_row([emp_id, token, expires_at])
+    except Exception as e:
+        st.error(f"ไม่สามารถบันทึกเซสชันลง Google Sheet ได้: {e}")
 
 def revoke_token_in_db(token):
     """
@@ -118,7 +135,7 @@ def handle_login_success(emp_id):
     new_token = generate_token()
 
     # 2. บันทึกลง Google Sheet
-    save_session_to_db(new_token, emp_id)
+    save_session_to_sheet(new_token, emp_id)
 
     # 3. บันทึกลง Cookie บนบราวเซอร์ (มีอายุกี่วินาที)
     max_age_seconds = SESSION_EXPIRY_DAYS * 24 * 3600
@@ -214,7 +231,14 @@ def check_auth():
 
     if st.button("ล็อกอิน"):
         if emp_input in load_employees():
-            new_token = append_login_log(emp_input, today)
+            new_token = str(uuid.uuid4())
+            expiry_date = (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d %H:%M:%S")
+
+            # บันทึกลง Google Sheet
+            save_session_to_sheet(emp_input, new_token, expiry_date)
+
+            # 1. ยิงคำสั่งบันทึกคุกกี้ลงเครื่องเบราว์เซอร์
+            controller.set("session_token", new_token)
 
             st.session_state["authenticated"] = True
             st.session_state["emp_id"] = emp_input
