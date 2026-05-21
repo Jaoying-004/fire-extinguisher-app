@@ -39,7 +39,7 @@ SESSION_EXPIRY_DAYS = 1
 
 
 # เรียกใช้ครั้งเดียว
-cookie_manager = get_cookie_manager()
+cookie_manager = stx.CookieManager()
 
 
 def get_cookie_safe(name):
