@@ -61,7 +61,8 @@ def set_cookie_safe(name, value, max_age_seconds):
     """บันทึกค่าคุกกี้อย่างปลอดภัย"""
     try:
         if controller is not None:
-            set_cookie_safe(name, value, max_age=max_age_seconds)
+            # ✅ แก้ไข: เปลี่ยนจากเรียก set_cookie_safe (เรียกตัวเอง) เป็นเรียก controller.set
+            controller.set(name, value, max_age=max_age_seconds)
     except Exception:
         pass
 
@@ -178,57 +179,44 @@ if not st.session_state.get("authenticated") and saved_token and saved_token != 
         remove_cookie_safe(COOKIE_NAME)
 
 # ส่วนที่ 5: ฟังก์ชันควบคุมและควบคุมระบบแสดงผล หน้าจอหลัก / หน้าจอล็อกอิน==========================================================
-def check_auth():
-    today = datetime.now().date().isoformat()
+if not st.session_state.get("authenticated"):
 
-    # ตรวจเช็คว่าผ่านกระบวนการยืนยันตัวตนสำเร็จแล้วหรือไม่
-    if st.session_state["authenticated"]:
-        # ป้องกันกรณีที่ session_state หลุดค่า emp_id ให้เอาคุกกี้กลับไปดึงใหม่อีกครั้ง
-        if "emp_id" not in st.session_state or st.session_state["emp_id"] is None:
-            saved_token = get_cookie_safe(COOKIE_NAME)
-            if saved_token:
-                extracted_emp_id = verify_token_in_sheet(saved_token)
-                if extracted_emp_id:
-                    st.session_state["emp_id"] = extracted_emp_id
-                else:
-                    st.session_state["authenticated"] = False
-                    return False
-        return True
+    st.title("ระบบตรวจเช็คอุปกรณ์ดับเพลิง 🚒")
+    st.subheader("กรุณาเข้าสู่ระบบ")
+    emp_input = st.text_input("กรอกรหัสพนักงาน", key="emp_input", placeholder="รหัสพนักงานของคุณ").strip()
 
-st.title("ระบบตรวจเช็คอุปกรณ์ดับเพลิง 🚒")
-st.subheader("กรุณาเข้าสู่ระบบ")
-emp_input = st.text_input("กรอกรหัสพนักงาน", key="emp_input", placeholder="รหัสพนักงานของคุณ").strip()
-
-
-if st.button("ล็อกอิน"):
-    today = datetime.now().date().isoformat()
-    if emp_input in load_employees():
-            # สุ่มสร้างโทเค็นมาตรฐานปลอดภัยสูง
-        new_token = str(uuid.uuid4())
-        expiry_date = (datetime.now() + timedelta(days=SESSION_EXPIRY_DAYS)).strftime("%Y-%m-%d %H:%M:%S")
+    if st.button("ล็อกอิน"):
+        today = datetime.now().date().isoformat()
+        if emp_input in load_employees():
+            # สุ่มสร้างโทเค็น
+            new_token = str(uuid.uuid4())
+            expiry_date = (datetime.now() + timedelta(days=SESSION_EXPIRY_DAYS)).strftime("%Y-%m-%d %H:%M:%S")
 
             # 1. จัดเก็บบันทึกประวัติเซสชันลง Google Sheets
-        save_session_to_sheet(emp_input, new_token, expiry_date)
-        try:
-            sheet_log.append_row([emp_input, datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
-        except Exception:
-            pass
+            save_session_to_sheet(emp_input, new_token, expiry_date)
+            try:
+                sheet_log.append_row([emp_input, datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+            except Exception:
+                pass
 
-            # 2. ✅ แก้ไข: บันทึกโทเค่นคุกกี้โดยใช้ตัวแปร COOKIE_NAME ป้องกันคีย์ชื่อไม่ตรงกัน
-        set_cookie_safe(COOKIE_NAME, new_token, max_age_seconds=SESSION_EXPIRY_DAYS * 24 * 3600)
+            # 2. บันทึกโทเค่นคุกกี้
+            set_cookie_safe(COOKIE_NAME, new_token, max_age_seconds=SESSION_EXPIRY_DAYS * 24 * 3600)
 
             # 3. อัปเดตสถานะหน่วยความจำ Streamlit
-        st.session_state["authenticated"] = True
-        st.session_state["emp_id"] = emp_input
-        st.session_state["last_login"] = today
+            st.session_state["authenticated"] = True
+            st.session_state["emp_id"] = emp_input
+            st.session_state["last_login"] = today
 
-        st.success("✅ เข้าสู่ระบบสำเร็จ กำลังเตรียมเชื่อมต่อระบบ...")
+            st.success("✅ เข้าสู่ระบบสำเร็จ กำลังเตรียมเชื่อมต่อระบบ...")
 
-            # 4. ✅ หน่วงเวลาสั้นๆ (0.5 วินาที) เพื่อให้บราวเซอร์ดำเนินการเขียนคุกกี้ลง Disk ก่อนสั่งรีรันหน้าจอ
-        time.sleep(0.5)
-        st.rerun()
-    else:
-        st.error("❌ ไม่พบรหัสพนักงานในฐานข้อมูลระบบ ตรวจเช็คใหม่อีกครั้ง")
+            # 4. หน่วงเวลาสั้นๆ (0.5 วินาที) ก่อนสั่งรีรันหน้าจอทำงาน
+            time.sleep(0.5)
+            st.rerun()
+        else:
+            st.error("❌ ไม่พบรหัสพนักงานในฐานข้อมูลระบบ ตรวจเช็คใหม่อีกครั้ง")
+
+    # 🛑 คำสั่งสำคัญที่สุด: หยุดการรันของคอมไพเลอร์ทันทีเพื่อไม่ให้เลื่อนลงไปอ่านแบบฟอร์มด้านล่าง
+    st.stop()
 
 # ส่วนที่ 6: พื้นที่โปรแกรมจำลองหน้าจอหลักของการทำงาน (Main Program Interface)==================================================
 
