@@ -131,10 +131,11 @@ def set_cookie_safe(name, value, max_age_seconds):
         controller.set(
             name,
             value,
-            max_age=int(max_age_seconds),  # อายุเป็นวินาที
-            path="/",  # ใช้ได้ทั้งเว็บไซต์
-            key=f"set_{name}_{int(time.time())}"  # unique key สำหรับ Streamlit
+            max_age=int(max_age_seconds),
+            path="/"
         )
+
+        time.sleep(0.3)  # รอให้ browser บันทึกเสร็จ
         return True
 
     except Exception as e:
@@ -143,27 +144,13 @@ def set_cookie_safe(name, value, max_age_seconds):
 
 
 def remove_cookie_safe(name):
-    """
-    ลบ Cookie ออกจาก Browser อย่างสมบูรณ์
-
-    Args:
-        name (str): ชื่อ cookie ที่ต้องการลบ
-
-    Returns:
-        bool: True ถ้าสำเร็จ
-    """
+    """ลบ Cookie ออกจาก Browser"""
     try:
         controller = get_cookie_controller()
         if controller is not None:
-            # วิธีที่ 1: ตั้งค่าเป็นค่าว่างและหมดอายุทันที
-            controller.set(
-                name,
-                "",
-                max_age=0,
-                path="/",
-                key=f"remove_{name}_{int(time.time())}"
-            )
-            # วิธีที่ 2: เรียก remove() เพื่อความแน่ใจ
+            # ✅ เอา key parameter ออก
+            controller.set(name, "", max_age=0, path="/")
+            time.sleep(0.2)
             controller.remove(name)
             return True
     except Exception as e:
@@ -278,33 +265,22 @@ def save_session_to_sheet(emp_id, token, expires_at):
 
 
 def verify_token_in_sheet(token):
-    """
-    ตรวจสอบความถูกต้องและอายุของ Token
-
-    Args:
-        token (str): Token ที่ต้องการตรวจสอบ
-
-    Returns:
-        str or None: รหัสพนักงานถ้า token ถูกต้อง, None ถ้าไม่ถูกต้องหรือหมดอายุ
-    """
+    """ตรวจสอบความถูกต้องและอายุของ Token"""
     try:
         cell = sheet_sessions.find(token)
 
         if cell:
             row_data = sheet_sessions.row_values(cell.row)
-            # โครงสร้าง: [emp_id, token, expires_at]
 
             if len(row_data) >= 3:
                 emp_id = row_data[0]
                 expires_str = row_data[2]
-
-                # แปลงและตรวจสอบวันหมดอายุ
                 expires_at = datetime.strptime(expires_str, "%Y-%m-%d %H:%M:%S")
 
                 if datetime.now() < expires_at:
-                    return emp_id  # Token ยังใช้งานได้
+                    return emp_id
                 else:
-                    # Token หมดอายุแล้ว - ลบออกจากระบบ
+                    # Token หมดอายุ - ลบออก
                     sheet_sessions.delete_rows(cell.row)
     except Exception as e:
         st.warning(f"⚠️ เกิดข้อผิดพลาดในการตรวจสอบ token: {e}")
@@ -436,58 +412,6 @@ if not st.session_state.get("authenticated"):
     st.stop()
 
 # ส่วนที่ 5: ฟังก์ชันควบคุมและควบคุมระบบแสดงผล หน้าจอหลัก / หน้าจอล็อกอิน==========================================================
-if not st.session_state.get("authenticated"):
-
-    st.title("ระบบตรวจเช็คอุปกรณ์ดับเพลิง 🚒")
-    st.subheader("กรุณาเข้าสู่ระบบ")
-    emp_input = st.text_input("กรอกรหัสพนักงาน", key="emp_input", placeholder="รหัสพนักงานของคุณ").strip()
-
-    if login_button:
-        if not emp_input:
-            st.error("❌ กรุณากรอกรหัสพนักงาน")
-        elif emp_input in load_employees():
-            with st.spinner("กำลังตรวจสอบข้อมูล..."):
-                # สร้าง Token
-                new_token = str(uuid.uuid4())
-                expiry_date = (
-                        datetime.now() + timedelta(days=SESSION_EXPIRY_DAYS)
-                ).strftime("%Y-%m-%d %H:%M:%S")
-
-                # 1. บันทึก Session ลง Google Sheets
-                save_session_to_sheet(emp_input, new_token, expiry_date)
-
-                # 2. บันทึก Login Log
-                try:
-                    sheet_log.append_row([
-                        emp_input,
-                        datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    ])
-                except Exception:
-                    pass
-
-                # ✅ 3. บันทึก Cookie (แก้ไขแล้ว - ไม่มี key parameter)
-                max_age = SESSION_EXPIRY_DAYS * 24 * 3600
-                cookie_saved = set_cookie_safe(COOKIE_NAME, new_token, max_age)
-
-                if cookie_saved:
-                    # 4. อัปเดต Session State
-                    st.session_state["authenticated"] = True
-                    st.session_state["emp_id"] = emp_input
-                    st.session_state["last_login"] = datetime.now().date().isoformat()
-
-                    st.success("✅ เข้าสู่ระบบสำเร็จ! กำลังเปิดระบบ...")
-                    time.sleep(1.2)  # เพิ่มเวลารอให้ cookie บันทึกเสร็จ
-                    st.rerun()
-                else:
-                    st.error("❌ ไม่สามารถบันทึก Session ได้ กรุณาลองใหม่อีกครั้ง")
-                    st.info("💡 ลองรีเฟรชหน้าเว็บแล้วเข้าสู่ระบบใหม่")
-        else:
-            st.error("❌ ไม่พบรหัสพนักงานในระบบ")
-
-    # 🛑 คำสั่งสำคัญที่สุด: หยุดการรันของคอมไพเลอร์ทันทีเพื่อไม่ให้เลื่อนลงไปอ่านแบบฟอร์มด้านล่าง
-    st.stop()
-
-# ส่วนที่ 6: พื้นที่โปรแกรมจำลองหน้าจอหลักของการทำงาน (Main Program Interface)==================================================
 
 st.title("ยินดีต้อนรับเข้าใช้งานหน้าการตรวจเช็คตรวจสอบระบบ 🚒")
 # ดึงชื่อแสดงผลแบบปลอดภัย
@@ -497,48 +421,47 @@ if "emp_name" not in st.session_state or not st.session_state["emp_name"]:
     if current_user and current_user != "None":
         st.session_state["emp_name"] = get_employee_name_by_id(current_user)
     else:
-        st.session_state["emp_name"] = ""
+        st.session_state["emp_name"] = "ผู้ใช้"
 
-st.write(f"สวัสดีครับ ยินดีต้อนรับคุณ: **{st.session_state.get('emp_id')}**")
+# แสดงข้อมูลผู้ใช้
+st.markdown(f"""
+<div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin-bottom: 20px;'>
+    <h3 style='margin: 0;'>👤 ข้อมูลผู้ใช้งาน</h3>
+    <p style='margin: 5px 0;'><strong>ชื่อ:</strong> {st.session_state.get('emp_name', 'ไม่ระบุ')}</p>
+    <p style='margin: 5px 0;'><strong>รหัส:</strong> {current_user}</p>
+    <p style='margin: 5px 0;'><strong>Login:</strong> {st.session_state.get('last_login', '-')}</p>
+</div>
+""", unsafe_allow_html=True)
 
 # [เขียนส่วนที่เหลือของกระบวนการควบคุม การดำเนินเรื่องตรวจเช็คถังดับเพลิงและระบบหน้าของคุณด้านล่างนี้ได้เลย]
+
+
 # ปุ่มควบคุมการออกจากระบบ (Logout Service)
-if st.button("ออกจากระบบ"):
-    # 1. เขียนค่าว่างทับและสั่งคุกกี้หมดอายุทันที (Hard Cookie Reset)
-    # ปรับแต่งแก้ไขปัญหา remove_cookie แล้วเบราว์เซอร์ไม่ยอมลบจริง
-    try:
-        # บังคับป้อนเป็น "None" และตั้งค่าระยะเวลาให้หมดอายุติดลบ (ลบออกทันที)
-        set_cookie_safe(COOKIE_NAME, "None", max_age_seconds=-3600)
-        remove_cookie_safe(COOKIE_NAME)  # ปิดท้ายเพื่อความมั่นใจ
-    except Exception:
-        pass
+st.markdown("---")
 
-    # 2. ค้นหาและล้างเซสชันออกจากระบบ Google Sheet
-    current_token = get_cookie_safe(COOKIE_NAME)
-    if current_token and current_token != "None":
-        try:
-            revoke_token_in_sheet(current_token)
-        except Exception:
-            pass
+col1, col2, col3 = st.columns([4, 1, 1])
 
-    # 3. ล้างสถานะสิทธิ์ในหน่วยความจำชั่วคราวทั้งหมด
-    st.session_state["authenticated"] = False
-    st.session_state["emp_id"] = None
-    st.session_state["emp_name"] = None
+with col3:
+    if st.button("🚪 ออกจากระบบ", type="secondary", use_container_width=True):
+        with st.spinner("กำลังออกจากระบบ..."):
+            # 1. ลบ Cookie
+            remove_cookie_safe(COOKIE_NAME)
 
-    # 4. บังคับยันการลบขยะทิ้งป้องกันลูปวน
-    auth_keys_to_clear = ["authenticated", "emp_id", "emp_name", "last_login"]
-    for key in auth_keys_to_clear:
-        if key in st.session_state:
-            st.session_state[key] = None
-            del st.session_state[key]
+            # 2. ลบ Session จาก Sheets
+            current_token = get_cookie_safe(COOKIE_NAME)
+            if current_token and current_token != "None":
+                revoke_token_in_sheet(current_token)
 
-    # บังคับระบุขอบเขตให้ชัดเจนว่ารอบรันถัดไปต้องไม่ล็อกอิน
-    st.session_state["authenticated"] = False
+            # 3. ล้าง Session State
+            for key in ["authenticated", "emp_id", "emp_name", "last_login"]:
+                if key in st.session_state:
+                    del st.session_state[key]
 
-    # 5. แสดงกล่องแจ้งเตือนและบังคับรีรันระบบทันที
-    st.success("กำลังออกจากระบบ...")
-    st.rerun()
+            st.session_state["authenticated"] = False
+
+            st.success("✅ ออกจากระบบสำเร็จ")
+            time.sleep(0.8)
+            st.rerun()
 
 #จบส่วนล็อคอิน==========================================================================================================
 
