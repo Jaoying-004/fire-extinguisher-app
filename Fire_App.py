@@ -36,15 +36,6 @@ COOKIE_NAME = "emp_auth_token"
 SESSION_EXPIRY_DAYS = 1
 
 
-@st.cache_resource
-def get_cookie_manager():
-    """
-    สร้าง Cookie Manager (Singleton)
-
-    Reference: extra-streamlit-components documentation
-    https://github.com/Mohamed-512/Extra-Streamlit-Components
-    """
-    return stx.CookieManager()
 
 
 # เรียกใช้ครั้งเดียว
