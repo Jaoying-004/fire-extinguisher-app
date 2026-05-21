@@ -442,35 +442,47 @@ if not st.session_state.get("authenticated"):
     st.subheader("กรุณาเข้าสู่ระบบ")
     emp_input = st.text_input("กรอกรหัสพนักงาน", key="emp_input", placeholder="รหัสพนักงานของคุณ").strip()
 
-    if st.button("ล็อกอิน"):
-        today = datetime.now().date().isoformat()
-        if emp_input in load_employees():
-            # สุ่มสร้างโทเค็น
-            new_token = str(uuid.uuid4())
-            expiry_date = (datetime.now() + timedelta(days=SESSION_EXPIRY_DAYS)).strftime("%Y-%m-%d %H:%M:%S")
+    if login_button:
+        if not emp_input:
+            st.error("❌ กรุณากรอกรหัสพนักงาน")
+        elif emp_input in load_employees():
+            with st.spinner("กำลังตรวจสอบข้อมูล..."):
+                # สร้าง Token
+                new_token = str(uuid.uuid4())
+                expiry_date = (
+                        datetime.now() + timedelta(days=SESSION_EXPIRY_DAYS)
+                ).strftime("%Y-%m-%d %H:%M:%S")
 
-            # 1. จัดเก็บบันทึกประวัติเซสชันลง Google Sheets
-            save_session_to_sheet(emp_input, new_token, expiry_date)
-            try:
-                sheet_log.append_row([emp_input, datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
-            except Exception:
-                pass
+                # 1. บันทึก Session ลง Google Sheets
+                save_session_to_sheet(emp_input, new_token, expiry_date)
 
-            # 2. บันทึกโทเค่นคุกกี้
-            set_cookie_safe(COOKIE_NAME, new_token, max_age_seconds=SESSION_EXPIRY_DAYS * 24 * 3600)
+                # 2. บันทึก Login Log
+                try:
+                    sheet_log.append_row([
+                        emp_input,
+                        datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    ])
+                except Exception:
+                    pass
 
-            # 3. อัปเดตสถานะหน่วยความจำ Streamlit
-            st.session_state["authenticated"] = True
-            st.session_state["emp_id"] = emp_input
-            st.session_state["last_login"] = today
+                # ✅ 3. บันทึก Cookie (แก้ไขแล้ว - ไม่มี key parameter)
+                max_age = SESSION_EXPIRY_DAYS * 24 * 3600
+                cookie_saved = set_cookie_safe(COOKIE_NAME, new_token, max_age)
 
-            st.success("✅ เข้าสู่ระบบสำเร็จ กำลังเตรียมเชื่อมต่อระบบ...")
+                if cookie_saved:
+                    # 4. อัปเดต Session State
+                    st.session_state["authenticated"] = True
+                    st.session_state["emp_id"] = emp_input
+                    st.session_state["last_login"] = datetime.now().date().isoformat()
 
-            # 4. หน่วงเวลาสั้นๆ (0.5 วินาที) ก่อนสั่งรีรันหน้าจอทำงาน
-            time.sleep(0.5)
-            st.rerun()
+                    st.success("✅ เข้าสู่ระบบสำเร็จ! กำลังเปิดระบบ...")
+                    time.sleep(1.2)  # เพิ่มเวลารอให้ cookie บันทึกเสร็จ
+                    st.rerun()
+                else:
+                    st.error("❌ ไม่สามารถบันทึก Session ได้ กรุณาลองใหม่อีกครั้ง")
+                    st.info("💡 ลองรีเฟรชหน้าเว็บแล้วเข้าสู่ระบบใหม่")
         else:
-            st.error("❌ ไม่พบรหัสพนักงานในฐานข้อมูลระบบ ตรวจเช็คใหม่อีกครั้ง")
+            st.error("❌ ไม่พบรหัสพนักงานในระบบ")
 
     # 🛑 คำสั่งสำคัญที่สุด: หยุดการรันของคอมไพเลอร์ทันทีเพื่อไม่ให้เลื่อนลงไปอ่านแบบฟอร์มด้านล่าง
     st.stop()
