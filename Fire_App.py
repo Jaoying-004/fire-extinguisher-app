@@ -195,41 +195,40 @@ def check_auth():
                     return False
         return True
 
-    # แสดงหน้าจอล็อกอินกลางกรณีผู้ใช้ไม่มีสิทธิ์ (สะพานเชื่อมฟังก์ชันหลัก)
-    st.title("ระบบตรวจเช็คอุปกรณ์ดับเพลิง 🚒")
-    st.subheader("กรุณาเข้าสู่ระบบ")
-    emp_input = st.text_input("กรอกรหัสพนักงาน", key="emp_input", placeholder="รหัสพนักงานของคุณ").strip()
+st.title("ระบบตรวจเช็คอุปกรณ์ดับเพลิง 🚒")
+st.subheader("กรุณาเข้าสู่ระบบ")
+emp_input = st.text_input("กรอกรหัสพนักงาน", key="emp_input", placeholder="รหัสพนักงานของคุณ").strip()
 
-    if st.button("ล็อกอิน"):
-        if emp_input in load_employees():
+
+if st.button("ล็อกอิน"):
+    today = datetime.now().date().isoformat()
+    if emp_input in load_employees():
             # สุ่มสร้างโทเค็นมาตรฐานปลอดภัยสูง
-            new_token = str(uuid.uuid4())
-            expiry_date = (datetime.now() + timedelta(days=SESSION_EXPIRY_DAYS)).strftime("%Y-%m-%d %H:%M:%S")
+        new_token = str(uuid.uuid4())
+        expiry_date = (datetime.now() + timedelta(days=SESSION_EXPIRY_DAYS)).strftime("%Y-%m-%d %H:%M:%S")
 
             # 1. จัดเก็บบันทึกประวัติเซสชันลง Google Sheets
-            save_session_to_sheet(emp_input, new_token, expiry_date)
-            try:
-                sheet_log.append_row([emp_input, datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
-            except Exception:
-                pass
+        save_session_to_sheet(emp_input, new_token, expiry_date)
+        try:
+            sheet_log.append_row([emp_input, datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+        except Exception:
+            pass
 
             # 2. ✅ แก้ไข: บันทึกโทเค่นคุกกี้โดยใช้ตัวแปร COOKIE_NAME ป้องกันคีย์ชื่อไม่ตรงกัน
-            set_cookie_safe(COOKIE_NAME, new_token, max_age_seconds=SESSION_EXPIRY_DAYS * 24 * 3600)
+        set_cookie_safe(COOKIE_NAME, new_token, max_age_seconds=SESSION_EXPIRY_DAYS * 24 * 3600)
 
             # 3. อัปเดตสถานะหน่วยความจำ Streamlit
-            st.session_state["authenticated"] = True
-            st.session_state["emp_id"] = emp_input
-            st.session_state["last_login"] = today
+        st.session_state["authenticated"] = True
+        st.session_state["emp_id"] = emp_input
+        st.session_state["last_login"] = today
 
-            st.success("✅ เข้าสู่ระบบสำเร็จ กำลังเตรียมเชื่อมต่อระบบ...")
+        st.success("✅ เข้าสู่ระบบสำเร็จ กำลังเตรียมเชื่อมต่อระบบ...")
 
             # 4. ✅ หน่วงเวลาสั้นๆ (0.5 วินาที) เพื่อให้บราวเซอร์ดำเนินการเขียนคุกกี้ลง Disk ก่อนสั่งรีรันหน้าจอ
-            time.sleep(0.5)
-            st.rerun()
-        else:
-            st.error("❌ ไม่พบรหัสพนักงานในฐานข้อมูลระบบ ตรวจเช็คใหม่อีกครั้ง")
-
-    return False
+        time.sleep(0.5)
+        st.rerun()
+    else:
+        st.error("❌ ไม่พบรหัสพนักงานในฐานข้อมูลระบบ ตรวจเช็คใหม่อีกครั้ง")
 
 # ส่วนที่ 6: พื้นที่โปรแกรมจำลองหน้าจอหลักของการทำงาน (Main Program Interface)==================================================
 
