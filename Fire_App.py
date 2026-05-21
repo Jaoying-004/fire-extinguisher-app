@@ -166,7 +166,7 @@ def revoke_token_in_sheet(token):
 saved_token = get_cookie_safe(COOKIE_NAME)
 
 # ตรวจเข้าสู่ระบบประยุกต์ใช้อัตโนมัติ (Auto login จาก Cookie เกิม)
-if not st.session_state["authenticated"] and saved_token and saved_token != "None":
+if not st.session_state.get("authenticated") and saved_token and saved_token != "None":
     emp_id = verify_token_in_sheet(saved_token)
     if emp_id:
         st.session_state["authenticated"] = True
@@ -248,23 +248,40 @@ st.write(f"สวัสดีครับ ยินดีต้อนรับ�
 # [เขียนส่วนที่เหลือของกระบวนการควบคุม การดำเนินเรื่องตรวจเช็คถังดับเพลิงและระบบหน้าของคุณด้านล่างนี้ได้เลย]
 # ปุ่มควบคุมการออกจากระบบ (Logout Service)
 if st.button("ออกจากระบบ"):
-    # 1. ค้นหาและล้างเซสชันในฐานข้อมูล Google Sheet เพื่อความปลอดภัย
+    # 1. เขียนค่าว่างทับและสั่งคุกกี้หมดอายุทันที (Hard Cookie Reset)
+    # ปรับแต่งแก้ไขปัญหา remove_cookie แล้วเบราว์เซอร์ไม่ยอมลบจริง
+    try:
+        # บังคับป้อนเป็น "None" และตั้งค่าระยะเวลาให้หมดอายุติดลบ (ลบออกทันที)
+        set_cookie_safe(COOKIE_NAME, "None", max_age_seconds=-3600)
+        remove_cookie_safe(COOKIE_NAME)  # ปิดท้ายเพื่อความมั่นใจ
+    except Exception:
+        pass
+
+    # 2. ค้นหาและล้างเซสชันออกจากระบบ Google Sheet
     current_token = get_cookie_safe(COOKIE_NAME)
-    if current_token:
-        revoke_token_in_sheet(current_token)  # ลบประวัติสิทธิ์ในชีตระบบ
+    if current_token and current_token != "None":
+        try:
+            revoke_token_in_sheet(current_token)
+        except Exception:
+            pass
 
-    # 2. ถอนการติดตั้งคุกกี้ออกจากหน้าเครื่องบราวเซอร์
-    remove_cookie_safe(COOKIE_NAME)
+    # 3. ล้างสถานะสิทธิ์ในหน่วยความจำชั่วคราวทั้งหมด
+    st.session_state["authenticated"] = False
+    st.session_state["emp_id"] = None
+    st.session_state["emp_name"] = None
 
-    # 3. ✅ วิธีแก้ไข: คลีนเฉพาะค่าที่เกี่ยวกับสิทธิ์ล็อกเอาต์เท่านั้น ห้ามลบ "cookie_initialized"
+    # 4. บังคับยันการลบขยะทิ้งป้องกันลูปวน
     auth_keys_to_clear = ["authenticated", "emp_id", "emp_name", "last_login"]
     for key in auth_keys_to_clear:
         if key in st.session_state:
+            st.session_state[key] = None
             del st.session_state[key]
 
-    # บังคับประกาศอย่างเป็นทางการว่าพ้นสิทธิ์การเข้าถึงแล้ว
+    # บังคับระบุขอบเขตให้ชัดเจนว่ารอบรันถัดไปต้องไม่ล็อกอิน
     st.session_state["authenticated"] = False
-    # 4. แสดงผลข้อความและส่งผู้ใช้กลับไปยังหน้าล็อกอินแบบทันทีทันใด
+
+    # 5. แสดงกล่องแจ้งเตือนและบังคับรีรันระบบทันที
+    st.success("กำลังออกจากระบบ...")
     st.rerun()
 
 #จบส่วนล็อคอิน==========================================================================================================
