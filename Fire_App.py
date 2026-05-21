@@ -37,9 +37,7 @@ SESSION_EXPIRY_DAYS = 1
 # 2. ตั้งค่าเฉพาะสถานะควบคุม (State)
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
-# ตัวแปรจำกัดจังหวะการอ่านค่าจาก Cookie ครั้งแรก
-if "cookie_initialized" not in st.session_state:
-    st.session_state["cookie_initialized"] = False
+
 
 if not st.session_state["cookie_initialized"]:
     # หน่วงเวลาสั้นๆ เพื่อให้ Browser ส่งสัญญาณค่าเชื่อมต่อ Cookie
@@ -48,23 +46,26 @@ if not st.session_state["cookie_initialized"]:
     st.rerun()  # สั่งประมวลผลหน้าใหม่อีกครั้งทันทีพร้อมค่า Cookie ที่โหลดเสร็จแล้ว
 
 def get_cookie_safe(name):
-    """ดึงค่าคุกกี้อย่างปลอดภัย ป้องกันปัญหาระบบพังกลางคัน"""
     try:
         if controller is not None:
-            val = get_cookie_safe(name)
-            return val
+            # ดึงตรงๆ จาก instance ของ controller
+            return controller.get(name)
     except Exception:
         pass
     return None
 
 def set_cookie_safe(name, value, max_age_seconds):
-    """บันทึกค่าคุกกี้อย่างปลอดภัย"""
     try:
         if controller is not None:
-            # ✅ แก้ไข: เปลี่ยนจากเรียก set_cookie_safe (เรียกตัวเอง) เป็นเรียก controller.set
-            controller.set(name, value, max_age=max_age_seconds)
-    except Exception:
-        pass
+            # มั่นใจว่าเบราว์เซอร์เขียนอายุคุกกี้ลง Disk จริง (ไม่ใช้ Session Cookie)
+            controller.set(
+                name,
+                value,
+                max_age=int(max_age_seconds),  # บังคับประเภทเป็นตัวเลข Integer
+                path="/"  # อนุญาตให้เข้าถึงคุกกี้ตัวนี้ได้ทุก Path หน้าเว็บ
+            )
+    except Exception as e:
+         st.error(f"Cookie Write Error: {e}")
 
 def remove_cookie_safe(name):
     """ลบค่าคุกกี้อย่างปลอดภัย"""
@@ -164,8 +165,16 @@ def revoke_token_in_sheet(token):
 
 # ส่วนที่ 4: การจัดกระบวนการทำงานและตรวจสอบสิทธิ์อัตโนมัติ (Execution Flow)
 
-saved_token = get_cookie_safe(COOKIE_NAME)
+if "cookie_initialized" not in st.session_state:
+    st.session_state["cookie_initialized"] = False
 
+if not st.session_state["cookie_initialized"]:
+    time.sleep(0.8)  # ปรับเพิ่มเล็กน้อยเป็น 0.8 วินาที เพื่อให้เบราว์เซอร์ที่ตอบสนองช้าส่งค่าคุกกี้สำเร็จ
+    st.session_state["cookie_initialized"] = True
+    st.rerun()
+
+# มั่นใจได้ว่าเบราว์เซอร์พร้อมส่งมอบค่าคุกกี้เก่าวัดผลแล้วตอนประมวลผลรอบนี้
+saved_token = get_cookie_safe(COOKIE_NAME)
 # ตรวจเข้าสู่ระบบประยุกต์ใช้อัตโนมัติ (Auto login จาก Cookie เกิม)
 if not st.session_state.get("authenticated") and saved_token and saved_token != "None":
     emp_id = verify_token_in_sheet(saved_token)
