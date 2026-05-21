@@ -37,13 +37,14 @@ SESSION_EXPIRY_DAYS = 1
 # 2. ตั้งค่าเฉพาะสถานะควบคุม (State)
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
+if "cookie_initialized" not in st.session_state:
+    st.session_state["cookie_initialized"] = False
 
-
-if not st.session_state["cookie_initialized"]:
-    # หน่วงเวลาสั้นๆ เพื่อให้ Browser ส่งสัญญาณค่าเชื่อมต่อ Cookie
-    time.sleep(0.5)
+# 2. ปรับจุดตรวจสอบเงื่อนไข (เปลี่ยนการเช็คแบบตรงๆ มาใช้ .get() เพื่อความปลอดภัยสูงสุด)
+if not st.session_state.get("cookie_initialized", False):
+    time.sleep(0.8) # หน่วงเวลาสั้นๆ ส่งมอบคุกกี้
     st.session_state["cookie_initialized"] = True
-    st.rerun()  # สั่งประมวลผลหน้าใหม่อีกครั้งทันทีพร้อมค่า Cookie ที่โหลดเสร็จแล้ว
+    st.rerun()  # สั่งรีกลับขึ้นไปทำงานใหม่เพื่อเริ่มสแกนคุกกี้ที่โหลดเสร็จแล้ว
 
 def get_cookie_safe(name):
     try:
