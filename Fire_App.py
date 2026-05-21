@@ -46,31 +46,42 @@ if not st.session_state.get("cookie_initialized", False):
     st.session_state["cookie_initialized"] = True
     st.rerun()  # สั่งรีกลับขึ้นไปทำงานใหม่เพื่อเริ่มสแกนคุกกี้ที่โหลดเสร็จแล้ว
 
+def get_cookie_controller():
+    """สร้างหรือเรียกคืน Cookie Controller เสมอเพื่อป้องกันค่า None เปล่า"""
+    if "cookies_controller" not in st.session_state:
+        # บันทึกตัวควบคุมเก็บไว้ใน session_state เพื่อป้องกันมันสูญหายระหว่างคอมไพล์
+        st.session_state["cookies_controller"] = CookieController()
+    return st.session_state["cookies_controller"]
+
 def get_cookie_safe(name):
+    """เรียกดูข้อมูลคุกกี้อย่างปลอดภัย"""
     try:
+        controller = get_cookie_controller()
         if controller is not None:
-            # ดึงตรงๆ จาก instance ของ controller
             return controller.get(name)
     except Exception:
         pass
     return None
 
 def set_cookie_safe(name, value, max_age_seconds):
+    """บันทึกข้อมูลคุกกี้ลงบราวเซอร์จริงแบบคงกระพันข้ามการปิดแท็บ"""
     try:
+        controller = get_cookie_controller()
         if controller is not None:
-            # มั่นใจว่าเบราว์เซอร์เขียนอายุคุกกี้ลง Disk จริง (ไม่ใช้ Session Cookie)
+            # ใช้พารามิเตอร์ max_age= เพื่อบอกเบราว์เซอร์ถึงอายุของ Cookie
             controller.set(
                 name,
                 value,
-                max_age=int(max_age_seconds),  # บังคับประเภทเป็นตัวเลข Integer
-                path="/"  # อนุญาตให้เข้าถึงคุกกี้ตัวนี้ได้ทุก Path หน้าเว็บ
+                max_age=int(max_age_seconds),
+                path="/"
             )
     except Exception as e:
-         st.error(f"Cookie Write Error: {e}")
+         st.error(f"⚠️ ไม่สามารถเขียนคุกกี้ได้ชั่วคราว: {e}")
 
 def remove_cookie_safe(name):
-    """ลบค่าคุกกี้อย่างปลอดภัย"""
+    """สั่งทำลายคุกกี้ออกจากเครื่องผู้เล่นเวลากด Log out"""
     try:
+        controller = get_cookie_controller()
         if controller is not None:
             controller.remove(name)
     except Exception:
