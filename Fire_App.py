@@ -7,6 +7,7 @@ from streamlit_cookies_controller import CookieController
 import streamlit as st
 import time
 import uuid
+import extra_streamlit_components as stx
 
 # ตั้งค่าเวลาไทยไว้ใช้ทั้งแอป
 tz = pytz.timezone('Asia/Bangkok')
@@ -35,108 +36,58 @@ COOKIE_NAME = "emp_auth_token"
 SESSION_EXPIRY_DAYS = 1
 
 
-def get_cookie_controller():
+@st.cache_resource
+def get_cookie_manager():
     """
-    สร้างหรือดึง Cookie Controller จาก session_state
-    แบบ Singleton Pattern เพื่อป้องกันการสร้างซ้ำ
+    สร้าง Cookie Manager (Singleton)
 
-    Reference: Streamlit Session State Best Practices
-    https://docs.streamlit.io/library/api-reference/session-state
+    Reference: extra-streamlit-components documentation
+    https://github.com/Mohamed-512/Extra-Streamlit-Components
     """
-    if "cookies_controller" not in st.session_state:
-        try:
-            st.session_state["cookies_controller"] = CookieController()
-            # ตรวจสอบว่าสร้างสำเร็จ
-            if st.session_state["cookies_controller"] is None:
-                return None
-        except Exception as e:
-            st.error(f"⚠️ ไม่สามารถสร้าง Cookie Controller: {e}")
-            return None
-    return st.session_state.get("cookies_controller")
+    return stx.CookieManager()
 
 
-def initialize_cookies():
-    """
-    เริ่มต้นระบบ Cookie ครั้งแรกเมื่อเปิดแอพพลิเคชัน
-    รอให้ Browser โหลด CookieController เสร็จสมบูรณ์
-
-    Reference: streamlit-cookies-controller GitHub
-    https://github.com/ktosiek/streamlit-cookies-controller
-    """
-    if "cookie_initialized" not in st.session_state:
-        st.session_state["cookie_initialized"] = False
-
-    if not st.session_state["cookie_initialized"]:
-        controller = get_cookie_controller()
-
-        if controller is not None:
-            # รอให้ browser พร้อมรับ/ส่ง cookies
-            time.sleep(1.2)
-            st.session_state["cookie_initialized"] = True
-            st.rerun()
-        else:
-            st.warning("⏳ กำลังเตรียมระบบ Cookie...")
-            time.sleep(0.8)
-            st.rerun()
-
-
-# เรียกใช้งานทันทีตอนเริ่มโปรแกรม
-initialize_cookies()
+# เรียกใช้ครั้งเดียว
+cookie_manager = get_cookie_manager()
 
 
 def get_cookie_safe(name):
-    """
-    อ่านค่า Cookie อย่างปลอดภัยพร้อม Error Handling
-
-    Args:
-        name (str): ชื่อ cookie ที่ต้องการอ่าน
-
-    Returns:
-        str or None: ค่าของ cookie หรือ None ถ้าไม่พบ
-    """
+    """อ่าน Cookie"""
     try:
-        controller = get_cookie_controller()
-        if controller is not None:
-            # ใช้ getAll() เพื่อดึง cookies ทั้งหมดแล้วเลือก
-            cookies = controller.getAll()
-            if cookies and isinstance(cookies, dict):
-                return cookies.get(name)
+        all_cookies = cookie_manager.get_all()
+        if all_cookies and isinstance(all_cookies, dict):
+            return all_cookies.get(name)
     except Exception as e:
-        st.warning(f"⚠️ ไม่สามารถอ่าน cookie '{name}': {e}")
+        st.warning(f"⚠️ ไม่สามารถอ่าน cookie: {e}")
     return None
 
 
-def set_cookie_safe(name, value, max_age_seconds):
+def set_cookie_safe(name, value, expiry_days=1):
     """
-    บันทึกค่า Cookie ลง Browser พร้อมตั้งค่าอายุการใช้งาน
+    บันทึก Cookie (วิธีใหม่ที่เชื่อถือได้)
 
     Args:
-        name (str): ชื่อ cookie
-        value (str): ค่าที่ต้องการบันทึก
-        max_age_seconds (int): อายุของ cookie เป็นวินาที
-
-    Returns:
-        bool: True ถ้าสำเร็จ, False ถ้าล้มเหลว
-
-    Reference: HTTP Cookie Specification (RFC 6265)
+        name: ชื่อ cookie
+        value: ค่า cookie
+        expiry_days: จำนวนวันที่เก็บไว้
     """
     try:
-        controller = get_cookie_controller()
-
-        if controller is None:
-            st.error("❌ Cookie Controller ไม่พร้อมใช้งาน กรุณารีเฟรชหน้าเว็บ")
-            return False
-
-        # บันทึก cookie พร้อม parameters ที่จำเป็น
-        controller.set(
+        # ✅ ใช้ CookieManager ของ extra-streamlit-components
+        cookie_manager.set(
             name,
             value,
-            max_age=int(max_age_seconds),
-            path="/"
+            expires_at=datetime.now() + timedelta(days=expiry_days)
         )
 
-        time.sleep(0.3)  # รอให้ browser บันทึกเสร็จ
-        return True
+        time.sleep(0.5)
+
+        # ตรวจสอบ
+        saved_value = cookie_manager.get(name)
+        if saved_value == value:
+            return True
+        else:
+            st.warning("⚠️ Cookie อาจยังไม่ถูกบันทึก")
+            return False
 
     except Exception as e:
         st.error(f"❌ ไม่สามารถบันทึก Cookie: {e}")
@@ -144,15 +95,11 @@ def set_cookie_safe(name, value, max_age_seconds):
 
 
 def remove_cookie_safe(name):
-    """ลบ Cookie ออกจาก Browser"""
+    """ลบ Cookie"""
     try:
-        controller = get_cookie_controller()
-        if controller is not None:
-            # ✅ เอา key parameter ออก
-            controller.set(name, "", max_age=0, path="/")
-            time.sleep(0.2)
-            controller.remove(name)
-            return True
+        cookie_manager.delete(name)
+        time.sleep(0.3)
+        return True
     except Exception as e:
         st.warning(f"⚠️ ไม่สามารถลบ cookie: {e}")
     return False
@@ -309,25 +256,21 @@ if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
 
 # ตรวจสอบ Auto-login หลังจากที่ Cookie พร้อมใช้งานแล้ว
-if st.session_state.get("cookie_initialized"):
-    if not st.session_state.get("authenticated"):
-        saved_token = get_cookie_safe(COOKIE_NAME)
+if not st.session_state.get("authenticated"):
+    saved_token = get_cookie_safe(COOKIE_NAME)
 
-        # ตรวจสอบว่ามี token ที่ถูกต้อง
-        if saved_token and saved_token != "None" and saved_token.strip():
-            emp_id = verify_token_in_sheet(saved_token)
+    if saved_token and saved_token != "None":
+        emp_id = verify_token_in_sheet(saved_token)
 
-            if emp_id:
-                # Auto-login สำเร็จ
-                st.session_state["authenticated"] = True
-                st.session_state["emp_id"] = emp_id
-                st.session_state["last_login"] = datetime.now().date().isoformat()
-                st.success("✅ เข้าสู่ระบบอัตโนมัติสำเร็จ")
-                time.sleep(0.5)
-                st.rerun()
-            else:
-                # Token ไม่ถูกต้องหรือหมดอายุ - ลบ cookie
-                remove_cookie_safe(COOKIE_NAME)
+        if emp_id:
+            st.session_state["authenticated"] = True
+            st.session_state["emp_id"] = emp_id
+            st.session_state["last_login"] = datetime.now().date().isoformat()
+            st.success("✅ เข้าสู่ระบบอัตโนมัติสำเร็จ")
+            time.sleep(0.5)
+            st.rerun()
+        else:
+            remove_cookie_safe(COOKIE_NAME)
 
 if not st.session_state.get("authenticated"):
     st.title("🚒 ระบบตรวจเช็คอุปกรณ์ดับเพลิง")
@@ -356,17 +299,15 @@ if not st.session_state.get("authenticated"):
     if login_button:
         if not emp_input:
             st.error("❌ กรุณากรอกรหัสพนักงาน")
+
         elif emp_input in load_employees():
             with st.spinner("กำลังตรวจสอบข้อมูล..."):
-                # สร้าง Token แบบสุ่ม (UUID v4)
                 new_token = str(uuid.uuid4())
-
-                # คำนวณวันหมดอายุ
                 expiry_date = (
                         datetime.now() + timedelta(days=SESSION_EXPIRY_DAYS)
                 ).strftime("%Y-%m-%d %H:%M:%S")
 
-                # 1. บันทึก Session ลง Google Sheets
+                # 1. บันทึก Session ลง Sheets
                 save_session_to_sheet(emp_input, new_token, expiry_date)
 
                 # 2. บันทึก Login Log
@@ -376,25 +317,29 @@ if not st.session_state.get("authenticated"):
                         datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     ])
                 except Exception:
-                    pass  # ไม่ให้ error ของ log ขัดขวางการ login
+                    pass
 
-                # 3. บันทึก Cookie (อายุ = จำนวนวินาที)
-                max_age = SESSION_EXPIRY_DAYS * 24 * 3600
-                cookie_saved = set_cookie_safe(COOKIE_NAME, new_token, max_age)
+                # ✅ 3. บันทึก Cookie (วิธีใหม่)
+                cookie_saved = set_cookie_safe(
+                    COOKIE_NAME,
+                    new_token,
+                    expiry_days=SESSION_EXPIRY_DAYS
+                )
 
                 if cookie_saved:
-                    # 4. อัปเดต Session State
                     st.session_state["authenticated"] = True
                     st.session_state["emp_id"] = emp_input
                     st.session_state["last_login"] = datetime.now().date().isoformat()
 
-                    st.success("✅ เข้าสู่ระบบสำเร็จ! กำลังเปิดระบบ...")
-                    time.sleep(1)
+                    st.success("✅ เข้าสู่ระบบสำเร็จ!")
+                    st.balloons()  # ✨ เพิ่มความสนุก
+                    time.sleep(1.5)
                     st.rerun()
                 else:
-                    st.error("❌ ไม่สามารถบันทึก Session ได้ กรุณาลองใหม่")
+                    st.error("❌ ไม่สามารถบันทึก Session ได้")
+                    st.info("💡 กรุณาลองอีกครั้ง หรือติดต่อผู้ดูแลระบบ")
         else:
-            st.error("❌ ไม่พบรหัสพนักงานในระบบ กรุณาตรวจสอบอีกครั้ง")
+            st.error("❌ ไม่พบรหัสพนักงานในระบบ")
 
     # แสดงข้อมูลเพิ่มเติม
     with st.expander("ℹ️ ข้อมูลการใช้งาน"):
