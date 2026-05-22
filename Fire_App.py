@@ -35,35 +35,74 @@ except Exception as e:
 COOKIE_NAME = "emp_auth_token"
 SESSION_EXPIRY_DAYS = 1
 
-
-
+# ✅ สร้าง Cookie Manager และรอให้พร้อม
+@st.cache_resource
+def get_cookie_manager():
+    """
+    สร้าง CookieManager instance แบบ Singleton
+    ใช้ cache_resource เพื่อให้ instance เดียวกันตลอด session
+    """
+    return stx.CookieManager()
 
 # เรียกใช้ครั้งเดียว
 cookie_manager = stx.CookieManager()
 
+# ✅ เพิ่มการตรวจสอบว่า Cookie Manager พร้อมใช้งานแล้วหรือยัง
+if "cookie_ready" not in st.session_state:
+    st.session_state["cookie_ready"] = False
+
+# รอให้ CookieManager พร้อม (สำคัญมาก!)
+if not st.session_state["cookie_ready"]:
+    try:
+        # ลองเรียก get_all() เพื่อ trigger initialization
+        _ = cookie_manager.get_all()
+
+        # รอ JavaScript execute เสร็จ
+        time.sleep(0.8)
+
+        st.session_state["cookie_ready"] = True
+
+        # ✅ เก็บ query params ไว้ก่อน rerun
+        if st.query_params:
+            st.session_state["saved_query_params"] = dict(st.query_params)
+
+        st.rerun()
+    except Exception as e:
+        st.warning(f"⏳ กำลังเตรียม Cookie Manager... ({e})")
+        time.sleep(0.5)
+        st.rerun()
+
+# ✅ กู้คืน query params หลัง rerun
+if "saved_query_params" in st.session_state:
+    for key, value in st.session_state["saved_query_params"].items():
+        if key not in st.query_params:
+            st.query_params[key] = value
+    # ลบออกหลังใช้แล้ว
+    del st.session_state["saved_query_params"]
+
 
 def get_cookie_safe(name):
-    """อ่าน Cookie"""
+    """อ่าน Cookie อย่างปลอดภัย"""
+    if not st.session_state.get("cookie_ready", False):
+        return None
+
     try:
         all_cookies = cookie_manager.get_all()
         if all_cookies and isinstance(all_cookies, dict):
             return all_cookies.get(name)
     except Exception as e:
-        st.warning(f"⚠️ ไม่สามารถอ่าน cookie: {e}")
+        # st.warning(f"⚠️ ไม่สามารถอ่าน cookie: {e}")
+        pass
     return None
 
 
 def set_cookie_safe(name, value, expiry_days=1):
-    """
-    บันทึก Cookie (วิธีใหม่ที่เชื่อถือได้)
+    """บันทึก Cookie"""
+    if not st.session_state.get("cookie_ready", False):
+        st.error("❌ Cookie Manager ยังไม่พร้อม")
+        return False
 
-    Args:
-        name: ชื่อ cookie
-        value: ค่า cookie
-        expiry_days: จำนวนวันที่เก็บไว้
-    """
     try:
-        # ✅ ใช้ CookieManager ของ extra-streamlit-components
         cookie_manager.set(
             name,
             value,
@@ -72,7 +111,7 @@ def set_cookie_safe(name, value, expiry_days=1):
 
         time.sleep(0.5)
 
-        # ตรวจสอบ
+        # ตรวจสอบว่าบันทึกสำเร็จ
         saved_value = cookie_manager.get(name)
         if saved_value == value:
             return True
@@ -87,6 +126,9 @@ def set_cookie_safe(name, value, expiry_days=1):
 
 def remove_cookie_safe(name):
     """ลบ Cookie"""
+    if not st.session_state.get("cookie_ready", False):
+        return False
+
     try:
         cookie_manager.delete(name)
         time.sleep(0.3)
@@ -247,30 +289,47 @@ if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
 
 # ตรวจสอบ Auto-login หลังจากที่ Cookie พร้อมใช้งานแล้ว
-if not st.session_state.get("authenticated"):
-    saved_token = get_cookie_safe(COOKIE_NAME)
+if st.session_state.get("cookie_ready", False):
+    if not st.session_state.get("authenticated", False):
 
-    if saved_token and saved_token != "None":
-        emp_id = verify_token_in_sheet(saved_token)
+        # อ่าน Cookie
+        saved_token = get_cookie_safe(COOKIE_NAME)
 
-        if emp_id:
-            st.session_state["authenticated"] = True
-            st.session_state["emp_id"] = emp_id
-            st.session_state["last_login"] = datetime.now().date().isoformat()
-            st.success("✅ เข้าสู่ระบบอัตโนมัติสำเร็จ")
-            time.sleep(0.5)
-            st.rerun()
-        else:
-            remove_cookie_safe(COOKIE_NAME)
+        if saved_token and saved_token != "None":
+            # ตรวจสอบ Token
+            emp_id = verify_token_in_sheet(saved_token)
+
+            if emp_id:
+                # ✅ Login สำเร็จ
+                st.session_state["authenticated"] = True
+                st.session_state["emp_id"] = emp_id
+                st.session_state["last_login"] = datetime.now().date().isoformat()
+
+                # แสดงข้อความ
+                st.success(f"✅ ยินดีต้อนรับกลับ {get_employee_name_by_id(emp_id)}")
+
+                # ✅ สำคัญ: ไม่ rerun ถ้ามี query params (เพื่อไม่ให้หายไป)
+                if not st.query_params:
+                    time.sleep(0.5)
+                    st.rerun()
+            else:
+                # Token หมดอายุ
+                remove_cookie_safe(COOKIE_NAME)
 
 if not st.session_state.get("authenticated"):
     st.title("🚒 ระบบตรวจเช็คอุปกรณ์ดับเพลิง")
     st.subheader("กรุณาเข้าสู่ระบบ")
 
-    # แสดงสถานะระบบ
+    # ✅ แสดง query params ถ้ามี
+    tank_id = st.query_params.get("tank_id")
+    if tank_id:
+        st.info(f"📍 คุณกำลังจะตรวจสอบถัง: **{tank_id}**")
+        st.warning("⚠️ กรุณาเข้าสู่ระบบก่อนดำเนินการต่อ")
+
+    # แสดงสถานะ Cookie
     col1, col2 = st.columns([3, 1])
     with col2:
-        if st.session_state.get("cookie_initialized"):
+        if st.session_state.get("cookie_ready"):
             st.success("🟢 ระบบพร้อม")
         else:
             st.warning("🟡 กำลังโหลด...")
@@ -278,7 +337,7 @@ if not st.session_state.get("authenticated"):
     emp_input = st.text_input(
         "รหัสพนักงาน",
         key="emp_input",
-        placeholder="กรอกรหัสพนักงาน 6 หลัก",
+        placeholder="กรอกรหัสพนักงาน",
         max_chars=20
     ).strip()
 
@@ -293,12 +352,13 @@ if not st.session_state.get("authenticated"):
 
         elif emp_input in load_employees():
             with st.spinner("กำลังตรวจสอบข้อมูล..."):
+                # สร้าง Token
                 new_token = str(uuid.uuid4())
                 expiry_date = (
                         datetime.now() + timedelta(days=SESSION_EXPIRY_DAYS)
                 ).strftime("%Y-%m-%d %H:%M:%S")
 
-                # 1. บันทึก Session ลง Sheets
+                # 1. บันทึก Session
                 save_session_to_sheet(emp_input, new_token, expiry_date)
 
                 # 2. บันทึก Login Log
@@ -310,7 +370,7 @@ if not st.session_state.get("authenticated"):
                 except Exception:
                     pass
 
-                # ✅ 3. บันทึก Cookie (วิธีใหม่)
+                # 3. บันทึก Cookie
                 cookie_saved = set_cookie_safe(
                     COOKIE_NAME,
                     new_token,
@@ -318,31 +378,32 @@ if not st.session_state.get("authenticated"):
                 )
 
                 if cookie_saved:
+                    # อัปเดต Session State
                     st.session_state["authenticated"] = True
                     st.session_state["emp_id"] = emp_input
                     st.session_state["last_login"] = datetime.now().date().isoformat()
 
+                    # ✅ เก็บ tank_id ไว้ใน session_state (ถ้ามี)
+                    if tank_id:
+                        st.session_state["selected_tank"] = tank_id
+
                     st.success("✅ เข้าสู่ระบบสำเร็จ!")
-                    st.balloons()  # ✨ เพิ่มความสนุก
-                    time.sleep(1.5)
+                    st.balloons()
+                    time.sleep(1)
                     st.rerun()
                 else:
                     st.error("❌ ไม่สามารถบันทึก Session ได้")
-                    st.info("💡 กรุณาลองอีกครั้ง หรือติดต่อผู้ดูแลระบบ")
         else:
             st.error("❌ ไม่พบรหัสพนักงานในระบบ")
 
-    # แสดงข้อมูลเพิ่มเติม
     with st.expander("ℹ️ ข้อมูลการใช้งาน"):
         st.markdown("""
         **คำแนะนำ:**
         - ใช้รหัสพนักงานที่ได้รับจากแผนก HR
         - ระบบจะจดจำการเข้าสู่ระบบไว้ 1 วัน
-        - หากมีปัญหา กรุณาติดต่อผู้ดูแลระบบ
 
         **ความปลอดภัย:**
-        - Session จะหมดอายุอัตโนมัติภายใน 24 ชั่วโมง
-        - อย่าแชร์รหัสพนักงานกับผู้อื่น
+        - Session หมดอายุอัตโนมัติภายใน 24 ชั่วโมง
         """)
 
     st.stop()
@@ -369,6 +430,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
+selected_tank = st.session_state.get("selected_tank") or st.query_params.get("tank_id")
 # [เขียนส่วนที่เหลือของกระบวนการควบคุม การดำเนินเรื่องตรวจเช็คถังดับเพลิงและระบบหน้าของคุณด้านล่างนี้ได้เลย]
 
 
@@ -380,17 +442,17 @@ col1, col2, col3 = st.columns([4, 1, 1])
 with col3:
     if st.button("🚪 ออกจากระบบ", type="secondary", use_container_width=True):
         with st.spinner("กำลังออกจากระบบ..."):
-            # 1. ลบ Cookie
+            # ลบ Cookie
             remove_cookie_safe(COOKIE_NAME)
 
-            # 2. ลบ Session จาก Sheets
+            # ลบ Session จาก Sheets
             current_token = get_cookie_safe(COOKIE_NAME)
-            if current_token and current_token != "None":
+            if current_token:
                 revoke_token_in_sheet(current_token)
 
-            # 3. ล้าง Session State
-            for key in ["authenticated", "emp_id", "emp_name", "last_login"]:
-                if key in st.session_state:
+            # ล้าง Session State
+            for key in list(st.session_state.keys()):
+                if key != "cookie_ready":  # เก็บ cookie_ready ไว้
                     del st.session_state[key]
 
             st.session_state["authenticated"] = False
@@ -598,7 +660,7 @@ else:
 
 # --- โดดเข้าโฟลวการค้นหาข้อมูลในตารางหลัก ---
 if selected_device:
-    cell_info = sheet.find(selected_device)
+    cell_info = sheet.find(selected_device) #5555555555
 
     if cell_info is not None:
         # 💡 ดึงค่าจากคอลัมน์ที่ 3 ของชีตที่เปิดอยู่มาเก็บไว้ (เป็นได้ทั้งประเภทถัง และประเภทอุปกรณ์)
