@@ -568,7 +568,7 @@ with tab3:
             df_tab3 = df_tab3.reset_index(drop=True)
             df_tab3.index = df_tab3.index + 1
 
-            df_tab3.insert(0, "No.", df_tab2.index)
+            df_tab3.insert(0, "No.", df_tab3.index)
 
             # แสดงผลลัพธ์ (แนะนำให้ใส่ hide_index=True เพื่อไม่ให้มี index ซ้ำซ้อนโผล่มาซ้ายสุดอีก)
             st.dataframe(df_tab3, use_container_width=True, hide_index=True)
