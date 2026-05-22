@@ -506,7 +506,9 @@ with tab2:
     st.subheader("📋 FireExtinguisher_Data")
     try:
         df_tab2 = load_sheet_data("FireExtinguisher_Data")
-
+        df_tab2 = df_tab2.reset_index(drop=True)
+        df_tab2.index = df_tab2.index + 1
+        st.dataframe(df_tab2, use_container_width=True)
         if df_tab2.empty:
             st.warning("⚠️ ไม่พบข้อมูล")
         else:
