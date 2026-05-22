@@ -486,17 +486,21 @@ with tab1:
     st.subheader("รายการที่ตรวจเช็คแล้ววันนี้")
 
     if not df.empty:
-        today_str = datetime.now().strftime("%Y-%m-%d")
+        today = datetime.now().date()
         first_col = df.columns[0]
 
-        df_today = df[df[first_col].astype(str).str.startswith(today_str, na=False)]
+        df_today = df[pd.to_datetime(df[first_col], errors='coerce').dt.date == today]
 
         if not df_today.empty:
-            df_today = df_today.reset_index(drop=True)
-            df_today.index = df_today.index + 1
-            st.dataframe(df_today, use_container_width=True)
+            # 3. จัดการลำดับความถูกต้องของ index ใหม่ก่อนนำไปแสดงผล
+            df_display = df_today.copy()
+            df_display = df_display.reset_index(drop=True)
+            df_display.index = df_display.index + 1
+
+            # แสดงเฉพาะตารางแบบซ่อนดัชนีเก่า เพื่อไม่ให้เกะกะสายตา
+            st.dataframe(df_display, use_container_width=True, hide_index=True)
         else:
-            st.info(f"📌 ยังไม่มีข้อมูลการตรวจบันทึกในวันนี้ {today_str}")
+            st.info(f"📌 ยังไม่มีข้อมูลการตรวจบันทึกในวันนี้ ({today.strftime('%Y-%m-%d')})")
     else:
         st.info("ยังไม่มีข้อมูลการตรวจบันทึกในแท็บ Log")
 
