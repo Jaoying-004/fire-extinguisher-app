@@ -59,11 +59,11 @@ if not st.session_state["cookie_ready"]:
         if st.query_params:
             st.session_state["saved_query_params"] = dict(st.query_params)
 
-        st.stop()
+        st.rerun()
     except Exception as e:
         st.warning(f"⏳ กำลังเตรียม Cookie Manager... ({e})")
         time.sleep(0.5)
-        st.stop()
+        st.rerun()
 
 # ✅ กู้คืน query params หลัง rerun
 if "saved_query_params" in st.session_state:
@@ -492,7 +492,7 @@ with tab1:
         df_today = df[df[first_col].astype(str).str.startswith(today_str, na=False)]
 
         if not df_today.empty:
-            st.dataframe(df_today, use_container_width=True)
+            st.dataframe(df_today, use_container_width=True, hide_index=True)
         else:
             st.info(f"📌 ยังไม่มีข้อมูลการตรวจบันทึกในวันนี้ {today_str}")
     else:
