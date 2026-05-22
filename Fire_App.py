@@ -589,18 +589,9 @@ with tab4:
             if 'Status' in df_inspection.columns:
                 df_need_repair = df_inspection[
                     df_inspection['Status'].str.strip() == 'ไม่ปกติ (ต้องแก้ไข)'
-                    ]
+                ]
 
-                # สถิติ
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    st.metric("📋 ทั้งหมด", len(df_inspection))
-                with col2:
-                    st.metric("⚠️ ต้องแก้ไข", len(df_need_repair))
-                with col3:
-                    if len(df_inspection) > 0:
-                        percent = (len(df_need_repair) / len(df_inspection)) * 100
-                        st.metric("📊 %", f"{percent:.1f}%")
+                st.metric("⚠️ ต้องแก้ไข", len(df_need_repair))
 
                 st.divider()
 
