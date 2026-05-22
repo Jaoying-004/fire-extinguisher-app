@@ -506,14 +506,20 @@ with tab2:
     st.subheader("📋 FireExtinguisher_Data")
     try:
         df_tab2 = load_sheet_data("FireExtinguisher_Data")
-        df_tab2 = df_tab2.reset_index(drop=True)
-        df_tab2.index = df_tab2.index + 1
-        st.dataframe(df_tab2, use_container_width=True)
+
         if df_tab2.empty:
             st.warning("⚠️ ไม่พบข้อมูล")
         else:
-            df_tab2 = df_tab2.iloc[:, 1:]
-            st.dataframe(df_tab2, use_container_width=True, hide_index=True)
+            # ลบคอลัมน์ No. ถ้ามี
+            if "No." in df_tab2.columns:
+                df_tab2 = df_tab2.drop(columns=["No."])
+
+            # ให้ index เริ่มที่ 1
+            df_tab2 = df_tab2.reset_index(drop=True)
+            df_tab2.index = df_tab2.index + 1
+
+            st.dataframe(df_tab2, use_container_width=True)
+
 
     except Exception as e:
         st.error(f"❌ {type(e).__name__}: {e}")
