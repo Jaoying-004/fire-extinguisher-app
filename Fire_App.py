@@ -590,8 +590,33 @@ with tab4:
                 df_need_repair = df_inspection[
                     df_inspection['Status'].str.strip() == 'ไม่ปกติ (ต้องแก้ไข)'
                 ]
+                st.write("### 🔍 ตัวกรองข้อมูล")
+                col_f1, col_f2 = st.columns(2)
+                with col_f1:
+                    selected_inspector = st.selectbox("เลือกคนตรวจ",
+                                                      ["ทั้งหมด"] + list(df_need_repair['Inspector'].unique()))
+                with col_f2:
+                    selected_id = st.selectbox("เลือก ID อุปกรณ์", ["ทั้งหมด"] + list(df_need_repair['ID'].unique()))
 
-                st.metric("⚠️ ต้องแก้ไข", len(df_need_repair))
+                # กรองข้อมูลตามที่เลือก
+                df_filtered = df_need_repair.copy()
+                if selected_inspector != "ทั้งหมด":
+                    df_filtered = df_filtered[df_filtered['Inspector'] == selected_inspector]
+                if selected_id != "ทั้งหมด":
+                    df_filtered = df_filtered[df_filtered['ID'] == selected_id]
+
+                # --- 2. ส่วนแสดงตัวเลขและกราฟวิเคราะห์ ---
+                col_metric, col_chart = st.columns([1, 2])  # แบ่งพื้นที่ให้กราฟกว้างกว่า
+
+                with col_metric:
+                    st.metric("⚠️ ต้องแก้ไข (ตามตัวกรอง)", len(df_filtered))
+
+                with col_chart:
+                    # ทำกราฟแท่งง่ายๆ ดูว่า ID ไหนพังเยอะสุด
+                    if not df_filtered.empty:
+                        chart_data = df_filtered['ID'].value_counts().reset_index()
+                        chart_data.columns = ['ID อุปกรณ์', 'จำนวนที่พัง']
+                        st.bar_chart(data=chart_data, x='ID อุปกรณ์', y='จำนวนที่พัง', color="#FF4B4B")
 
                 st.divider()
 
