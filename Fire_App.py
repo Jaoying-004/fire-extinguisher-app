@@ -590,46 +590,27 @@ with tab4:
                 df_need_repair = df_inspection[
                     df_inspection['Status'].str.strip() == 'ไม่ปกติ (ต้องแก้ไข)'
                 ]
-                st.write("### 🔍 ตัวกรองข้อมูล")
-                col_f1, col_f2 = st.columns(2)
-                with col_f1:
-                    selected_inspector = st.selectbox("เลือกคนตรวจ",
-                                                      ["ทั้งหมด"] + list(df_need_repair['Inspector'].unique()))
-                with col_f2:
-                    selected_id = st.selectbox("เลือก ID อุปกรณ์", ["ทั้งหมด"] + list(df_need_repair['ID'].unique()))
+                # --- 1. ส่วนหัวข้อ และ ตัวกรองมุมขวา (ใช้ st.popover เพื่อความสะอาดตา) ---
+                col_title, col_filter = st.columns([3, 1])
 
-                # กรองข้อมูลตามที่เลือก
+                with col_title:
+                    st.subheader("🔧 ติดตามการแก้ไข")
+
+                with col_filter:
+                    # สร้างปุ่มกดตัวกรองไว้มุมขวาบน
+                    with st.popover("🔍 ตัวกรองข้อมูล", use_container_width=True):
+                        selected_inspector = st.selectbox("เลือกคนตรวจ",
+                                                          ["ทั้งหมด"] + list(df_need_repair['Inspector'].unique()))
+                        selected_id = st.selectbox("เลือก ID อุปกรณ์",
+                                                   ["ทั้งหมด"] + list(df_need_repair['ID'].unique()))
+
+                # ทำการกรองข้อมูล
                 df_filtered = df_need_repair.copy()
                 if selected_inspector != "ทั้งหมด":
                     df_filtered = df_filtered[df_filtered['Inspector'] == selected_inspector]
                 if selected_id != "ทั้งหมด":
                     df_filtered = df_filtered[df_filtered['ID'] == selected_id]
-
-                # --- 2. ส่วนแสดงตัวเลขสรุป และ กราฟแท่งแนวนอน (ดูง่ายขึ้นมาก) ---
-                col_metric, col_chart = st.columns([1, 2.5])
-
-                with col_metric:
-                    st.metric("⚠️ ต้องแก้ไข", len(df_filtered))
-
-                with col_chart:
-                    if not df_filtered.empty:
-                        # นับจำนวนเคสแยกตาม ID อุปกรณ์
-                        chart_data = df_filtered['ID'].value_counts().reset_index()
-                        chart_data.columns = ['ID อุปกรณ์', 'จำนวนที่พัง']
-
-                        # เรียงข้อมูลจากมากไปน้อยเพื่อให้กราฟดูง่าย
-                        chart_data = chart_data.sort_values(by='จำนวนที่พัง', ascending=True)
-
-                        # ใช้ st.bar_chart โดยสลับแกน x และ y เพื่อให้เป็นแนวขวาง ชื่อ ID จะได้ไม่อ่านยาก
-                        st.bar_chart(
-                            data=chart_data,
-                            x='จำนวนที่พัง',
-                            y='ID อุปกรณ์',
-                            color="#FF4B4B",
-                            use_container_width=True
-                        )
-                    else:
-                        st.info("ไม่มีข้อมูลกราฟเนื่องจากตัวกรองไม่มีรายการคงค้าง")
+                
 
                 st.divider()
 
