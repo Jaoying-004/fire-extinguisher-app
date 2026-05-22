@@ -486,17 +486,22 @@ with tab1:
     st.subheader("รายการที่ตรวจเช็คแล้ววันนี้")
 
     if not df.empty:
-        today_str = datetime.now().strftime("%Y-%m-%d")
-        first_col = df.columns[0]
+        date_col = "inspection_date"  # เปลี่ยนให้ตรงชื่อจริง
 
-        df_today = df[df[first_col].astype(str).str.startswith(today_str, na=False)]
+        if date_col in df.columns:
+            df[date_col] = pd.to_datetime(df[date_col], errors="coerce")
 
-        if not df_today.empty:
-            df_today = df_today.reset_index(drop=True)
-            df_today.index = df_today.index + 1
-            st.dataframe(df_today, use_container_width=True)
+            today = pd.Timestamp.today().normalize()
+            df_today = df[df[date_col].dt.normalize() == today].copy()
+
+            if not df_today.empty:
+                df_today = df_today.reset_index(drop=True)
+                df_today.insert(0, "No.", df_today.index + 1)
+                st.dataframe(df_today, use_container_width=True)
+            else:
+                st.info(f"📌 ยังไม่มีข้อมูลการตรวจบันทึกในวันนี้ {today.date()}")
         else:
-            st.info(f"📌 ยังไม่มีข้อมูลการตรวจบันทึกในวันนี้ {today_str}")
+            st.error(f"ไม่พบคอลัมน์วันที่ชื่อ '{date_col}'")
     else:
         st.info("ยังไม่มีข้อมูลการตรวจบันทึกในแท็บ Log")
 
