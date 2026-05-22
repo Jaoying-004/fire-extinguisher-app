@@ -45,7 +45,7 @@ def get_cookie_manager():
     return stx.CookieManager()
 
 # เรียกใช้ครั้งเดียว
-cookie_manager = stx.CookieManager()
+cookie_manager = get_cookie_manager()
 
 # ✅ เพิ่มการตรวจสอบว่า Cookie Manager พร้อมใช้งานแล้วหรือยัง
 if "cookie_ready" not in st.session_state:
@@ -442,14 +442,13 @@ col1, col2, col3 = st.columns([4, 1, 1])
 with col3:
     if st.button("🚪 ออกจากระบบ", type="secondary", use_container_width=True):
         with st.spinner("กำลังออกจากระบบ..."):
-            # ลบ Cookie
-            remove_cookie_safe(COOKIE_NAME)
 
             # ลบ Session จาก Sheets
             current_token = get_cookie_safe(COOKIE_NAME)
             if current_token:
                 revoke_token_in_sheet(current_token)
-
+                
+            remove_cookie_safe(COOKIE_NAME)
             # ล้าง Session State
             for key in list(st.session_state.keys()):
                 if key != "cookie_ready":  # เก็บ cookie_ready ไว้
