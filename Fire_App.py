@@ -492,9 +492,9 @@ with tab1:
         df_today = df[df[first_col].astype(str).str.startswith(today_str, na=False)]
 
         if not df_today.empty:
-            df_today = df_today.iloc[:, 1:]
-            st.dataframe(df_today, use_container_width=True, hide_index=True)
-
+            df_today = df_today.reset_index(drop=True)
+            df_today.index = df_today.index + 1
+            st.dataframe(df_today, use_container_width=True)
         else:
             st.info(f"📌 ยังไม่มีข้อมูลการตรวจบันทึกในวันนี้ {today_str}")
     else:
