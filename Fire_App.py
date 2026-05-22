@@ -541,7 +541,10 @@ with tab2:
             df_tab2 = df_tab2.reset_index(drop=True)
             df_tab2.index = df_tab2.index + 1
 
-            st.dataframe(df_tab2, use_container_width=True)
+            df_tab2.insert(0, "No.", df_tab2.index)
+
+            # แสดงผลลัพธ์ (แนะนำให้ใส่ hide_index=True เพื่อไม่ให้มี index ซ้ำซ้อนโผล่มาซ้ายสุดอีก)
+            st.dataframe(df_tab2, use_container_width=True, hide_index=True)
 
 
     except Exception as e:
@@ -565,7 +568,10 @@ with tab3:
             df_tab3 = df_tab3.reset_index(drop=True)
             df_tab3.index = df_tab3.index + 1
 
-            st.dataframe(df_tab3, use_container_width=True)
+            df_tab3.insert(0, "No.", df_tab2.index)
+
+            # แสดงผลลัพธ์ (แนะนำให้ใส่ hide_index=True เพื่อไม่ให้มี index ซ้ำซ้อนโผล่มาซ้ายสุดอีก)
+            st.dataframe(df_tab3, use_container_width=True, hide_index=True)
 
     except Exception as e:
         st.error(f"❌ {type(e).__name__}: {e}")
@@ -610,7 +616,10 @@ with tab4:
                     df_need_repair = df_need_repair.reset_index(drop=True)
                     df_need_repair.index = df_need_repair.index + 1
 
-                    st.dataframe(df_need_repair, use_container_width=True)
+                    df_need_repair.insert(0, "No.", df_need_repair.index)
+
+                    # แสดงผลโดยซ่อน index เดิมเพื่อความสวยงาม
+                    st.dataframe(df_need_repair, use_container_width=True, hide_index=True)
                 else:
                     st.success("🎉 ไม่มีรายการที่ต้องแก้ไข")
 
