@@ -486,22 +486,25 @@ with tab1:
     st.subheader("รายการที่ตรวจเช็คแล้ววันนี้")
 
     if not df.empty:
-        date_col = "Timestamp"  # เปลี่ยนให้ตรงชื่อจริง
+        today_str = datetime.now().strftime("%Y-%m-%d")
+        first_col = df.columns[0]
 
-        if date_col in df.columns:
-            df[date_col] = pd.to_datetime(df[date_col], errors="coerce")
+        df_today = df[df[first_col].astype(str).str.startswith(today_str, na=False)]
 
-            today = pd.Timestamp.today().normalize()
-            df_today = df[df[date_col].dt.normalize() == today].copy()
+        if not df_today.empty:
+            # 3. จัดการดัชนี (Index) ให้เริ่มจากลำดับที่ 1
+            # และแปลงดัชนีเป็นคอลัมน์ชื่อ "No." อย่างปลอดภัย
+            df_display = df_today.reset_index(drop=True)
+            df_display.index = df_display.index + 1
 
-            if not df_today.empty:
-                df_today = df_today.reset_index(drop=True)
-                df_today.insert(0, "No.", df_today.index + 1)
-                st.dataframe(df_today, use_container_width=True)
-            else:
-                st.info(f"📌 ยังไม่มีข้อมูลการตรวจบันทึกในวันนี้ {today.date()}")
+            # ตรวจสอบเพื่อป้องกันการ insert ซ้ำ (แก้ปัญหา ValueError เดิม)
+            if "No." not in df_display.columns:
+                df_display.insert(0, "No.", df_display.index)
+
+            # 4. แสดงผลผลลัพธ์ลงบน Streamlit
+            st.dataframe(df_display, use_container_width=True, hide_index=True)
         else:
-            st.error(f"ไม่พบคอลัมน์วันที่ชื่อ '{date_col}'")
+            st.info(f"📌 ยังไม่มีข้อมูลการตรวจบันทึกในวันนี้ ({today_str})")
     else:
         st.info("ยังไม่มีข้อมูลการตรวจบันทึกในแท็บ Log")
 
