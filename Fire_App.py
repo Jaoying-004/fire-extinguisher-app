@@ -59,11 +59,11 @@ if not st.session_state["cookie_ready"]:
         if st.query_params:
             st.session_state["saved_query_params"] = dict(st.query_params)
 
-        st.rerun()
+        st.stop()
     except Exception as e:
         st.warning(f"⏳ กำลังเตรียม Cookie Manager... ({e})")
         time.sleep(0.5)
-        st.rerun()
+        st.stop()
 
 # ✅ กู้คืน query params หลัง rerun
 if "saved_query_params" in st.session_state:
