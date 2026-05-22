@@ -487,20 +487,26 @@ with tab1:
 
     if not df.empty:
         first_col = df.columns[0]
-
         df_temp = df.copy()
 
-        # 1. แปลงเป็น Datetime โดยบังคับให้เคลียร์ Timezone (ถ้ามี)
-        # และใช้ .dt.normalize() เพื่อตัดเวลาให้เหลือ 00:00:00 เหมือนกันหมด
-        df_temp['parsed_date'] = pd.to_datetime(df_temp[first_col], errors='coerce').dt.normalize()
+        # 1. แปลงเป็นวันที่แบบระบุ format (ถ้ามีเวลาพ่วงมาด้วย หรือใช้ / แทน - ก็จะยังอ่านออก)
+        # ตัวอย่างรองรับ: 22/05/2026, 2026-05-22, 22-05-2026
+        df_temp['parsed_date'] = pd.to_datetime(
+            df_temp[first_col],
+            errors='coerce',
+            dayfirst=True # ดักเผื่อไว้ถ้าชีตบันทึกแบบ วัน/เดือน/ปี
+        ).dt.date
 
-        # 2. หาวันล่าสุด (ตัวนี้จะเป็น Timestamp ที่มีเฉพาะวันที่)
-        latest_date = df_temp['parsed_date'].max()
+        # กรองเอาแถวที่เป็น NaT (แปลงวันที่ไม่สำเร็จ) ออกไปก่อนคำนวณหาค่า max
+        df_clean_date = df_temp[df_temp['parsed_date'].notna()]
 
-        if pd.notna(latest_date):
-            # 3. กรองข้อมูล (เปรียบเทียบแบบ Timestamp เหมือนกัน จะแม่นยำกว่า .date)
+        if not df_clean_date.empty:
+            # 2. หาวันล่าสุดจริงๆ ที่ไม่ใช่ค่าว่าง
+            latest_date = df_clean_date['parsed_date'].max()
+
+            # 3. กรองข้อมูลเฉพาะวันล่าสุดนั้น
             df_today = df_temp[df_temp['parsed_date'] == latest_date].copy()
-            df_today = df_today.drop(columns=['parsed_date'])
+            df_today = df_today.drop(columns=['parsed_date'])  # ลบคอลัมน์คำนวณออก
 
             # 4. แสดงผลลัพธ์
             df_display = df_today.reset_index(drop=True)
@@ -509,11 +515,13 @@ with tab1:
             if "No." not in df_display.columns:
                 df_display.insert(0, "No.", df_display.index)
 
-            # แปลงแสดงผลใน st.info ให้เป็นรูปแบบวันที่อ่านง่าย (YYYY-MM-DD)
-            st.info(f"📊 แสดงข้อมูลล่าสุดประจำวันที่ตรวจเช็ค: {latest_date.strftime('%Y-%m-%d')}")
+            st.info(f"📊 แสดงข้อมูลล่าสุดประจำวันที่ตรวจเช็ค: {latest_date}")
             st.dataframe(df_display, use_container_width=True, hide_index=True)
         else:
-            st.warning("⚠️ ไม่พบข้อมูลวันที่ที่ถูกต้องในคอลัมน์แรก")
+            # ถ้าหลุดมาตรงนี้ แปลว่า Pandas อ่านวันที่ในคอลัมน์แรกไม่ออกเลยสักแถว
+            st.warning("⚠️ ไม่สามารถแปลงข้อมูลในคอลัมน์แรกให้เป็นวันที่ได้ กรุณาเช็คฟอร์แมตใน Google Sheets")
+            # โชว์ข้อมูลดิบ 3 แถวแรกให้เห็นว่าหน้าตาเป็นยังไง
+            st.write("ตัวอย่างข้อมูลดิบในคอลัมน์แรก:", df[first_col].head(3).tolist())
     else:
         st.info("ยังไม่มีข้อมูลการตรวจบันทึกในแท็บ Log")
 
