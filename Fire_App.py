@@ -35,17 +35,10 @@ except Exception as e:
 COOKIE_NAME = "emp_auth_token"
 SESSION_EXPIRY_DAYS = 1
 
-# ✅ สร้าง Cookie Manager และรอให้พร้อม
-@st.cache_resource
-def get_cookie_manager():
-    """
-    สร้าง CookieManager instance แบบ Singleton
-    ใช้ cache_resource เพื่อให้ instance เดียวกันตลอด session
-    """
-    return stx.CookieManager()
+
 
 # เรียกใช้ครั้งเดียว
-cookie_manager = get_cookie_manager()
+cookie_manager = stx.CookieManager()
 
 # ✅ เพิ่มการตรวจสอบว่า Cookie Manager พร้อมใช้งานแล้วหรือยัง
 if "cookie_ready" not in st.session_state:
@@ -447,7 +440,7 @@ with col3:
             current_token = get_cookie_safe(COOKIE_NAME)
             if current_token:
                 revoke_token_in_sheet(current_token)
-                
+
             remove_cookie_safe(COOKIE_NAME)
             # ล้าง Session State
             for key in list(st.session_state.keys()):
