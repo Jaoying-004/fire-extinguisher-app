@@ -466,6 +466,8 @@ def load_sheet_data(worksheet_name):
 
     df = pd.DataFrame(rows[1:], columns=rows[0])
     df = df.loc[:, df.columns != ""]
+    df = df.reset_index(drop=True)
+    df.insert(0, "No.", df.index + 1)
     return df
 
 # --- 2. ดึงข้อมูลจาก Google Sheets --------------------------------------------------------------------------------------
@@ -767,13 +769,13 @@ if submit_button:
                 if cell is not None:
                     # 💡 ปรับเลขคอลัมน์ใหม่ให้ตรงตามหน้าแผ่นงานจริงเป๊ะๆ ครับ
                     # อัปเดตช่อง Status -> ให้ลงคอลัมน์ E (คอลัมน์ที่ 5)
-                    sheet.update_cell(cell.row, 5, status)
+                    sheet.update_cell(cell.row, 6, status)
 
                     # อัปเดตช่อง Last Inspected -> ให้ลงคอลัมน์ F (คอลัมน์ที่ 6)
-                    sheet.update_cell(cell.row, 6, now_str)
+                    sheet.update_cell(cell.row, 7, now_str)
 
                     # อัปเดตช่อง ผู้ตรวจ -> ให้ลงคอลัมน์ G (คอลัมน์ที่ 7)
-                    sheet.update_cell(cell.row, 7, inspector)
+                    sheet.update_cell(cell.row, 8, inspector)
                     st.sidebar.success(f"✅ บันทึกข้อมูลและรูปภาพถัง {selected_device} เรียบร้อย!")
                     st.query_params.clear()
                     st.rerun()
