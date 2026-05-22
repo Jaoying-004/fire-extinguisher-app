@@ -486,7 +486,7 @@ with tab1:
     st.subheader("รายการที่ตรวจเช็คแล้ววันนี้")
 
     if not df.empty:
-        date_col = "inspection_date"  # เปลี่ยนให้ตรงชื่อจริง
+        date_col = "Timestamp"  # เปลี่ยนให้ตรงชื่อจริง
 
         if date_col in df.columns:
             df[date_col] = pd.to_datetime(df[date_col], errors="coerce")
