@@ -486,21 +486,32 @@ with tab1:
     st.subheader("รายการที่ตรวจเช็คแล้ววันนี้")
 
     if not df.empty:
-        today = datetime.now().date()
         first_col = df.columns[0]
 
-        df_today = df[pd.to_datetime(df[first_col], errors='coerce').dt.date == today]
+        # 1. แปลงคอลัมน์แรกเป็นวันที่ (Date) ชั่วคราวเพื่อใช้ค้นหา
+        df_temp = df.copy()
+        df_temp['parsed_date'] = pd.to_datetime(df_temp[first_col], errors='coerce').dt.date
 
-        if not df_today.empty:
-            # 3. จัดการลำดับความถูกต้องของ index ใหม่ก่อนนำไปแสดงผล
-            df_display = df_today.copy()
-            df_display = df_display.reset_index(drop=True)
+        # 2. หาวันล่าสุดที่มีข้อมูลบันทึกอยู่ในตารางจริงๆ (เช่น วันที่ 2026-05-22)
+        # วิธีนี้จะทำให้ได้วันที่ล่าสุดเสมอ ไม่ต้องกังวลเรื่องปีเครื่องไม่ตรงกับในชีต
+        latest_date = df_temp['parsed_date'].max()
+
+        if pd.notna(latest_date):
+            # 3. กรองข้อมูลเฉพาะวันล่าสุดนั้น
+            df_today = df_temp[df_temp['parsed_date'] == latest_date].copy()
+            df_today = df_today.drop(columns=['parsed_date'])  # ลบคอลัมน์คำนวณออก
+
+            # 4. แสดงผลลัพธ์
+            df_display = df_today.reset_index(drop=True)
             df_display.index = df_display.index + 1
 
-            # แสดงเฉพาะตารางแบบซ่อนดัชนีเก่า เพื่อไม่ให้เกะกะสายตา
+            if "No." not in df_display.columns:
+                df_display.insert(0, "No.", df_display.index)
+
+            st.info(f"📊 แสดงข้อมูลล่าสุดประจำวันที่ตรวจเช็ค: {latest_date}")
             st.dataframe(df_display, use_container_width=True, hide_index=True)
         else:
-            st.info(f"📌 ยังไม่มีข้อมูลการตรวจบันทึกในวันนี้ ({today.strftime('%Y-%m-%d')})")
+            st.warning("⚠️ ไม่พบข้อมูลวันที่ที่ถูกต้องในคอลัมน์แรก")
     else:
         st.info("ยังไม่มีข้อมูลการตรวจบันทึกในแท็บ Log")
 
