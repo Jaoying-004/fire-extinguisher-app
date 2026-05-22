@@ -486,32 +486,39 @@ with tab1:
     st.subheader("รายการที่ตรวจเช็คแล้ววันนี้")
 
     if not df.empty:
+        # ดึงชื่อคอลัมน์แรกสุด เช่น 'Timestamp'
         first_col = df.columns[0]
 
-        # 1. แปลงคอลัมน์แรกเป็นวันที่ (Date) ชั่วคราวเพื่อใช้ค้นหา
+        # 1. คัดลอกข้อมูลเพื่อไม่ให้ทำงานกระทบข้อมูลหลัก
         df_temp = df.copy()
-        df_temp['parsed_date'] = pd.to_datetime(df_temp[first_col], errors='coerce').dt.date
 
-        # 2. หาวันล่าสุดที่มีข้อมูลบันทึกอยู่ในตารางจริงๆ (เช่น วันที่ 2026-05-22)
-        # วิธีนี้จะทำให้ได้วันที่ล่าสุดเสมอ ไม่ต้องกังวลเรื่องปีเครื่องไม่ตรงกับในชีต
-        latest_date = df_temp['parsed_date'].max()
+        # 2. แปลงค่าคอลัมน์แรกเป็น Datetime (แปลงเฉพาะค่าวันที่จริง ค่าที่แปลงไม่ได้จะเคลียร์ทิ้ง)
+        converted_dates = pd.to_datetime(df_temp[first_col], errors='coerce')
 
-        if pd.notna(latest_date):
-            # 3. กรองข้อมูลเฉพาะวันล่าสุดนั้น
-            df_today = df_temp[df_temp['parsed_date'] == latest_date].copy()
-            df_today = df_today.drop(columns=['parsed_date'])  # ลบคอลัมน์คำนวณออก
+        # 3. ตรวจสอบ "วันที่ล่าสุดที่มีอยู่จริง" โดยตัดพวกปีค่าว่าง 1970 หรือ NaT ออกไปก่อน
+        valid_dates = converted_dates.dropna()  # ดรอปข้อมูลพังทิ้งเพื่อหาค่าจริง
 
-            # 4. แสดงผลลัพธ์
-            df_display = df_today.reset_index(drop=True)
-            df_display.index = df_display.index + 1
+        if not valid_dates.empty:
+            # ดึงเฉพาะวันล่าสุดจริงจากใน Google Sheets (เช่น 2026-05-19 ในภาพของคุณ)
+            latest_date = valid_dates.dt.date.max()
 
-            if "No." not in df_display.columns:
-                df_display.insert(0, "No.", df_display.index)
+            # 4. ทำการกรองข้อมูลในตาราง เฉพาะแถวที่ตรงกับวันล่าสุดนั้นจริงๆ
+            df_curr_day = df_temp[converted_dates.dt.date == latest_date].copy()
 
-            st.info(f"📊 แสดงข้อมูลล่าสุดประจำวันที่ตรวจเช็ค: {latest_date}")
-            st.dataframe(df_display, use_container_width=True, hide_index=True)
+            if not df_curr_day.empty:
+                # 5. จัดระเบียบดัชนี 'No.' เพื่อความสวยงาม
+                df_display = df_curr_day.reset_index(drop=True)
+                df_display.index = df_display.index + 1
+
+                if "No." not in df_display.columns:
+                    df_display.insert(0, "No.", df_display.index)
+
+                st.info(f"📊 แสดงข้อมูลล่าสุดประจำวันที่ตรวจเช็ค: {latest_date}")
+                st.dataframe(df_display, use_container_width=True, hide_index=True)
+            else:
+                st.info("⚠️ ไม่พบข้อมูลการตรวจในรอบวันปัจจุบัน")
         else:
-            st.warning("⚠️ ไม่พบข้อมูลวันที่ที่ถูกต้องในคอลัมน์แรก")
+            st.warning("⚠️ โครงสร้างคอลัมน์ Timestamp มีข้อมูลที่ระบบไม่สามารถระบุวันที่ได้")
     else:
         st.info("ยังไม่มีข้อมูลการตรวจบันทึกในแท็บ Log")
 
