@@ -605,18 +605,31 @@ with tab4:
                 if selected_id != "ทั้งหมด":
                     df_filtered = df_filtered[df_filtered['ID'] == selected_id]
 
-                # --- 2. ส่วนแสดงตัวเลขและกราฟวิเคราะห์ ---
-                col_metric, col_chart = st.columns([1, 2])  # แบ่งพื้นที่ให้กราฟกว้างกว่า
+                # --- 2. ส่วนแสดงตัวเลขสรุป และ กราฟแท่งแนวนอน (ดูง่ายขึ้นมาก) ---
+                col_metric, col_chart = st.columns([1, 2.5])
 
                 with col_metric:
-                    st.metric("⚠️ ต้องแก้ไข (ตามตัวกรอง)", len(df_filtered))
+                    st.metric("⚠️ ต้องแก้ไข", len(df_filtered))
 
                 with col_chart:
-                    # ทำกราฟแท่งง่ายๆ ดูว่า ID ไหนพังเยอะสุด
                     if not df_filtered.empty:
+                        # นับจำนวนเคสแยกตาม ID อุปกรณ์
                         chart_data = df_filtered['ID'].value_counts().reset_index()
                         chart_data.columns = ['ID อุปกรณ์', 'จำนวนที่พัง']
-                        st.bar_chart(data=chart_data, x='ID อุปกรณ์', y='จำนวนที่พัง', color="#FF4B4B")
+
+                        # เรียงข้อมูลจากมากไปน้อยเพื่อให้กราฟดูง่าย
+                        chart_data = chart_data.sort_values(by='จำนวนที่พัง', ascending=True)
+
+                        # ใช้ st.bar_chart โดยสลับแกน x และ y เพื่อให้เป็นแนวขวาง ชื่อ ID จะได้ไม่อ่านยาก
+                        st.bar_chart(
+                            data=chart_data,
+                            x='จำนวนที่พัง',
+                            y='ID อุปกรณ์',
+                            color="#FF4B4B",
+                            use_container_width=True
+                        )
+                    else:
+                        st.info("ไม่มีข้อมูลกราฟเนื่องจากตัวกรองไม่มีรายการคงค้าง")
 
                 st.divider()
 
