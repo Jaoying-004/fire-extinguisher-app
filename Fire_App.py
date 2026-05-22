@@ -534,8 +534,15 @@ with tab3:
         if df_tab3.empty:
             st.warning("⚠️ ไม่พบข้อมูล")
         else:
-            df_tab3 = df_tab3.iloc[:, 1:]
-            st.dataframe(df_tab3, use_container_width=True, hide_index=True)
+            # ลบคอลัมน์ No. ถ้ามี
+            if "No." in df_tab3.columns:
+                df_tab3 = df_tab3.drop(columns=["No."])
+
+            # ให้ index เริ่มที่ 1
+            df_tab3 = df_tab3.reset_index(drop=True)
+            df_tab3.index = df_tab3.index + 1
+
+            st.dataframe(df_tab3, use_container_width=True)
 
     except Exception as e:
         st.error(f"❌ {type(e).__name__}: {e}")
@@ -571,6 +578,15 @@ with tab4:
                 # ตาราง
                 if not df_need_repair.empty:
                     st.warning(f"พบ {len(df_need_repair)} รายการ")
+
+                    for col in ["No.", "No"]:
+                        if col in df_need_repair.columns:
+                            df_need_repair = df_need_repair.drop(columns=[col])
+
+                            # ให้ index เริ่มที่ 1
+                    df_need_repair = df_need_repair.reset_index(drop=True)
+                    df_need_repair.index = df_need_repair.index + 1
+
                     st.dataframe(df_need_repair, use_container_width=True)
                 else:
                     st.success("🎉 ไม่มีรายการที่ต้องแก้ไข")
