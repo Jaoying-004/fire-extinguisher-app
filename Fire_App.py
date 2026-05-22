@@ -492,7 +492,9 @@ with tab1:
         df_today = df[df[first_col].astype(str).str.startswith(today_str, na=False)]
 
         if not df_today.empty:
+            df_today = df_today.iloc[:, 1:]
             st.dataframe(df_today, use_container_width=True, hide_index=True)
+
         else:
             st.info(f"📌 ยังไม่มีข้อมูลการตรวจบันทึกในวันนี้ {today_str}")
     else:
@@ -508,7 +510,8 @@ with tab2:
         if df_tab2.empty:
             st.warning("⚠️ ไม่พบข้อมูล")
         else:
-            st.dataframe(df_tab2, use_container_width=True)
+            df_tab2 = df_tab2.iloc[:, 1:]
+            st.dataframe(df_tab2, use_container_width=True, hide_index=True)
 
     except Exception as e:
         st.error(f"❌ {type(e).__name__}: {e}")
@@ -523,7 +526,8 @@ with tab3:
         if df_tab3.empty:
             st.warning("⚠️ ไม่พบข้อมูล")
         else:
-            st.dataframe(df_tab3, use_container_width=True)
+            df_tab3 = df_tab3.iloc[:, 1:]
+            st.dataframe(df_tab3, use_container_width=True, hide_index=True)
 
     except Exception as e:
         st.error(f"❌ {type(e).__name__}: {e}")
