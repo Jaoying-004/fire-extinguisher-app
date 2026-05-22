@@ -592,10 +592,6 @@ with tab4:
                 ]
                 # --- 1. ส่วนหัวข้อ และ ตัวกรองมุมขวา (ใช้ st.popover เพื่อความสะอาดตา) ---
                 col_title, col_filter = st.columns([3, 1])
-
-                with col_title:
-                    st.subheader("🔧 ติดตามการแก้ไข")
-
                 with col_filter:
                     # สร้างปุ่มกดตัวกรองไว้มุมขวาบน
                     with st.popover("🔍 ตัวกรองข้อมูล", use_container_width=True):
@@ -610,9 +606,6 @@ with tab4:
                     df_filtered = df_filtered[df_filtered['Inspector'] == selected_inspector]
                 if selected_id != "ทั้งหมด":
                     df_filtered = df_filtered[df_filtered['ID'] == selected_id]
-                
-
-                st.divider()
 
                 # ตาราง
                 if not df_need_repair.empty:
