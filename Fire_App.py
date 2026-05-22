@@ -480,31 +480,45 @@ log_sheet = spreadsheet.worksheet("Inspection_Log")
 # --- 3. หน้าตาแอป (UI) และ Tabs ---
 st.title("🔥 FireExtinguisher")
 tab1, tab2, tab3, tab4 = st.tabs(["📅 รายการตรวจวันนี้", "📋 FireExtinguisher_Data", "🚨 Emergency_Safety_Equipment", "🔧 ติดตามการแก้ไข"])
+
 #ดึงข้อมูลจากชีตมาโชว์
 with tab1:
     df = load_sheet_data("Inspection_Log")
     st.subheader("รายการที่ตรวจเช็คแล้ววันนี้")
 
     if not df.empty:
-        today_str = datetime.now().strftime("%Y-%m-%d")
-        first_col = df.columns[0]
+        # 1. หาวันที่ปัจจุบันของระบบเครื่อง (เช่น 2024-10-24)
+        # หมายเหตุ: หากต้องการทดสอบด้วยวันที่ 2026-05-22 ให้แก้บรรทัดนี้เป็น: today = datetime.strptime("2026-05-22", "%Y-%m-%d").date()
+        today = datetime.now().date()
 
-        df_today = df[df[first_col].astype(str).str.startswith(today_str, na=False)]
+        first_col = df.columns[0]  # คอลัมน์แรกที่เก็บ '2026-05-22 13:20:01'
 
+        # 2. ปรับปรุงข้อมูล: แปลงคอลัมน์แรกเป็น Datetime และดึงเฉพาะส่วนที่เป็น "วันที่" (Date) ออกมา
+        df_temp = df.copy()
+        df_temp['parsed_date'] = pd.to_datetime(df_temp[first_col], errors='coerce').dt.date
+
+        # 3. กรองข้อมูลเฉพาะแถวที่ "วันที่" ตรงกับ "วันนี้"
+        df_today = df_temp[df_temp['parsed_date'] == today].copy()
+
+        # นำคอลัมน์ชั่วคราวออกเพื่อไม่ให้แสดงบนหน้าจอ
+        df_today = df_today.drop(columns=['parsed_date'])
+
+        # 4. แสดงผลลัพธ์
         if not df_today.empty:
-            # 3. จัดการดัชนี (Index) ให้เริ่มจากลำดับที่ 1
-            # และแปลงดัชนีเป็นคอลัมน์ชื่อ "No." อย่างปลอดภัย
             df_display = df_today.reset_index(drop=True)
             df_display.index = df_display.index + 1
 
-            # ตรวจสอบเพื่อป้องกันการ insert ซ้ำ (แก้ปัญหา ValueError เดิม)
             if "No." not in df_display.columns:
                 df_display.insert(0, "No.", df_display.index)
 
-            # 4. แสดงผลผลลัพธ์ลงบน Streamlit
             st.dataframe(df_display, use_container_width=True, hide_index=True)
         else:
-            st.info(f"📌 ยังไม่มีข้อมูลการตรวจบันทึกในวันนี้ ({today_str})")
+            st.info(f"📌 ยังไม่มีข้อมูลการตรวจบันทึกในวันนี้ ของระบบคอมพิวเตอร์คือ ({today})")
+
+            # แสดงข้อมูลล่าสุดในระบบ เพื่อช่วยให้คุณตรวจสอบว่ามีข้อมูลปีอื่นอยู่หรือไม่
+            with st.expander("🛠️ ตรวจสอบข้อมูลล่าสุดในระบบ"):
+                st.write("ข้อมูล 5 แถวล่าสุดจาก Google Sheets:")
+                st.dataframe(df.tail(5), use_container_width=True)
     else:
         st.info("ยังไม่มีข้อมูลการตรวจบันทึกในแท็บ Log")
 
