@@ -764,7 +764,8 @@ with st.sidebar:
         device_type = st.selectbox(
             "เลือกประเภทอุปกรณ์ที่ต้องการตรวจ",
             ["ถังดับเพลิง", "Emergency Equipment"],
-            index=0 if url_type == "ถังดับเพลิง" else 1
+            index=0 if url_type == "ถังดับเพลิง" else 1,
+            key="selectbox_device_type_main"
         )
 
         sheet_name_var = "FireExtinguisher_MasterList_2026"
