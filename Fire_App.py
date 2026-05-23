@@ -486,39 +486,38 @@ with tab1:
     st.subheader("รายการที่ตรวจเช็คแล้ววันนี้")
 
     if not df.empty:
-        # เปลี่ยนจากดึงคอลัมน์แรก เป็นระบุชื่อคอลัมน์ "Timestamp" ตรงๆ
-        # ใช้ดักเผื่อไว้ว่าถ้าไม่มีชื่อนี้ ให้ถอยไปใช้คอลัมน์แรกแทน
         date_col = "Timestamp" if "Timestamp" in df.columns else df.columns[0]
         df_temp = df.copy()
 
         # 1. แปลงคอลัมน์ Timestamp ให้กลายเป็นวันที่ (ตัดเวลาออก)
         df_temp['parsed_date'] = pd.to_datetime(df_temp[date_col], errors='coerce').dt.date
+
+        # ดึงวันที่ปัจจุบันของวันนี้จริงๆ มาเก็บไว้
         today_date = datetime.now().date()
-        # กรองเอาแถวที่ไม่มีปัญหาเรื่องวันที่ออกไปก่อน
-        df_clean_date = df_temp[df_temp['parsed_date'].notna()]
 
-        if not df_clean_date.empty:
-            # 2. หาวันล่าสุดจริงๆ (จากในรูปจะเป็นวันที่ 2026-05-22)
-            latest_date = df_clean_date['parsed_date'].max()
+        # 💡 ปรับปรุงจุดนี้: เปลี่ยนมากรองข้อมูลเจาะจงเฉพาะ "วันนี้จริงๆ (today_date)" เท่านั้น
+        df_today = df_temp[df_temp['parsed_date'] == today_date].copy()
 
-            # 3. กรองข้อมูลเฉพาะวันล่าสุดนั้น
-            df_today = df_temp[df_temp['parsed_date'] == latest_date].copy()
+        # ตรวจสอบว่า "วันนี้" มีคนคีย์ข้อมูลเข้ามาหรือยัง
+        if not df_today.empty:
             df_today = df_today.drop(columns=['parsed_date'])  # ลบคอลัมน์คำนวณออก
 
             # 4. จัดการเลขลำดับใหม่เพื่อแสดงผล
             df_display = df_today.reset_index(drop=True)
             df_display.index = df_display.index + 1
 
-            # ถ้าในตารางเดิมมีคอลัมน์ "No." อยู่แล้ว เราจะลบอันเก่าออกแล้วใส่รันเลขใหม่ให้สวยงาม
+            # ถ้าในตารางเดิมมีคอลัมน์ "No." อยู่แล้ว ให้ลบอันเก่าออกแล้วรันใหม่
             if "No." in df_display.columns:
                 df_display = df_display.drop(columns=["No."])
 
             df_display.insert(0, "No.", df_display.index)
 
-            st.info(f"📊 แสดงข้อมูลล่าสุดประจำวันที่ตรวจเช็ค: {latest_date}")
+            st.success(f"📊 แสดงข้อมูลการตรวจเช็คประจำวันนี้: {today_date}")
             st.dataframe(df_display, use_container_width=True, hide_index=True)
         else:
-            st.warning(f"⚠️ ไม่สามารถแปลงข้อมูลในคอลัมน์ {date_col} ให้เป็นวันที่ได้")
+            # 💡 ถ้าเปลี่ยนเป็นวันใหม่แล้วยังไม่มีข้อมูล จะล้างตารางและสลับมาแสดงกล่องสีฟ้านี้ทันที
+            st.info(f"📅 วันที่ {today_date} ยังไม่มีข้อมูลการตรวจบันทึกในระบบ")
+
     else:
         st.info("ยังไม่มีข้อมูลการตรวจบันทึกในแท็บ Log")
 
