@@ -1033,47 +1033,52 @@ st.markdown("""
             font-weight: bold;
         }
 
-        /* 1. ใส่กรอบสี่เหลี่ยมสีน้ำเงินเข้มหนาๆ ล้อมรอบตัวตารางทั้งหมด */
+        /* 1. ใส่กรอบสี่เหลี่ยมรอบตารางและเพิ่มเงา */
         div[data-testid="stDataFrame"] {
             border: 2px solid #1A3263 !important;
             border-radius: 8px !important;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important; /* ใส่เงาจางๆ ด้านหลังให้ตารางดูลอยเด่นขึ้นมา */
-            background-color: #1A3263 !important; /* บังคับให้ส่วนขอบและฐานตารางเป็นสีน้ำเงินเข้ม */
+            box-shadow: 0 4px 10px rgba(26, 50, 99, 0.15) !important;
+            overflow: hidden !important;
         }
 
-        /* 2. ย้อมสีหัวตาราง (Header) ให้เด่นสุดๆ */
-        div[data-testid="stDataFrame"] th {
+        /* 2. บังคับย้อมสีหัวตาราง (Header) ทุกช่องให้เป็นสีน้ำเงินเข้ม ตัวหนังสือส้มทอง */
+        div[data-testid="stDataFrame"] [role="columnheader"] {
             background-color: #1A3263 !important;
-            color: #ffffff !important; /* ตัวหนังสือหัวข้อเป็นสีส้มทองตามธีม */
-            font-weight: bold !important;
-            font-size: 15px !important;
-            border-bottom: 2px solid #FFC570 !important; /* ขีดเส้นใต้หัวตารางด้วยสีส้มทอง */
-        }
-
-        /* 3. ย้อมสี "ดัชนีแถว" (ตัวเลขนับแถวฝั่งซ้ายสุด 0, 1, 2, ...) */
-        div[data-testid="stDataFrame"] [data-testid="styled-data-grid"] [role="rowheader"] {
-            background-color: #1A3263 !important;
-            color: #ffffff !important; /* เปลี่ยนตัวเลขนำแถวเป็นสีส้มทอง */
-        }
-
-        /* 4. ลูกเล่นเวลาเอาเมาส์ไปชี้ (Hover Effect) */
-        div[data-testid="stDataFrame"] tr:hover td {
-            background-color: #547792 !important; /* ไฮไลท์เป็นสีฟ้าเทาที่คุณเลือก */
-            color: #FFFFFF !important;
-            font-weight: bold !important;
+            color: #ffffff !important;
         }
         
-        /* 💡 1. ย้อมสีตัวหนังสือข้อมูลทั่วไปในตารางทั้งหมด */
-        div[data-testid="stDataFrame"] [data-testid="styled-data-grid"] [role="gridcell"] {
-            color: #FFFFFF !important;       /* 🎨 เปลี่ยนสีตัวหนังสือในตาราง (ตอนนี้เป็นสีขาว สามารถเปลี่ยนรหัสสีได้ตามชอบ) */
-            font-size: 14px !important;      /* 📏 ปรับขนาดตัวหนังสือให้เล็ก-ใหญ่ตามต้องการ */
-            font-family: 'sans serif' !important; 
+        /* เจาะตัวหนังสือในหัวตารางเพิ่มเติม */
+        div[data-testid="stDataFrame"] [role="columnheader"] * {
+            color: #FFC570 !important;
+            font-weight: bold !important;
         }
 
-        /* 💡 2. ตัวเลือกเพิ่มเติม: หากในตารางของคุณมีข้อมูลที่เป็น "ลิงก์" หรือ "ปุ่มกด" อยู่ด้วย */
-        div[data-testid="stDataFrame"] a {
-            color: #FFC570 !important;       /* 🎨 เปลี่ยนสีตัวหนังสือที่เป็นลิงก์ให้เป็นสีส้มทองสุดเท่ */
-            text-decoration: none !important; /* เอาเส้นใต้ลิงก์ออกเพื่อความโมเดิร์น */
+        /* 3. บังคับเปลี่ยนสีตัวหนังสือ "ข้อมูลทั้งหมดด้านในตาราง" ให้เป็นสีน้ำเงินเข้ม */
+        div[data-testid="stDataFrame"] [role="gridcell"] {
+            color: #1A3263 !important; /* 🎨 เปลี่ยนเป็นสีเข้มเพื่อให้ตัดกับพื้นหลังตารางชัดๆ */
+        }
+        
+        /* เจาะลึกโครงสร้างตัวหนังสือชั้นในสุดของเซลล์ข้อมูล */
+        div[data-testid="stDataFrame"] [role="gridcell"] * {
+            color: #1A3263 !important;
+            font-weight: 500 !important;
+        }
+
+        /* 4. ย้อมสีตัวเลขนับแถว (ฝั่งซ้ายสุด 1, 2, 3...) ให้เข้าธีม */
+        div[data-testid="stDataFrame"] [role="rowheader"] {
+            background-color: #1A3263 !important;
+            color: #FFC570 !important;
+        }
+        div[data-testid="stDataFrame"] [role="rowheader"] * {
+            color: #FFC570 !important;
+        }
+
+        /* 5. เอฟเฟกต์เวลาเมาส์ชี้ (Hover) ให้แถวนั้นเปลี่ยนสีไฮไลท์เป็นสีฟ้าเทา ตัวหนังสือขาว */
+        div[data-testid="stDataFrame"] [role="row"]:hover [role="gridcell"] {
+            background-color: #547792 !important;
+        }
+        div[data-testid="stDataFrame"] [role="row"]:hover [role="gridcell"] * {
+            color: #FFFFFF !important;
         }
     </style>
 """, unsafe_allow_html=True)
