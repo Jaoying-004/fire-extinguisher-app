@@ -1050,4 +1050,16 @@ st.markdown("""
             color: #FFFFFF !important;
         }
     </style>
+        /* เปลี่ยนสีพื้นหลังของทุกเซลล์ในตาราง */
+        div[data-testid="stDataFrame"] [data-testid="styled-data-grid"] [role="gridcell"] {
+            background-color: #EFD2B0 !important; /* เปลี่ยนเป็นสีครีมทอง */
+            color: #1A3263 !important;            /* ตัวหนังสือด้านในสีน้ำเงินเข้ม */
+        }
+
+        /* เปลี่ยนสีพื้นหลังของแถวสลับ (ถ้ามี) */
+        div[data-testid="stDataFrame"] tr:nth-child(even) td {
+        background-color: #E6C8A4 !important; /* สีครีมเข้มขึ้นอีกนิดนึงให้ดูมีมิติสลับแถว */
+        }
 """, unsafe_allow_html=True)
+
+
