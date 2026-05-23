@@ -1025,19 +1025,19 @@ st.markdown("""
     <style>
         /* ---------------- [ส่วนที่ 1: สีของแท็บ st.tabs] ---------------- */
         button[data-baseweb="tab"] p {
-            color: #1A3263 !important;
+            color: #1a3263 !important;
             font-weight: 500;
         }
         button[aria-selected="true"] p {
-            color: #1A3263 !important;
+            color: #aeb9ce !important;
             font-weight: bold;
         }
 
         /* ---------------- [ส่วนที่ 2: สีของตาราง st.dataframe] ---------------- */
         /* ย้อมสีหัวตารางเป็นน้ำเงินเข้ม ตัวหนังสือส้มทอง */
         div[data-testid="stDataFrame"] th {
-            background-color: #1A3263 !important;
-            color: #FFC570 !important;
+            background-color: #1a3263 !important;
+            color: #ffffff !important;
             font-weight: bold !important;
         }
         /* เส้นตารางสีขาวจางๆ ตัดกับพื้นหลังเข้ม */
