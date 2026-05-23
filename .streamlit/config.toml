@@ -1,5 +1,5 @@
 [theme]
 primaryColor = "#FF4B4B"          # สีหลัก (เช่น สีของปุ่มกด, สีเส้นใต้แท็บ)
-backgroundColor = "#fffcf6"       # สีพื้นหลังของหน้าเว็บ (ปรับเป็นสีเทาอ่อนมาก)
-secondaryBackgroundColor = "#FFFFFF" # สีพื้นหลังของกล่องสี่เหลี่ยม (ปรับเป็นสีขาว)
+backgroundColor = "#EAE0CF"       # สีพื้นหลังของหน้าเว็บ (ปรับเป็นสีเทาอ่อนมาก)
+secondaryBackgroundColor = "#7288AE" # สีพื้นหลังของกล่องสี่เหลี่ยม (ปรับเป็นสีขาว)
 textColor = "#111844"             # สีของตัวอักษรทั่วไป
