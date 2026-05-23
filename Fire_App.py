@@ -67,6 +67,21 @@ st.markdown("""
             background-color: #1A3263 !important;
             color: #FFC570 !important;
         }
+        
+        /* 🎨 1. บังคับย้อมสีพื้นหลังตารางด้านในทั้งหมดเป็นสีน้ำเงินเข้ม */
+        div[data-testid="stDataFrame"] [role="gridcell"] {
+        background-color: #1A3263 !important;
+        }
+
+        /* 🎨 2. บังคับย้อมสีตัวหนังสือข้างในตารางทั้งหมดให้เป็นสีขาวนวล */
+        div[data-testid="stDataFrame"] [role="gridcell"] * {
+        color: #FFFFFF !important;
+        }
+
+        /* 🎨 3. (แถม) เส้นตัดขอบในตารางจางๆ เพื่อความสวยงาม */
+        div[data-testid="stDataFrame"] [role="gridcell"] {
+        border: 0.5px solid rgba(255, 255, 255, 0.1) !important;
+        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -615,15 +630,7 @@ with tab2:
             df_tab2.insert(0, "No.", df_tab2.index)
 
             # แสดงผลลัพธ์ (แนะนำให้ใส่ hide_index=True เพื่อไม่ให้มี index ซ้ำซ้อนโผล่มาซ้ายสุดอีก)
-            st.dataframe(
-                df_tab2.style.set_properties(**{
-                    'background-color': '#cbd8f2',  # บังคับพื้นหลังในตารางเป็นสีน้ำเงินเข้ม
-                    'color': '#FFFFFF',  # บังคับตัวหนังสือด้านในเป็นสีขาวนวล อ่านง่ายชัดเจน
-                    'border-color': 'rgba(255, 255, 255, 0.1)'  # เส้นตัดขอบในตารางจางๆ
-                }),
-                use_container_width=True,
-                hide_index=True
-            )
+            st.dataframe(df_tab2, use_container_width=True, hide_index=True)
 
     except Exception as e:
         st.error(f"❌ {type(e).__name__}: {e}")
