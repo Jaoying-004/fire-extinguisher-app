@@ -505,7 +505,7 @@ tab1, tab2, tab3, tab4 = st.tabs(["📅 รายการตรวจวัน�
 #ดึงข้อมูลจากชีตมาโชว์
 with tab1:
     df = load_sheet_data("Inspection_Log")
-    st.subheader("รายการที่ตรวจเช็คแล้ววันนี้")
+    st.markdown("<h3 style='color: #111844; font-weight: bold;'>รายการที่ตรวจเช็คแล้ววันนี้</h3>", unsafe_allow_html=True)
 
     if not df.empty:
         date_col = "Timestamp" if "Timestamp" in df.columns else df.columns[0]
@@ -546,7 +546,8 @@ with tab1:
 
 with tab2:
     df = load_sheet_data("FireExtinguisher_Data")
-    st.subheader("📋 FireExtinguisher_Data")
+    st.markdown("<h3 style='color: #111844; font-weight: bold;'>📋 FireExtinguisher_Data</h3>",
+                unsafe_allow_html=True)
     try:
         df_tab2 = load_sheet_data("FireExtinguisher_Data")
 
