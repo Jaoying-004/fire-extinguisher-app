@@ -1,7 +1,12 @@
-Ini, TOML
 [theme]
-primaryColor = "#FF4B4B"          # สีแดง/ส้มเซฟตี้
+# สีปุ่มและไฮไลท์หลัก
+primaryColor = "#0066CC"          
 
-backgroundColor = "#EBEFF5"       # พื้นหลังขวาสีเทาอมฟ้าอ่อน
-secondaryBackgroundColor = "#F8FAFC" # สีของ Sidebar และกล่องข้อมูล (สีขาวนวล)
-textColor = "#334155"             # สีตัวอักษรเทาเข้ม
+# สีพื้นหลังหน้าเว็บฝั่งขวา (เปลี่ยนจากครีมเป็นเทาอ่อนสว่าง)
+backgroundColor = "#F4F6F9"       
+
+# สีของ Sidebar และกล่องข้อมูลผู้ใช้ (เปลี่ยนเป็นสีขาวบริสุทธิ์)
+secondaryBackgroundColor = "#FFFFFF" 
+
+# สีตัวอักษร (สีดำเข้มอ่านง่าย)
+textColor = "#1F2937"
