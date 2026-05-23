@@ -615,7 +615,15 @@ with tab2:
             df_tab2.insert(0, "No.", df_tab2.index)
 
             # แสดงผลลัพธ์ (แนะนำให้ใส่ hide_index=True เพื่อไม่ให้มี index ซ้ำซ้อนโผล่มาซ้ายสุดอีก)
-            st.dataframe(df_tab2, use_container_width=True, hide_index=True)
+            st.dataframe(
+                df_display.style.set_properties(**{
+                    'background-color': '#cbd8f2',  # บังคับพื้นหลังในตารางให้เป็นสีน้ำเงินเข้มตามธีม
+                    'color': '#111844',  # บังคับตัวหนังสือด้านในให้เป็นสีขาวนวล (อ่านง่าย ชัดเจน 100%)
+                    'border-color': 'rgba(255, 255, 255, 0.1)'  # เส้นตัดขอบในตารางจางๆ
+                }),
+                use_container_width=True,
+                hide_index=True
+            )
 
 
     except Exception as e:
