@@ -90,6 +90,15 @@ st.markdown("""
         div[data-testid="stDataFrame"] [role="row"]:hover [role="gridcell"] * {
             color: #FFFFFF !important;
         }
+        
+        .canvas-container, [role="gridcell"] span, [role="columnheader"] span {
+            color: #1A3263 !important;
+        }
+
+        /* บังคับย้อมสีข้อความธรรมดาทั้งหมดที่อยู่ในตารางไม่ให้หลุดรอด */
+        div[data-testid="stDataFrame"] {
+            color: #1A3263 !important;
+        }
     </style>
 """, unsafe_allow_html=True)
 
