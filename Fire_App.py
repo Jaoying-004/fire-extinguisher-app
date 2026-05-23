@@ -436,21 +436,22 @@ with st.container(border=True):
         selected_tank = st.session_state.get("selected_tank") or st.query_params.get("tank_id")
 
     with col_profile:
-    # 1. แสดงรูปภาพผู้ใช้งาน (เปลี่ยน URL เป็นรูปที่คุณต้องการได้เลย)
+        # 1. เพิ่มขนาดรูปภาพ (จากเดิม 90 เป็น 120-130 หรือปรับตามชอบ)
         user_image = "FirePig.png"
-        st.image(user_image, width=90)  # ควบคุมขนาดรูปให้กะทัดรัดพอดีกับปุ่ม
-        if st.button("🚪 ออกจากระบบ", type="secondary", use_container_width=True):
-            with st.spinner("กำลังออกจากระบบ..."):
+        st.image(user_image, width=130)
 
-            # ลบ Session จาก Sheets
+        # 2. ลดขนาดปุ่ม โดยเอา use_container_width=True ออก
+        # และเปลี่ยน type="primary" หรือคง secondary ไว้ตามต้องการเพื่อความสวยงาม
+        if st.button("🚪 ออกจากระบบ", type="secondary"):
+            with st.spinner("กำลังออกจากระบบ..."):
                 current_token = get_cookie_safe(COOKIE_NAME)
                 if current_token:
                     revoke_token_in_sheet(current_token)
 
                 remove_cookie_safe(COOKIE_NAME)
-            # ล้าง Session State
+
                 for key in list(st.session_state.keys()):
-                    if key != "cookie_ready":  # เก็บ cookie_ready ไว้
+                    if key != "cookie_ready":
                         del st.session_state[key]
 
                 st.session_state["authenticated"] = False
@@ -458,7 +459,6 @@ with st.container(border=True):
                 st.success("✅ ออกจากระบบสำเร็จ")
                 time.sleep(0.8)
                 st.rerun()
-
 #จบส่วนล็อคอิน==========================================================================================================
 
 #------------------------------กำหนดลิมิตของข้อมูล-------------------------------------------------------------------------
