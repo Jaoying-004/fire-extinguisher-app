@@ -704,7 +704,7 @@ selected_device = st.sidebar.selectbox(
     options,
     index=default_index, # ทีนี้พอสลับเป็น Fire Alarm ตัวแปรนี้จะมีค่าเป็น 0 และทำงานได้ฉลุยครับ
     disabled=is_locked_by_qr,
-    key=f"select_{device_type}"
+    key=f"select_{device_type}_sidebar"
 )
 
 #---------------------------------------------------------------------------------------------------------------
