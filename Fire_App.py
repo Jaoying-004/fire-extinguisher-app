@@ -33,71 +33,39 @@ except Exception as e:
 # โซนปรับแต่งสีจ้า
 st.markdown("""
     <style>
-        /* ---------------- [ส่วนที่ 1: สีของแท็บ st.tabs] ---------------- */
-        button[data-baseweb="tab"] p {
-            color: #1a3263 !important;
-            font-weight: 500;
+        /* ---------------- [ส่วนที่ 1: สีของแท็บ st.tabs - อัปเดตล่าสุด] ---------------- */
+        /* บังคับตัวหนังสือของแท็บทั้งหมดให้เป็นสีน้ำเงินเข้ม */
+        div[data-testid="stTabs"] button [data-testid="stMarkdownContainer"] p {
+            color: #1A3263 !important;
+            font-weight: 500 !important;
         }
-        button[aria-selected="true"] p {
-            color: #1a3263 !important;
-            font-weight: bold;
+        /* เวลาคลิกเลือก ให้ตัวหนาขึ้น */
+        div[data-testid="stTabs"] button[aria-selected="true"] [data-testid="stMarkdownContainer"] p {
+            color: #1A3263 !important;
+            font-weight: bold !important;
         }
-
-        /* 1. ใส่กรอบสี่เหลี่ยมรอบตารางและเพิ่มเงา */
-        div[data-testid="stDataFrame"] {
-            border: 2px solid #1A3263 !important;
-            border-radius: 8px !important;
-            box-shadow: 0 4px 10px rgba(26, 50, 99, 0.15) !important;
-            overflow: hidden !important;
+        /* เส้นไฮไลท์ใต้แท็บให้เป็นสีส้มทอง */
+        div[data-testid="stTabs"] [data-baseweb="tab-highlight-bar"] {
+            background-color: #FFC570 !important;
         }
 
-        /* 2. บังคับย้อมสีหัวตาราง (Header) ทุกช่องให้เป็นสีน้ำเงินเข้ม ตัวหนังสือส้มทอง */
+        /* ---------------- [ส่วนที่ 2: หัวตาราง st.dataframe] ---------------- */
+        /* 1. บังคับย้อมสีพื้นหลังหัวตารางเป็นสีน้ำเงินเข้ม */
         div[data-testid="stDataFrame"] [role="columnheader"] {
             background-color: #1A3263 !important;
-            color: #ffffff !important;
         }
 
-        /* เจาะตัวหนังสือในหัวตารางเพิ่มเติม */
+        /* 2. บังคับย้อมสีตัวหนังสือหัวตารางให้เป็นสีส้มทองตัวหนา */
         div[data-testid="stDataFrame"] [role="columnheader"] * {
             color: #FFC570 !important;
             font-weight: bold !important;
         }
 
-        /* 3. บังคับเปลี่ยนสีตัวหนังสือ "ข้อมูลทั้งหมดด้านในตาราง" ให้เป็นสีน้ำเงินเข้ม */
-        div[data-testid="stDataFrame"] [role="gridcell"] {
-            color: #1A3263 !important; /* 🎨 เปลี่ยนเป็นสีเข้มเพื่อให้ตัดกับพื้นหลังตารางชัดๆ */
-        }
-
-        /* เจาะลึกโครงสร้างตัวหนังสือชั้นในสุดของเซลล์ข้อมูล */
-        div[data-testid="stDataFrame"] [role="gridcell"] * {
-            color: #1A3263 !important;
-            font-weight: 500 !important;
-        }
-
-        /* 4. ย้อมสีตัวเลขนับแถว (ฝั่งซ้ายสุด 1, 2, 3...) ให้เข้าธีม */
-        div[data-testid="stDataFrame"] [role="rowheader"] {
+        /* 3. ย้อมสีตัวเลขนับแถว (ฝั่งซ้ายสุด 1, 2, 3...) */
+        div[data-testid="stDataFrame"] [role="rowheader"], 
+        div[data-testid="stDataFrame"] [role="rowheader"] * {
             background-color: #1A3263 !important;
             color: #FFC570 !important;
-        }
-        div[data-testid="stDataFrame"] [role="rowheader"] * {
-            color: #FFC570 !important;
-        }
-
-        /* 5. เอฟเฟกต์เวลาเมาส์ชี้ (Hover) ให้แถวนั้นเปลี่ยนสีไฮไลท์เป็นสีฟ้าเทา ตัวหนังสือขาว */
-        div[data-testid="stDataFrame"] [role="row"]:hover [role="gridcell"] {
-            background-color: #547792 !important;
-        }
-        div[data-testid="stDataFrame"] [role="row"]:hover [role="gridcell"] * {
-            color: #FFFFFF !important;
-        }
-        
-        .canvas-container, [role="gridcell"] span, [role="columnheader"] span {
-            color: #1A3263 !important;
-        }
-
-        /* บังคับย้อมสีข้อความธรรมดาทั้งหมดที่อยู่ในตารางไม่ให้หลุดรอด */
-        div[data-testid="stDataFrame"] {
-            color: #1A3263 !important;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -607,7 +575,17 @@ with tab1:
             df_display.insert(0, "No.", df_display.index)
 
             st.success(f"📊 แสดงข้อมูลการตรวจเช็คประจำวันนี้: {today_date}")
-            st.dataframe(df_display, use_container_width=True, hide_index=True)
+            st.dataframe(
+                df_display.style.set_properties(**{
+                    'background-color': '#cbd8f2',  # บังคับพื้นหลังในตารางให้เป็นสีน้ำเงินเข้มตามธีม
+                    'color': '#111844',  # บังคับตัวหนังสือด้านในให้เป็นสีขาวนวล (อ่านง่าย ชัดเจน 100%)
+                    'border-color': 'rgba(255, 255, 255, 0.1)'  # เส้นตัดขอบในตารางจางๆ
+                }),
+                use_container_width=True,
+                hide_index=True
+            )
+
+
         else:
             # 💡 ถ้าเปลี่ยนเป็นวันใหม่แล้วยังไม่มีข้อมูล จะล้างตารางและสลับมาแสดงกล่องสีฟ้านี้ทันที
             st.info(f"📅 วันที่ {today_date} ยังไม่มีข้อมูลการตรวจบันทึกในระบบ")
