@@ -632,7 +632,7 @@ with tab4:
 if st.button("🔄 อัปเดตข้อมูลล่าสุด"):
     st.rerun()
 
-# --- 4. ส่วนของแบบฟอร์มการตรวจเช็ค (เพิ่มต่อท้าย) ---------------------------------------------------------------------------
+# --- 4. ส่วนของแบบฟอร์มการตรวจเช็ค (เพิ่มต่อท้าย) ------------*****---------------------------------------------------------------
 st.sidebar.header("📝 แบบฟอร์มบันทึกการตรวจ")
 # ฟอร์มกรอกข้อมูล
 # 1. เลือกประเภทอุปกรณ์ (ถังดับเพลิง / Fire Alarm)
@@ -743,74 +743,164 @@ def upload_image(image_file):
     return result["secure_url"]  # ← ได้ URL รูปกลับมา
 #-------------------------------------------------------------------------------------------------------------------
 #ส่วนของแบบฟอร์มการตรวจเช็ค
-with st.sidebar.form("check_form", clear_on_submit=True):
-    default_name = st.session_state.get("emp_name", "")
-    inspector = st.text_input(
-        "ชื่อผู้ตรวจ",
-        value=default_name,  # 👈 ดึงข้อมูลชื่อจากชีตเติมให้โดยอัตโนมัติ
-        key="inspector_input",  # 👈 ปรับเป็น True หากป้องกันไม่ให้แก้ไขสิทธิ์ชื่อ หรือเว้นไว้เพื่อให้ผู้เขียนแก้ต่อได้
+with st.sidebar:
+    st.header("📌 ระบบบันทึกข้อมูล")
+
+    # 1. ปุ่มเปลี่ยนหน้าฟอร์ม (อยู่ใน Sidebar)
+    menu_page = st.radio(
+        "เลือกประเภทฟอร์ม:",
+        ["📝 ฟอร์มบันทึกการตรวจ", "🛠️ ฟอร์มแจ้งการแก้ไข"]
     )
+    st.divider()
+    # ดึงค่าจาก URL สำหรับระบบ QR Code
+    query_params = st.query_params
+    url_type = query_params.get("type", "ถังดับเพลิง")
+    target_id = query_params.get("tank_id")
+
+    # โฟลวที่ 1: แบบฟอร์มบันทึกการตรวจ (แสดงใน Sidebar เมื่อเลือกเมนูแรก)
+    if menu_page == "📝 ฟอร์มบันทึกการตรวจ":
+        st.subheader("📋 ฟอร์มบันทึกการตรวจ")
+
+        device_type = st.selectbox(
+            "เลือกประเภทอุปกรณ์ที่ต้องการตรวจ",
+            ["ถังดับเพลิง", "Emergency Equipment"],
+            index=0 if url_type == "ถังดับเพลิง" else 1
+        )
+
+        sheet_name_var = "FireExtinguisher_MasterList_2026"
+        @st.cache_data(ttl=600)
+        def get_device_options(sheet_name):
+            try:
+                target_sheet = client.open(sheet_name_var).worksheet(sheet_name)
+                rows = target_sheet.get_all_values()
+                return [row[1] for row in rows[1:]]
+            except:
+                return []
+        default_index = 0
+        is_locked_by_qr = False
+
+        if device_type == "ถังดับเพลิง":
+            options = get_device_options("FireExtinguisher_Data")
+            id_label = "เลือก/สแกนรหัสถังดับเพลิง"
+
+            if target_id and target_id in options:
+                default_index = options.index(target_id)
+                is_locked_by_qr = True
+                st.success(f"🔒 **ล็อกจาก QR Code**: {target_id}")
+            else:
+                if target_id:
+                    st.error(f"⚠️ รหัสถัง '{target_id}' ไม่ถูกต้อง")
+                st.warning("⚠️ **กรุณาสแกน QR Code** ก่อนเริ่มตรวจ")
+
+            if is_locked_by_qr:
+                if st.button("🔓 ปลดล็อกและสแกนใหม่"):
+                    st.query_params.clear()
+                    st.rerun()
+        else:
+            options = get_device_options("Emergency_Safety_Equipment")
+            id_label = "เลือกโซน/รหัส Fire Alarm"
+
+        selected_device = st.selectbox(
+            id_label,
+            options,
+            index=default_index,
+            disabled=is_locked_by_qr,
+            key=f"select_{device_type}"
+        )
+
+        if device_type == "ถังดับเพลิง":
+            sheet = client.open(sheet_name).worksheet("FireExtinguisher_Data")
+        else:
+            sheet = client.open(sheet_name).worksheet("Emergency_Safety_Equipment")
+
+        if selected_device:
+            cell_info = sheet.find(selected_device)
+            if cell_info is not None:
+                device_sub_type = sheet.cell(cell_info.row, 3).value
+            else:
+                device_sub_type = None
+                st.warning(f"⚠️ ไม่พบรหัส {selected_device} ใน Master List")
+        else:
+            device_sub_type = None
+            # --- ตัวฟอร์มตรวจเช็ค (อยู่ใน Sidebar) ---
+        with st.form("check_form", clear_on_submit=True):
+            default_name = st.session_state.get("emp_name", "")
+            inspector = st.text_input("ชื่อผู้ตรวจ", value=default_name, key="inspector_input")
 
     # --- ส่วนเช็คลิสต์ตามประเภท ---
-    if device_type == "ถังดับเพลิง":
-        if device_sub_type == "ผงเคมีแห้ง":
-            st.write(f"🔍 ประเภทถัง: **{device_sub_type}**")
-            q1 = st.radio("1. เกจวัดความดันชี้ที่สีเขียว หน้าปัดไม่แตก", ["ใช่", "ไม่ใช่"], key="chk_dry_1")
-            q2 = st.radio("2. สายฉีดไม่แตกลายงา ไม่อุดตัน", ["ใช่", "ไม่ใช่"], key="chk_dry_2")
-            q3 = st.radio("3. สภาพตัวถังไม่บุบ ไม่มีสิ่งผิดปกติ", ["ใช่", "ไม่ใช่"], key="chk_dry_3")
-            q4 = st.radio("4. ซีลและสลักอยู่ครบ ไม่ฉีกขาด", ["ใช่", "ไม่ใช่"], key="chk_dry_4")
-            q5 = st.radio("5. ระยะรอบถังไม่มีสิ่งกีดขวาง เข้าใข้งานถังได้สะดวก", ["ใช่", "ไม่ใช่"], key="chk_dry_5")
+            if device_type == "ถังดับเพลิง":
+                if device_sub_type == "ผงเคมีแห้ง":
+                    st.write(f"🔍 ประเภทถัง: **{device_sub_type}**")
+                    q1 = st.radio("1. เกจวัดความดันชี้ที่สีเขียว หน้าปัดไม่แตก", ["ใช่", "ไม่ใช่"], key="chk_dry_1")
+                    q2 = st.radio("2. สายฉีดไม่แตกลายงา ไม่อุดตัน", ["ใช่", "ไม่ใช่"], key="chk_dry_2")
+                    q3 = st.radio("3. สภาพตัวถังไม่บุบ ไม่มีสิ่งผิดปกติ", ["ใช่", "ไม่ใช่"], key="chk_dry_3")
+                    q4 = st.radio("4. ซีลและสลักอยู่ครบ ไม่ฉีกขาด", ["ใช่", "ไม่ใช่"], key="chk_dry_4")
+                    q5 = st.radio("5. ระยะรอบถังไม่มีสิ่งกีดขวาง เข้าใข้งานถังได้สะดวก", ["ใช่", "ไม่ใช่"], key="chk_dry_5")
 
-        elif device_sub_type == "CO2":
-            st.write(f"🔍 ประเภทถัง: **{device_sub_type}**")
-            q1 = st.radio("1. น้ำหนักถังปกติ (ยกประเมินด้วยมือต้องไม่เบาโหวง)", ["ใช่", "ไม่ใช่"], key="chk_co2_1")
-            q2 = st.radio("2. คันบีบและสลักไม่เป็นสนิม ไม่หักงอ", ["ใช่", "ไม่ใช่"], key="chk_co2_2")
-            q3 = st.radio("3. หัวฉีดไม่มีน้ำแข็งเกาะ/ไม่อุดตัน)", ["ใช่", "ไม่ใช่"], key="chk_co2_3")
-            q4 = st.radio("4. ระยะรอบถังไม่มีสิ่งกีดขวาง เข้าใข้งานถังได้สะดวก", ["ใช่", "ไม่ใช่"], key="chk_co2_4")
+                elif device_sub_type == "CO2":
+                    st.write(f"🔍 ประเภทถัง: **{device_sub_type}**")
+                    q1 = st.radio("1. น้ำหนักถังปกติ (ยกประเมินด้วยมือต้องไม่เบาโหวง)", ["ใช่", "ไม่ใช่"], key="chk_co2_1")
+                    q2 = st.radio("2. คันบีบและสลักไม่เป็นสนิม ไม่หักงอ", ["ใช่", "ไม่ใช่"], key="chk_co2_2")
+                    q3 = st.radio("3. หัวฉีดไม่มีน้ำแข็งเกาะ/ไม่อุดตัน)", ["ใช่", "ไม่ใช่"], key="chk_co2_3")
+                    q4 = st.radio("4. ระยะรอบถังไม่มีสิ่งกีดขวาง เข้าใข้งานถังได้สะดวก", ["ใช่", "ไม่ใช่"], key="chk_co2_4")
 
-    elif device_type == "Emergency Equipment":
-        st.info("🚨 ตรวจระบบ: Emergency Equipment")
-        st.write(f"🔍 ประเภทอุปกรณ์: **{device_sub_type}**")
-        status = st.radio("สถานะโดยรวม", ["ปกติ", "ไม่ปกติ"])
+            elif device_type == "Emergency Equipment":
+                st.info("🚨 ตรวจระบบ: Emergency Equipment")
+                st.write(f"🔍 ประเภทอุปกรณ์: **{device_sub_type}**")
+                # --- 1. เคส: Emergency Light (ไฟฉุกเฉิน) ---
+                if device_sub_type == "Emergency Light":
+                    q1 = st.radio("1. ตัวถังเครื่องและดวงโคมสภาพสมบูรณ์ ไม่แตกหัก ไม่มีฝุ่นเกาะ", ["ใช่", "ไม่ใช่"],
+                                  key="chk_em_light_1")
+                    q2 = st.radio("2. สายไฟและปลั๊กเสียบอยู่ในสภาพดี ไม่หลุดลุ่ยหรือชำรุด", ["ใช่", "ไม่ใช่"],
+                                  key="chk_em_light_3")
+                    q3 = st.radio("3. ไม่มีสิ่งกีดขวางบดบังตัวโคมไฟฉุกเฉิน", ["ใช่", "ไม่ใช่"], key="chk_em_light_4")
+                # --- 2. เคส: Fire Alarm (ระบบแจ้งเหตุเพลิงไหม้) ---
+                elif device_sub_type == "Fire alarm":
+                    q1 = st.radio(
+                        "1. อุปกรณ์แจ้งเหตุด้วยมือ (Manual Station) สภาพสมบูรณ์ หน้ากระจกไม่แตก/ฝาไม่เปิดค้าง",
+                        ["ใช่", "ไม่ใช่"], key="chk_fire_alarm_1")
+                    q2 = st.radio("2. ไม่มีสิ่งกีดขวางทางเข้าถึงปุ่มกดแจ้งเหตุ หรือบดบังตัวอุปกรณ์", ["ใช่", "ไม่ใช่"],
+                                  key="chk_fire_alarm_2")
+                    # --- 3. เคส: Emergency Exit (ทางออกฉุกเฉิน / ประตูหนีไฟ) ---
+                elif device_sub_type == "Emergency Exit":
+                    q1 = st.radio("1. ป้ายบอกทางหนีไฟ (Exit Sign) ติดสว่างชัดเจน ไม่ดับหรือกะพริบ", ["ใช่", "ไม่ใช่"],
+                                  key="chk_exit_1")
+                    q2 = st.radio("2. บริเวณเส้นทางหนีไฟและหน้าประตู ไม่มีสิ่งของวางกีดขวางแม้แต่ชิ้นเดียว",
+                                  ["ใช่", "ไม่ใช่"], key="chk_exit_2")
+                    q3 = st.radio("3. ประตูหนีไฟปิดสนิท สภาพสมบูรณ์ ลูกบิด/คานผลัก (Panic Bar) ไม่ชำรุด",
+                                  ["ใช่", "ไม่ใช่"], key="chk_exit_3")
+                    q4 = st.radio("4. ประตูหนีไฟสามารถผลักเปิดออกได้ง่าย ไม่ถูกล็อกแม่กุญแจจากภายนอก",
+                                  ["ใช่", "ไม่ใช่"], key="chk_exit_4")
 
-    # --- ส่วนแนบรูป (บังคับให้แนบเพื่อยืนยันว่าไปจริง) ---------------------------------------------------------------------------
-    img_file = st.file_uploader("📸 แนบรูปถ่ายขณะตรวจเช็ค", type=['jpg', 'png', 'jpeg'])
-    status = st.radio("สถานะโดยรวม", ["ปกติ", "ไม่ปกติ (ต้องแก้ไข)"])
+            # --- ส่วนแนบรูป (บังคับให้แนบเพื่อยืนยันว่าไปจริง) ---------------------------------------------------------------------------
+            img_files = st.file_uploader("📸 แนบรูปถ่ายขณะตรวจเช็ค", type=['jpg', 'png', 'jpeg'], accept_multiple_files=True)
+            status = st.radio("สถานะโดยรวม", ["ปกติ", "ไม่ปกติ (ต้องแก้ไข)"])
     # หมายเหตุ (กรณีมีข้อที่ไม่ปกติ)
-    remarks = st.text_area("ระบุรายละเอียดเพิ่มเติม (ถ้าไม่ปกติ)")
-    submit_button = st.form_submit_button("บันทึกข้อมูล")
-    log_sheet = client.open(sheet_name).worksheet("Inspection_Log")
+            remarks = st.text_area("ระบุรายละเอียดเพิ่มเติม (ถ้าไม่ปกติ)")
+            submit_button = st.form_submit_button("บันทึกข้อมูล")
+            log_sheet = client.open(sheet_name).worksheet("Inspection_Log")
 
-if submit_button:
-    now_dt = get_now()
-    now_str = now_dt.strftime("%Y-%m-%d %H:%M:%S")
-    image_link = "ไม่มีรูปแนบ"
-    try:
+        if submit_button:
+            now_dt = get_now()
+            now_str = now_dt.strftime("%Y-%m-%d %H:%M:%S")
+            image_link = "ไม่มีรูปแนบ"
+            try:
             # 1. อัปโหลดรูปภาพ (ถ้ามี)
-        if img_file is not None:
-            result = cloudinary.uploader.upload(img_file)  # ✅ Cloudinary
-            image_link = result["secure_url"]
+                if img_files:  # เปลี่ยนตามชื่อตัวแปรของ st.file_uploader ตัวใหม่
+                    image_urls = []
+
+                # วนลูปส่งรูปขึ้น Cloudinary ทีละรูปจนครบ
+                    for file in img_files:
+                        result = cloudinary.uploader.upload(file)  # ✅ Cloudinary อัปโหลดทีละไฟล์
+                        image_urls.append(result["secure_url"])  # เก็บลิงก์ที่ได้ลงลิสต์
+
+                # รวมทุกลิงก์เป็นข้อความเดียว คั่นด้วยคอมม่า (,) เพื่อส่งต่อลงช่องเดิมใน Sheets
+                    image_link = ", ".join(image_urls)
+                else:
+                    image_link = ""
 
             # 2. บันทึกลง Log Sheet (ใช้ now และ image_link ได้แล้ว)
-        new_log_entry = [
-            now_str,  # คอลัมน์ 1: วันเวลาที่ตรวจ
-            device_sub_type,  # คอลัมน์ 3: ประเภทอุปกรณ์ (Type) 💡 เพิ่มตัวนี้เข้ามาแล้วครับ
-            selected_device,  # คอลัมน์ 2: รหัสอุปกรณ์ (ID)
-            inspector,  # คอลัมน์ 4: ชื่อผู้ตรวจ
-            status,  # คอลัมน์ 5: สถานะโดยรวม
-            remarks,  # คอลัมน์ 6: หมายเหตุ
-            image_link  # คอลัมน์ 7: ลิงก์รูปภาพ
-        ]
-        log_sheet.append_row(new_log_entry)
-        if status == "ไม่ปกติ (ต้องแก้ไข)":
-            try:
-                    # เปิด Sheet Action_Required
-                action_sheet = client.open(sheet_name).worksheet("Action_Required")
-                cell = sheet.find(selected_device)
-                device_row = sheet.row_values(cell.row)
-                device_location = device_row[3] if len(device_row) > 3 else "-"  # ปรับ index ตาม Sheet
-
-                action_entry = [
+                new_log_entry = [
                     now_str,  # คอลัมน์ 1: วันเวลาที่ตรวจ
                     device_sub_type,  # คอลัมน์ 3: ประเภทอุปกรณ์ (Type) 💡 เพิ่มตัวนี้เข้ามาแล้วครับ
                     selected_device,  # คอลัมน์ 2: รหัสอุปกรณ์ (ID)
@@ -819,30 +909,110 @@ if submit_button:
                     remarks,  # คอลัมน์ 6: หมายเหตุ
                     image_link  # คอลัมน์ 7: ลิงก์รูปภาพ
                 ]
-                action_sheet.append_row(action_entry)
-                st.success("✅ บันทึกข้อมูลเรียบร้อย")
-                st.warning(f"⚠️ รายการ {selected_device} ถูกส่งไปยัง 'Action_Required' เพื่อติดตามการแก้ไข")
-            except Exception as e:
-                    st.warning(f"⚠️ บันทึกลง Inspection_Logs แล้ว แต่ไม่สามารถส่งไป Action_Required: {e}")
-        else:
-                st.success("✅ บันทึกข้อมูลเรียบร้อย")
+                log_sheet.append_row(new_log_entry)
+                if status == "ไม่ปกติ (ต้องแก้ไข)":
+                    try:
+                    # เปิด Sheet Action_Required
+                        action_sheet = client.open(sheet_name).worksheet("Action_Required")
+                        cell = sheet.find(selected_device)
+                        device_row = sheet.row_values(cell.row)
+                        device_location = device_row[3] if len(device_row) > 3 else "-"  # ปรับ index ตาม Sheet
+
+                        action_entry = [
+                            now_str,  # คอลัมน์ 1: วันเวลาที่ตรวจ
+                            device_sub_type,  # คอลัมน์ 3: ประเภทอุปกรณ์ (Type) 💡 เพิ่มตัวนี้เข้ามาแล้วครับ
+                            selected_device,  # คอลัมน์ 2: รหัสอุปกรณ์ (ID)
+                            inspector,  # คอลัมน์ 4: ชื่อผู้ตรวจ
+                            status,  # คอลัมน์ 5: สถานะโดยรวม
+                            remarks,  # คอลัมน์ 6: หมายเหตุ
+                            image_link  # คอลัมน์ 7: ลิงก์รูปภาพ
+                        ]
+                        action_sheet.append_row(action_entry)
+                        st.success("✅ บันทึกข้อมูลเรียบร้อย")
+                        st.warning(f"⚠️ รายการ {selected_device} ถูกส่งไปยัง 'Action_Required' เพื่อติดตามการแก้ไข")
+                    except Exception as e:
+                        st.warning(f"⚠️ บันทึกลง Inspection_Logs แล้ว แต่ไม่สามารถส่งไป Action_Required: {e}")
+                else:
+                    st.success("✅ บันทึกข้อมูลเรียบร้อย")
             # 3. อัปเดตตารางหลัก (Master List)
-                cell = sheet.find(selected_device)
-                if cell is not None:
+                    cell = sheet.find(selected_device)
+                    if cell is not None:
                     # 💡 ปรับเลขคอลัมน์ใหม่ให้ตรงตามหน้าแผ่นงานจริงเป๊ะๆ ครับ
                     # อัปเดตช่อง Status -> ให้ลงคอลัมน์ E (คอลัมน์ที่ 5)
-                    sheet.update_cell(cell.row, 6, status)
+                        sheet.update_cell(cell.row, 6, status)
 
                     # อัปเดตช่อง Last Inspected -> ให้ลงคอลัมน์ F (คอลัมน์ที่ 6)
-                    sheet.update_cell(cell.row, 7, now_str)
+                        sheet.update_cell(cell.row, 7, now_str)
 
                     # อัปเดตช่อง ผู้ตรวจ -> ให้ลงคอลัมน์ G (คอลัมน์ที่ 7)
-                    sheet.update_cell(cell.row, 8, inspector)
-                    st.sidebar.success(f"✅ บันทึกข้อมูลและรูปภาพถัง {selected_device} เรียบร้อย!")
-                    st.query_params.clear()
-                    st.rerun()
-    except Exception as e:
-        st.sidebar.error(f"❌ เกิดข้อผิดพลาดในการบันทึก: {e}")
+                        sheet.update_cell(cell.row, 8, inspector)
+                        st.sidebar.success(f"✅ บันทึกข้อมูลและรูปภาพถัง {selected_device} เรียบร้อย!")
+                        st.query_params.clear()
+                        st.rerun()
+            except Exception as e:
+                st.sidebar.error(f"❌ เกิดข้อผิดพลาดในการบันทึก: {e}")
+    #โฟลวที่ 2 แบบฟอร์มแจ้งการแก้ไข
+    elif menu_page == "🛠️ ฟอร์มแจ้งการแก้ไข":
+        st.subheader("🛠️ ฟอร์มแจ้งการแก้ไข")
+
+        try:
+            repair_log_sheet = client.open(sheet_name).worksheet("Inspection_Log")
+            repair_data = repair_log_sheet.get_all_values()
+
+            if len(repair_data) > 1:
+                df_repair = pd.DataFrame(repair_data[1:], columns=repair_data[0])
+                df_repair['sheet_row_index'] = df_repair.index + 2
+
+                # กรองเฉพาะเคสค้างซ่อม
+                df_need_action = df_repair[df_repair['Status'].str.strip() == 'ไม่ปกติ (ต้องแก้ไข)']
+
+                if not df_need_action.empty:
+                    df_need_action['picker_label'] = df_need_action['ID'] + " (" + df_need_action['Timestamp'].str[
+                        5:16] + ")"
+
+                    # --- ตัวฟอร์มแจ้งซ่อม (อยู่ใน Sidebar) ---
+                    with st.form("repair_form"):
+                        selected_repair_item = st.selectbox(
+                            "เลือกอุปกรณ์ที่แก้ไขแล้ว:",
+                            df_need_action['picker_label'].tolist()
+                        )
+
+                        repair_details = st.text_area(
+                            "รายละเอียดการแก้ไข:",
+                            placeholder="เช่น เปลี่ยนถังใหม่ / เติมแรงดันแล้ว"
+                        )
+                        repairman_name = st.text_input("ชื่อผู้แก้ไข:")
+
+                        submit_repair = st.form_submit_button("💾 ยืนยันแก้ไขสำเร็จ", type="primary")
+
+                    if submit_repair:
+                        if not repairman_name or not repair_details:
+                            st.warning("⚠️ กรุณากรอกข้อมูลให้ครบถ้วน")
+                        else:
+                            with st.spinner("กำลังอัปเดตระบบ..."):
+                                chosen_row = \
+                                df_need_action[df_need_action['picker_label'] == selected_repair_item].iloc[0]
+                                target_row_num = int(chosen_row['sheet_row_index'])
+
+                                status_col_num = repair_data[0].index('Status') + 1
+                                repair_log_sheet.update_cell(target_row_num, status_col_num, "ดำเนินการแก้ไขแล้ว")
+
+                                if 'Note' in repair_data[0]:
+                                    note_col_num = repair_data[0].index('Note') + 1
+                                    current_date_str = datetime.now().strftime('%Y-%m-%d')
+                                    repair_log_text = f"⚙️ ซ่อมโดย {repairman_name}: {repair_details} ({current_date_str})"
+                                    repair_log_sheet.update_cell(target_row_num, note_col_num, repair_log_text)
+
+                                st.success("🎉 อัปเดตสถานะสำเร็จแล้ว!")
+                                st.rerun()
+                else:
+                    st.success("🎉 ไม่มีรายการค้างซ่อมในระบบ")
+            else:
+                st.info("ไม่มีข้อมูลบันทึกในระบบ")
+
+        except Exception as e:
+            st.error(f"❌ ระบบฟอร์มซ่อมแซมขัดข้อง: {e}")
+
 
 #------------------------------------------------------------------------------------------------------------------
 # ส่วนของ Notification ในไลน์
@@ -860,7 +1030,7 @@ def send_line_notify(message):
     }
 
     data = {
-        "to": "Cc41d99115e9081afa7a799a8964f1926",
+        "to": st.secrets["user_ids"],
         "messages": [{"type": "text", "text": message}]
     }
         # ส่งข้อมูล
