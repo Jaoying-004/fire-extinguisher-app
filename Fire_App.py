@@ -616,15 +616,14 @@ with tab2:
 
             # แสดงผลลัพธ์ (แนะนำให้ใส่ hide_index=True เพื่อไม่ให้มี index ซ้ำซ้อนโผล่มาซ้ายสุดอีก)
             st.dataframe(
-                df_display.style.set_properties(**{
-                    'background-color': '#cbd8f2',  # บังคับพื้นหลังในตารางให้เป็นสีน้ำเงินเข้มตามธีม
-                    'color': '#111844',  # บังคับตัวหนังสือด้านในให้เป็นสีขาวนวล (อ่านง่าย ชัดเจน 100%)
+                df_tab2.style.set_properties(**{
+                    'background-color': '#cbd8f2',  # บังคับพื้นหลังในตารางเป็นสีน้ำเงินเข้ม
+                    'color': '#FFFFFF',  # บังคับตัวหนังสือด้านในเป็นสีขาวนวล อ่านง่ายชัดเจน
                     'border-color': 'rgba(255, 255, 255, 0.1)'  # เส้นตัดขอบในตารางจางๆ
                 }),
                 use_container_width=True,
                 hide_index=True
             )
-
 
     except Exception as e:
         st.error(f"❌ {type(e).__name__}: {e}")
