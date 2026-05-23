@@ -489,12 +489,11 @@ with tab1:
         # เปลี่ยนจากดึงคอลัมน์แรก เป็นระบุชื่อคอลัมน์ "Timestamp" ตรงๆ
         # ใช้ดักเผื่อไว้ว่าถ้าไม่มีชื่อนี้ ให้ถอยไปใช้คอลัมน์แรกแทน
         date_col = "Timestamp" if "Timestamp" in df.columns else df.columns[0]
-
         df_temp = df.copy()
 
         # 1. แปลงคอลัมน์ Timestamp ให้กลายเป็นวันที่ (ตัดเวลาออก)
         df_temp['parsed_date'] = pd.to_datetime(df_temp[date_col], errors='coerce').dt.date
-
+        today_date = datetime.now().date()
         # กรองเอาแถวที่ไม่มีปัญหาเรื่องวันที่ออกไปก่อน
         df_clean_date = df_temp[df_temp['parsed_date'].notna()]
 
@@ -590,28 +589,27 @@ with tab4:
                 df_need_repair = df_inspection[
                     df_inspection['Status'].str.strip() == 'ไม่ปกติ (ต้องแก้ไข)'
                 ]
+                # --- 1. ส่วนหัวข้อ และ ตัวกรองมุมขวา (ใช้ st.popover เพื่อความสะอาดตา) ---
+                col_title, col_filter = st.columns([3, 1])
+                with col_filter:
+                    # สร้างปุ่มกดตัวกรองไว้มุมขวาบน
+                    with st.popover("🔍 ตัวกรองข้อมูล", use_container_width=True):
+                        selected_inspector = st.selectbox("เลือกคนตรวจ",
+                                                          ["ทั้งหมด"] + list(df_need_repair['Inspector'].unique()))
+                        selected_id = st.selectbox("เลือก ID อุปกรณ์",
+                                                   ["ทั้งหมด"] + list(df_need_repair['ID'].unique()))
 
-
+                # ทำการกรองข้อมูล
+                df_filtered = df_need_repair.copy()
+                if selected_inspector != "ทั้งหมด":
+                    df_filtered = df_filtered[df_filtered['Inspector'] == selected_inspector]
+                if selected_id != "ทั้งหมด":
+                    df_filtered = df_filtered[df_filtered['ID'] == selected_id]
 
 
                 # ตาราง
                 if not df_need_repair.empty:
                     st.warning(f"พบ {len(df_need_repair)} รายการ")
-                    # --- 1. ส่วนหัวข้อ และ ตัวกรองมุมขวา (ใช้ st.popover เพื่อความสะอาดตา) ---
-                    col_title, col_filter = st.columns([3, 1])
-                    with col_filter:
-                        # สร้างปุ่มกดตัวกรองไว้มุมขวาบน
-                        with st.popover("🔍 ตัวกรองข้อมูล", use_container_width=True):
-                            selected_inspector = st.selectbox("เลือกคนตรวจ",
-                                                              ["ทั้งหมด"] + list(df_need_repair['Inspector'].unique()))
-                            selected_id = st.selectbox("เลือก ID อุปกรณ์",
-                                                       ["ทั้งหมด"] + list(df_need_repair['ID'].unique()))
-                            # ทำการกรองข้อมูล
-                    df_filtered = df_need_repair.copy()
-                    if selected_inspector != "ทั้งหมด":
-                        df_filtered = df_filtered[df_filtered['Inspector'] == selected_inspector]
-                    if selected_id != "ทั้งหมด":
-                        df_filtered = df_filtered[df_filtered['ID'] == selected_id]
 
                     for col in ["No.", "No"]:
                         if col in df_need_repair.columns:
