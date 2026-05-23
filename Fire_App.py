@@ -414,25 +414,31 @@ if "emp_name" not in st.session_state or not st.session_state["emp_name"]:
         st.session_state["emp_name"] = "ผู้ใช้"
 
 # แสดงข้อมูลผู้ใช้
-st.markdown(f"""
-<div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin-bottom: 20px;'>
-    <h3 style='margin: 0;'>👤 ข้อมูลผู้ใช้งาน</h3>
-    <p style='margin: 5px 0;'><strong>ชื่อ:</strong> {st.session_state.get('emp_name', 'ไม่ระบุ')}</p>
-    <p style='margin: 5px 0;'><strong>รหัส:</strong> {current_user}</p>
-    <p style='margin: 5px 0;'><strong>Login:</strong> {st.session_state.get('last_login', '-')}</p>
-</div>
-""", unsafe_allow_html=True)
 
-selected_tank = st.session_state.get("selected_tank") or st.query_params.get("tank_id")
 # [เขียนส่วนที่เหลือของกระบวนการควบคุม การดำเนินเรื่องตรวจเช็คถังดับเพลิงและระบบหน้าของคุณด้านล่างนี้ได้เลย]
 
 
 # ปุ่มควบคุมการออกจากระบบ (Logout Service)
 st.markdown("---")
 
-col1, col2, col3 = st.columns([4, 1, 1])
+col_info, col_profile = st.columns([3, 1])
 
-with col3:
+with col_info:
+    st.markdown(f"""
+    <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin-bottom: 20px;'>
+        <h3 style='margin: 0;'>👤 ข้อมูลผู้ใช้งาน</h3>
+        <p style='margin: 5px 0;'><strong>ชื่อ:</strong> {st.session_state.get('emp_name', 'ไม่ระบุ')}</p>
+        <p style='margin: 5px 0;'><strong>รหัส:</strong> {current_user}</p>
+        <p style='margin: 5px 0;'><strong>Login:</strong> {st.session_state.get('last_login', '-')}</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    selected_tank = st.session_state.get("selected_tank") or st.query_params.get("tank_id")
+
+with col_profile:
+    # 1. แสดงรูปภาพผู้ใช้งาน (เปลี่ยน URL เป็นรูปที่คุณต้องการได้เลย)
+    user_image = "FirePig.png"
+    st.image(user_image, width=90)  # ควบคุมขนาดรูปให้กะทัดรัดพอดีกับปุ่ม
     if st.button("🚪 ออกจากระบบ", type="secondary", use_container_width=True):
         with st.spinner("กำลังออกจากระบบ..."):
 
