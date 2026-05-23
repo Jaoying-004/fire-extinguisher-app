@@ -420,44 +420,44 @@ if "emp_name" not in st.session_state or not st.session_state["emp_name"]:
 
 # ปุ่มควบคุมการออกจากระบบ (Logout Service)
 st.markdown("---")
+with st.container(border=True):
+    col_info, col_profile = st.columns([3, 1])
 
-col_info, col_profile = st.columns([3, 1])
+    with col_info:
+        st.markdown(f"""
+        <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin-bottom: 20px;'>
+            <h3 style='margin: 0;'>👤 ข้อมูลผู้ใช้งาน</h3>
+            <p style='margin: 5px 0;'><strong>ชื่อ:</strong> {st.session_state.get('emp_name', 'ไม่ระบุ')}</p>
+            <p style='margin: 5px 0;'><strong>รหัส:</strong> {current_user}</p>
+            <p style='margin: 5px 0;'><strong>Login:</strong> {st.session_state.get('last_login', '-')}</p>
+        </div>
+        """, unsafe_allow_html=True)
 
-with col_info:
-    st.markdown(f"""
-    <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin-bottom: 20px;'>
-        <h3 style='margin: 0;'>👤 ข้อมูลผู้ใช้งาน</h3>
-        <p style='margin: 5px 0;'><strong>ชื่อ:</strong> {st.session_state.get('emp_name', 'ไม่ระบุ')}</p>
-        <p style='margin: 5px 0;'><strong>รหัส:</strong> {current_user}</p>
-        <p style='margin: 5px 0;'><strong>Login:</strong> {st.session_state.get('last_login', '-')}</p>
-    </div>
-    """, unsafe_allow_html=True)
+        selected_tank = st.session_state.get("selected_tank") or st.query_params.get("tank_id")
 
-    selected_tank = st.session_state.get("selected_tank") or st.query_params.get("tank_id")
-
-with col_profile:
+    with col_profile:
     # 1. แสดงรูปภาพผู้ใช้งาน (เปลี่ยน URL เป็นรูปที่คุณต้องการได้เลย)
-    user_image = "FirePig.png"
-    st.image(user_image, width=90)  # ควบคุมขนาดรูปให้กะทัดรัดพอดีกับปุ่ม
-    if st.button("🚪 ออกจากระบบ", type="secondary", use_container_width=True):
-        with st.spinner("กำลังออกจากระบบ..."):
+        user_image = "FirePig.png"
+        st.image(user_image, width=90)  # ควบคุมขนาดรูปให้กะทัดรัดพอดีกับปุ่ม
+        if st.button("🚪 ออกจากระบบ", type="secondary", use_container_width=True):
+            with st.spinner("กำลังออกจากระบบ..."):
 
             # ลบ Session จาก Sheets
-            current_token = get_cookie_safe(COOKIE_NAME)
-            if current_token:
-                revoke_token_in_sheet(current_token)
+                current_token = get_cookie_safe(COOKIE_NAME)
+                if current_token:
+                    revoke_token_in_sheet(current_token)
 
-            remove_cookie_safe(COOKIE_NAME)
+                remove_cookie_safe(COOKIE_NAME)
             # ล้าง Session State
-            for key in list(st.session_state.keys()):
-                if key != "cookie_ready":  # เก็บ cookie_ready ไว้
-                    del st.session_state[key]
+                for key in list(st.session_state.keys()):
+                    if key != "cookie_ready":  # เก็บ cookie_ready ไว้
+                        del st.session_state[key]
 
-            st.session_state["authenticated"] = False
+                st.session_state["authenticated"] = False
 
-            st.success("✅ ออกจากระบบสำเร็จ")
-            time.sleep(0.8)
-            st.rerun()
+                st.success("✅ ออกจากระบบสำเร็จ")
+                time.sleep(0.8)
+                st.rerun()
 
 #จบส่วนล็อคอิน==========================================================================================================
 
