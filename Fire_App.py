@@ -403,7 +403,7 @@ if not st.session_state.get("authenticated"):
 
 # ส่วนที่ 5: ฟังก์ชันควบคุมและควบคุมระบบแสดงผล หน้าจอหลัก / หน้าจอล็อกอิน==========================================================
 
-st.title("ยินดีต้อนรับเข้าใช้งานหน้าการตรวจเช็คตรวจสอบระบบ 🚒")
+st.markdown("<h1 style='color: #111844;'>ยินดีต้อนรับเข้าใช้งานหน้าการตรวจเช็คตรวจสอบระบบ 🚒</h1>", unsafe_allow_html=True)
 # ดึงชื่อแสดงผลแบบปลอดภัย
 current_user = st.session_state.get("emp_id")
 
@@ -484,7 +484,23 @@ sheet = spreadsheet.worksheet("FireExtinguisher_Data")
 log_sheet = spreadsheet.worksheet("Inspection_Log")
 
 # --- 3. หน้าตาแอป (UI) และ Tabs ---
-st.title("🔥 FireExtinguisher")
+st.markdown("<h2 style='color: #111844;'>🔥 FireExtinguisher</h2>", unsafe_allow_html=True)
+# 💡 ฝัง CSS เพื่อบังคับเปลี่ยนสีตัวอักษรของปุ่ม Tab ทั้งหมดในหน้าหลักให้เป็นสีน้ำเงินเข้ม
+st.markdown("""
+    <style>
+        /* 1. เปลี่ยนสีตัวอักษรแท็บปกติที่ยังไม่ได้กด */
+        button[data-baseweb="tab"] p {
+            color: #111844 !important;
+            font-weight: 500;
+        }
+        /* 2. เปลี่ยนสีตัวอักษรแท็บตอนที่เราคลิกเลือกอยู่ (Active Tab) */
+        button[aria-selected="true"] p {
+            color: #1A3263 !important;
+            font-weight: bold;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 tab1, tab2, tab3, tab4 = st.tabs(["📅 รายการตรวจวันนี้", "📋 FireExtinguisher_Data", "🚨 Emergency_Safety_Equipment", "🔧 ติดตามการแก้ไข"])
 #ดึงข้อมูลจากชีตมาโชว์
 with tab1:
