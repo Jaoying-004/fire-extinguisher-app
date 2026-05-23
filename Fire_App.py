@@ -574,7 +574,8 @@ with tab2:
 
 with tab3:
     df = load_sheet_data("Emergency_Safety_Equipment")
-    st.subheader("🚨 Emergency_Safety_Equipment")
+    st.markdown("<h3 style='color: #111844; font-weight: bold;'>🚨 Emergency_Safety_Equipment</h3>",
+                unsafe_allow_html=True)
     try:
         df_tab3 = load_sheet_data("Emergency_Safety_Equipment")
 
@@ -598,7 +599,8 @@ with tab3:
         st.error(f"❌ {type(e).__name__}: {e}")
 
 with tab4:
-    st.subheader("🔧 ติดตามการแก้ไข")
+    st.markdown("<h3 style='color: #111844; font-weight: bold;'>🔧 ติดตามการแก้ไข</h3>",
+                unsafe_allow_html=True)
     try:
         inspection_sheet = client.open(sheet_name).worksheet("Inspection_Log")
         inspection_rows = inspection_sheet.get_all_values()
@@ -1018,5 +1020,34 @@ if st.button("📊 ส่งสรุปรายงานประจำเด�
             st.warning("ไม่พบข้อมูลของเดือนปัจจุบันในชีต")
 
 #--------------------------------------------------------------------------------------------------------------------
+#โซนปรับแต่งสีจ้า
+st.markdown("""
+    <style>
+        /* ---------------- [ส่วนที่ 1: สีของแท็บ st.tabs] ---------------- */
+        button[data-baseweb="tab"] p {
+            color: #1A3263 !important;
+            font-weight: 500;
+        }
+        button[aria-selected="true"] p {
+            color: #1A3263 !important;
+            font-weight: bold;
+        }
 
-
+        /* ---------------- [ส่วนที่ 2: สีของตาราง st.dataframe] ---------------- */
+        /* ย้อมสีหัวตารางเป็นน้ำเงินเข้ม ตัวหนังสือส้มทอง */
+        div[data-testid="stDataFrame"] th {
+            background-color: #1A3263 !important;
+            color: #FFC570 !important;
+            font-weight: bold !important;
+        }
+        /* เส้นตารางสีขาวจางๆ ตัดกับพื้นหลังเข้ม */
+        div[data-testid="stDataFrame"] td, div[data-testid="stDataFrame"] th {
+            border-color: rgba(255, 255, 255, 0.15) !important;
+        }
+        /* เวลาเมาส์ชี้ ให้แถวเปลี่ยนเป็นสีฟ้าเทา */
+        div[data-testid="stDataFrame"] tr:hover td {
+            background-color: #547792 !important;
+            color: #FFFFFF !important;
+        }
+    </style>
+""", unsafe_allow_html=True)
