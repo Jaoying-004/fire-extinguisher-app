@@ -821,18 +821,24 @@ with tab4:
 
 st.markdown("""
     <style>
-    /* เจาะจงเฉพาะปุ่มที่มีข้อความคำว่า "อัปเดตข้อมูลล่าสุด" เท่านั้น */
-    button:has(span p:contains("อัปเดตข้อมูลล่าสุด")) {
-        background-color: #ffffff !important; /* เปลี่ยนเป็นสีน้ำเงินเข้มเฉพาะปุ่มนี้ */
-        color: white !important;                /* ตัวหนังสือสีขาว */
-        font-weight: bold !important;           /* ตัวหนังสือหนา */
-        border: 1px solid #111844 !important;   /* เส้นขอบสีน้ำเงินเข้ม */
-        border-radius: 6px !important;          /* ความโค้งมนของปุ่ม */
+    /* ค้นหาปุ่มที่มีคำว่า อัปเดตข้อมูลล่าสุด อยู่ข้างใน ไม่ว่าจะซ่อนอยู่ในแท็กไหนก็ตาม */
+    button:has(:contains("อัปเดตข้อมูลล่าสุด")) {
+        background-color: #ffffff !important; /* สีน้ำเงินเข้มเฉพาะปุ่มนี้ */
+        color: white !important;                /* ตัวหนังสือขาว */
+        font-weight: bold !important;           /* ตัวหนา */
+        border: 1px solid #111844 !important;   /* ขอบน้ำเงินเข้ม */
+        border-radius: 6px !important;
     }
 
-    /* สไตล์ตอนที่เอาเมาส์ไปชี้ปุ่ม (Hover) */
-    button:has(span p:contains("อัปเดตข้อมูลล่าสุด")):hover {
-        background-color: #21325e !important;   /* สีน้ำเงินสว่างขึ้นนิดนึงดูมีมิติ */
+    /* บังคับสีไอคอนและตัวหนังสือทุกตัวข้างในปุ่มให้เป็นสีขาว (ป้องกันสีเก่าดื้อ) */
+    button:has(:contains("อัปเดตข้อมูลล่าสุด")) * {
+        color: white !important;
+        fill: white !important;
+    }
+
+    /* สไตล์ตอนเอาเมาส์ไปชี้ (Hover) */
+    button:has(:contains("อัปเดตข้อมูลล่าสุด")):hover {
+        background-color: #21325e !important;  /* สีสว่างขึ้นนิดนึงดูมีมิติ */
         border-color: #21325e !important;
     }
     </style>
