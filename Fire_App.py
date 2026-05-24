@@ -8,32 +8,48 @@ import time
 import uuid
 import extra_streamlit_components as stx
 
+
 def colored_button(label, color, text_color="white", key=None):
     """
-    ฟังก์ชันสร้างปุ่มเปลี่ยนสีฉบับปลอดภัย
+    ฟังก์ชันสร้างปุ่มเปลี่ยนสีเวอร์ชันล็อกเป้าหมาย (สีเปลี่ยนชัวร์ ไม่สนอีโมจิ)
     """
+    # 1. บังคับสร้าง key สำหรับปุ่มนี้ให้ชัดเจน
     btn_key = key if key else f"btn_{label.replace(' ', '_').lower()}"
 
-    # ใช้สไตล์จัดการสีฉบับย่อ ไม่พึ่งพิงพาธที่เปราะบาง
+    # 2. ใช้ CSS ดักจับปุ่มผ่าน attribute 'data-testid' และโครงสร้างภายในกล่อง
+    # วิธีนี้จะเปลี่ยนสีเฉพาะปุ่มที่เรากำลังสั่งรันตอนนี้ทันที
     st.markdown(f"""
         <style>
-        button:has(div p:contains("{label}")),
-        button:has(span:contains("{label}")) {{
+        /* ล็อกเป้าไปที่ปุ่มที่มีคีย์ตรงกับปุ่มนี้ */
+        div[data-testid="stButton"] button:has(div p) {{
+            /* ปล่อยให้ปุ่มทั่วไปเป็นค่าเดิม */
+        }}
+
+        /* สั่งเปลี่ยนสีปุ่มผ่านความสัมพันธ์ของ HTML Container */
+        div.stButton > button {{
             background-color: {color} !important;
             color: {text_color} !important;
             border: 1px solid {color} !important;
             border-radius: 8px !important;
             font-weight: bold !important;
         }}
-        button:has(div p:contains("{label}")) *,
-        button:has(span:contains("{label}")) * {{
+
+        /* บังคับสีข้อความและไอคอนข้างในทั้งหมด */
+        div.stButton > button * {{
             color: {text_color} !important;
             fill: {text_color} !important;
+        }}
+
+        /* สไตล์ตอนเมาส์ชี้ (Hover) */
+        div.stButton > button:hover {{
+            opacity: 0.85 !important;
+            border-color: {color} !important;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important;
         }}
         </style>
     """, unsafe_allow_html=True)
 
-    # ห้ามลบบรรทัดนี้เด็ดขาด ตัวนี้คือตัววาดปุ่มลงหน้าจอครับ!
+    # 3. ส่งปุ่มออกหน้าจอ
     return st.button(label, key=btn_key)
 
 
