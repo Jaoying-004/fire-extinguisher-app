@@ -192,18 +192,11 @@ if "cookie_ready" not in st.session_state:
 if not st.session_state["cookie_ready"]:
     try:
         _ = cookie_manager.get_all()
-        time.sleep(1.2)  # ✅ เพิ่มเวลารอเป็น 1.2 วินาที (จากเดิม 0.8)
         st.session_state["cookie_ready"] = True
+    except Exception:
+        st.warning("⏳ กำลังเตรียม Cookie Manager...")
+        st.stop()
 
-        # เก็บ query params ไว้
-        if st.query_params:
-            st.session_state["saved_query_params"] = dict(st.query_params)
-
-        st.rerun()
-    except Exception as e:
-        st.warning(f"⏳ กำลังเตรียม Cookie Manager...")
-        time.sleep(0.8)
-        st.rerun()
 
 # กู้คืน query params
 if "saved_query_params" in st.session_state:
@@ -232,35 +225,22 @@ def get_cookie_safe(name):
 
 
 def set_cookie_safe(name, value, expiry_days=1):
-    """บันทึก Cookie"""
     if not st.session_state.get("cookie_ready", False):
         st.error("❌ Cookie Manager ยังไม่พร้อม")
         return False
 
     try:
-        # ✅ แก้ไข: ลบ Cookie เก่าก่อนบันทึกใหม่
         try:
             cookie_manager.delete(name)
-            time.sleep(0.3)
-        except:
+        except Exception:
             pass
 
-        # บันทึก Cookie ใหม่
         cookie_manager.set(
             name,
             value,
             expires_at=datetime.now() + timedelta(days=expiry_days)
         )
-
-        time.sleep(0.8)  # ✅ เพิ่มเวลารอ
-
-        # ตรวจสอบว่าบันทึกสำเร็จ
-        all_cookies = cookie_manager.get_all()
-        if all_cookies and all_cookies.get(name) == value:
-            return True
-        else:
-            st.warning("⚠️ Cookie อาจยังไม่ถูกบันทึก กรุณาลองใหม่")
-            return False
+        return True
 
     except Exception as e:
         st.error(f"❌ ไม่สามารถบันทึก Cookie: {e}")
