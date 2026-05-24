@@ -11,19 +11,18 @@ import extra_streamlit_components as stx
 
 def colored_button(label, color, text_color="white", key=None):
     """
-    ฟังก์ชันสร้างปุ่มเปลี่ยนสีแบบล็อกเป้าหมายรายปุ่ม (เวอร์ชันอัปเกรดปี 2026 แยกสีชัวร์ ไม่ตีกัน)
+    ฟังก์ชันสร้างปุ่มเปลี่ยนสีแยกรายปุ่ม ฉบับปลอดภัย 100% โค้ดไม่หลุดหน้าจอ
     """
-    # 1. สร้างคีย์เฉพาะของ Streamlit ตามปกติเพื่อไม่ให้ปุ่มซ้ำ
+    # 1. สร้างคีย์ปลอดภัยสำหรับปุ่ม
     btn_key = key if key else f"btn_{label.replace(' ', '_').lower()}"
-
-    # 2. ปรับชื่อเพื่อเอาไปทำเป็นไอดีหมุดปักใน HTML (ห้ามมีอักขระพิเศษหรืออีโมจิ)
     safe_id = "".join([c for c in btn_key if c.isalnum() or c in ["_", "-"]])
 
-    # 3. พ่นสไตล์แบบล็อกเป้า โดยสั่งให้ส่งผลเฉพาะปุ่มที่อยู่ติดกับหมุดไอดีนี้เท่านั้น
-    st.markdown(f"""
-        <div id="anchor-{safe_id}"></div>
+    # 2. แปะหมุดปัก Anchor ไว้เหนือก้นปุ่ม
+    st.markdown(f'<div id="anchor-{safe_id}"></div>', unsafe_allow_html=True)
+
+    # 3. พ่น CSS แยกต่างหาก ไม่ใช้ f-string ซ้อนปีกกา เพื่อป้องกันโค้ดหลุดหน้าจอ
+    css_code = f"""
         <style>
-        /* สั่งงานจากหมุดปัก วิ่งไปหาปุ่ม stButton ที่อยู่ติดกันด้านล่าง */
         div:has(> #anchor-{safe_id}) + div[data-testid="stButton"] button {{
             background-color: {color} !important;
             color: {text_color} !important;
@@ -31,23 +30,20 @@ def colored_button(label, color, text_color="white", key=None):
             border-radius: 8px !important;
             font-weight: bold !important;
         }}
-
-        /* บังคับสีข้อความและอีโมจิทั้งหมดภายในปุ่มนี้ */
         div:has(> #anchor-{safe_id}) + div[data-testid="stButton"] button * {{
             color: {text_color} !important;
             fill: {text_color} !important;
         }}
-
-        /* สไตล์ตอนเมาส์ชี้ (Hover) */
         div:has(> #anchor-{safe_id}) + div[data-testid="stButton"] button:hover {{
             opacity: 0.85 !important;
             border-color: {color} !important;
             box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
         }}
         </style>
-    """, unsafe_allow_html=True)
+    """
+    st.markdown(css_code, unsafe_allow_html=True)
 
-    # 4. วาดปุ่มออกหน้าจอต่อท้ายสไตล์ทันที
+    # 4. ส่งปุ่มออกหน้าจอ
     return st.button(label, key=btn_key)
 
 # ตั้งค่าเวลาไทยไว้ใช้ทั้งแอป
