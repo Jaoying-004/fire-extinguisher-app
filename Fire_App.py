@@ -7,45 +7,36 @@ import streamlit as st
 import time
 import uuid
 import extra_streamlit_components as stx
+from streamlit_extras.stylable_container import stylable_container
 
 
 def colored_button(label, color, text_color="white", key=None):
     """
-    ฟังก์ชันสร้างปุ่มเปลี่ยนสีแยกรายปุ่ม ฉบับปลอดภัย 100% โค้ดไม่หลุดหน้าจอ
+    ฟังก์ชันสร้างปุ่มเปลี่ยนสีแยกรายปุ่ม (เวอร์ชันทางการ)
     """
-    # 1. สร้างคีย์ปลอดภัยสำหรับปุ่ม
     btn_key = key if key else f"btn_{label.replace(' ', '_').lower()}"
-    safe_id = "".join([c for c in btn_key if c.isalnum() or c in ["_", "-"]])
 
-    # 2. แปะหมุดปัก Anchor ไว้เหนือก้นปุ่ม
-    st.markdown(f'<div id="anchor-{safe_id}"></div>', unsafe_allow_html=True)
+    with stylable_container(
+            key=f"container_{btn_key}",
+            css_styles=f"""
+            button {{
+                background-color: {color} !important;
+                color: {text_color} !important;
+                border: 1px solid {color} !important;
+                border-radius: 8px !important;
+                font-weight: bold !important;
+            }}
+            button * {{
+                color: {text_color} !important;
+            }}
+            button:hover {{
+                opacity: 0.85 !important;
+                border-color: {color} !important;
+            }}
+        """,
+    ):
 
-    # 3. พ่น CSS แยกต่างหาก ไม่ใช้ f-string ซ้อนปีกกา เพื่อป้องกันโค้ดหลุดหน้าจอ
-    css_code = f"""
-        <style>
-        div:has(> #anchor-{safe_id}) + div[data-testid="stButton"] button {{
-            background-color: {color} !important;
-            color: {text_color} !important;
-            border: 1px solid {color} !important;
-            border-radius: 8px !important;
-            font-weight: bold !important;
-        }}
-        div:has(> #anchor-{safe_id}) + div[data-testid="stButton"] button * {{
-            color: {text_color} !important;
-            fill: {text_color} !important;
-        }}
-        div:has(> #anchor-{safe_id}) + div[data-testid="stButton"] button:hover {{
-            opacity: 0.85 !important;
-            border-color: {color} !important;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
-        }}
-        </style>
-    """
-    st.markdown(css_code, unsafe_allow_html=True)
-
-    # 4. ส่งปุ่มออกหน้าจอ
-    return st.button(label, key=btn_key)
-
+        return st.button(label, key=btn_key)
 # ตั้งค่าเวลาไทยไว้ใช้ทั้งแอป
 tz = pytz.timezone('Asia/Bangkok')
 def get_now():
