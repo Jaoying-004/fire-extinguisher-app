@@ -6,7 +6,7 @@ primaryColor = "#FFC570"
 backgroundColor = "#1a3263"       
 
 # 💡 สีของ Sidebar และกล่องสี่เหลี่ยม: ใช้สีน้ำเงินเข้มขรึม เพื่อให้ข้อมูลผู้ใช้และเมนูลอยเด่นขึ้นมาอย่างทรงพลัง
-secondaryBackgroundColor = "#EBEFF5" 
+secondaryBackgroundColor = "#f9e0ae" 
 
 # 💡 สีตัวอักษร: ใช้สีขาวนวล (หรือจะใช้สี #EFD2B0) เพื่อให้ตัดกับพื้นหลังกล่องสีน้ำเงินเข้มและอ่านง่ายชัดเจน
 textColor = "#FFFFFF"
