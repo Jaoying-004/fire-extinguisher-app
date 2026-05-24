@@ -74,19 +74,16 @@ st.markdown("""
         fill: #111844 !important;             /* สีของลูกศร */
     }
 
-    /* 3. เปลี่ยนสีของ "รายการตัวเลือก" ที่เด้งดรอปดาวน์ลงมา (Dropdown Menu) */
-    div[data-baseweb="menu"] ul {
-        background-color: #fff8e9 !important; /* สีพื้นหลังของเมนูตัวเลือก */
-    }
-    
-    /* 4. เปลี่ยนสีตัวหนังสือในรายการตัวเลือก */
-    div[data-baseweb="menu"] li {
-        color: #111844 !important;            /* สีตัวหนังสือในเมนู */
+    /* 4. บังคับสีพื้นหลังและสีตัวหนังสือของรายการตัวเลือกรายแถว (List Items) */
+    div[data-baseweb="popover"] li {
+        background-color: #fff8e9 !important; /* พื้นหลังของแถว */
+        color: #111844 !important;            /* สีตัวหนังสือในแถวปกติ */
     }
 
-    /* 5. เปลี่ยนสีไฮไลท์ตอนเอาเมาส์ไปชี้ตัวเลือก (Hover) */
-    div[data-baseweb="menu"] li:hover {
-        background-color: #eaf1ff !important; /* สีพื้นหลังตอนเมาส์ชี้ */
+    /* 5. เปลี่ยนสีไฮไลท์พื้นหลังและตัวหนังสือ ตอนเอาเมาส์ไปชี้ (Hover) หรือแถวที่กำลังเลือกอยู่ */
+    div[data-baseweb="popover"] li:hover,
+    div[data-baseweb="popover"] li[aria-selected="true"] {
+        background-color: #eaf1ff !important; /* สีพื้นหลังฟ้าอ่อนตอนเมาส์ชี้ */
         color: #1a3263 !important;            /* สีตัวหนังสือตอนเมาส์ชี้ */
     }
 
