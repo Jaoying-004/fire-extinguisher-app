@@ -16,39 +16,6 @@ def colored_button(label, color, text_color="white", key=None):
     # 1. บังคับสร้าง key สำหรับปุ่มนี้ให้ชัดเจน
     btn_key = key if key else f"btn_{label.replace(' ', '_').lower()}"
 
-    # 2. ใช้ CSS ดักจับปุ่มผ่าน attribute 'data-testid' และโครงสร้างภายในกล่อง
-    # วิธีนี้จะเปลี่ยนสีเฉพาะปุ่มที่เรากำลังสั่งรันตอนนี้ทันที
-    st.markdown(f"""
-        <style>
-        /* ล็อกเป้าไปที่ปุ่มที่มีคีย์ตรงกับปุ่มนี้ */
-        div[data-testid="stButton"] button:has(div p) {{
-            /* ปล่อยให้ปุ่มทั่วไปเป็นค่าเดิม */
-        }}
-
-        /* สั่งเปลี่ยนสีปุ่มผ่านความสัมพันธ์ของ HTML Container */
-        div.stButton > button {{
-            background-color: {color} !important;
-            color: {text_color} !important;
-            border: 1px solid {color} !important;
-            border-radius: 8px !important;
-            font-weight: bold !important;
-        }}
-
-        /* บังคับสีข้อความและไอคอนข้างในทั้งหมด */
-        div.stButton > button * {{
-            color: {text_color} !important;
-            fill: {text_color} !important;
-        }}
-
-        /* สไตล์ตอนเมาส์ชี้ (Hover) */
-        div.stButton > button:hover {{
-            opacity: 0.85 !important;
-            border-color: {color} !important;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important;
-        }}
-        </style>
-    """, unsafe_allow_html=True)
-
     # 3. ส่งปุ่มออกหน้าจอ
     return st.button(label, key=btn_key)
 
