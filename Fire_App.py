@@ -155,9 +155,9 @@ st.markdown("""
     button:has([data-testid="stMarkdownContainer"] p:contains("ตัวกรองข้อมูล")),
     [data-testid="stPopoverTarget"] button,
     [data-testid="stPopover"] button {
-        background-color: #111844 !important; /* ปุ่มสีน้ำเงินเข้ม */
-        color: #ffffff !important;            /* ตัวหนังสือสีขาว */
-        border: 1px solid #111844 !important; /* เส้นขอบน้ำเงินเข้ม */
+        background-color: #f4d160 !important; /* ปุ่มสีน้ำเงินเข้ม */
+        color: #111844 !important;            /* ตัวหนังสือสีขาว */
+        border: 1px solid #f4d160 !important; /* เส้นขอบน้ำเงินเข้ม */
         border-radius: 6px !important;
         font-weight: bold !important;
         box-shadow: none !important;
