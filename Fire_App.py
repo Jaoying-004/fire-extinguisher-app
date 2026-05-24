@@ -147,6 +147,33 @@ st.markdown("""
     [data-testid="stTextArea"] textarea {
     caret-color: #111844 !important; /* เปลี่ยนเป็นสีน้ำเงินเข้มตามธีมคุณ หรือสีที่ต้องการได้เลย */
     }
+        /* ==========================================================
+       4. เปลี่ยนสีปุ่ม Popover (🔍 ตัวกรองข้อมูล)
+       ========================================================== */
+    /* บังคับสีปุ่ม Popover ตอนสถานะปกติ */
+    [data-testid="stPopoverTarget"] button {
+        background-color: #111844 !important; /* ปุ่มสีน้ำเงินเข้ม */
+        color: #ffffff !important;            /* ตัวหนังสือและไอคอนสีขาว */
+        border: 1px solid #111844 !important; /* เส้นขอบสีน้ำเงินเข้ม */
+        border-radius: 6px !important;
+        font-weight: bold !important;
+    }
+    
+    /* สีของปุ่ม Popover ตอนเอาเมาส์ไปชี้ (Hover) */
+    [data-testid="stPopoverTarget"] button:hover {
+        background-color: #21325e !important; /* สีน้ำเงินสว่างขึ้นนิดนึงดูมีมิติ */
+        color: #ffffff !important;
+        border-color: #21325e !important;
+    }
+
+    /* สีของปุ่ม Popover ตอนที่กดเปิดกางหน้าต่างออกมาแล้ว (Active) */
+    [data-testid="stPopoverTarget"] button:active, 
+    [data-testid="stPopoverTarget"] button[aria-expanded="true"] {
+        background-color: #5b7db1 !important; /* เปลี่ยนเป็นสีน้ำเงินฟ้าให้รู้ว่ากดอยู่ */
+        color: #ffffff !important;
+        border-color: #5b7db1 !important;
+    }
+    
     
     </style>
 """, unsafe_allow_html=True)
@@ -633,7 +660,7 @@ tab1, tab2, tab3, tab4 = st.tabs(["📅 รายการตรวจวัน�
 #ดึงข้อมูลจากชีตมาโชว์
 with tab1:
     df = load_sheet_data("Inspection_Log")
-    st.markdown("<h3 style='color: #111844; font-weight: bold;'>รายการที่ตรวจเช็คแล้ววันนี้</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color: #ffffff; font-weight: bold;'>รายการที่ตรวจเช็คแล้ววันนี้</h3>", unsafe_allow_html=True)
 
     if not df.empty:
         date_col = "Timestamp" if "Timestamp" in df.columns else df.columns[0]
@@ -684,7 +711,7 @@ with tab1:
 
 with tab2:
     df = load_sheet_data("FireExtinguisher_Data")
-    st.markdown("<h3 style='color: #111844; font-weight: bold;'>📋 FireExtinguisher_Data</h3>",
+    st.markdown("<h3 style='color: #ffffff; font-weight: bold;'>📋 FireExtinguisher_Data</h3>",
                 unsafe_allow_html=True)
     try:
         df_tab2 = load_sheet_data("FireExtinguisher_Data")
@@ -702,55 +729,15 @@ with tab2:
 
             df_tab2.insert(0, "No.", df_tab2.index)
 
-            from st_aggrid import AgGrid, GridOptionsBuilder, AgGridTheme
-
-            # 1. ตั้งค่าคุณสมบัติพื้นฐานและการกรอง
-            gb = GridOptionsBuilder.from_dataframe(df_tab2)
-            gb.configure_default_column(filterable=True, sortable=True, resizable=True)
-            gb.configure_grid_options(hideGridCellSelection=True)
-            gridOptions = gb.build()
-
-            # 2. ใช้ CSS ชุดใหม่ที่เจาะลึกเข้าไปถึงตัวแปรของ AgGrid (ครอบคลุมทุกเวอร์ชัน)
-            st.markdown("""
-                            <style>
-                            /* บังคับตัวแปรสีหลักของตัวตาราง AgGrid ทั้งหมด */
-                            .ag-theme-alpine, .ag-theme-material, .st-aggrid {
-                                --ag-header-background-color: #5b7db1 !important; /* สีหัวตาราง */
-                                --ag-header-foreground-color: #ffffff !important; /* สีตัวอักษรหัวตาราง */
-
-                                --ag-background-color: #cbd8f2 !important;        /* สีพื้นหลังแถวคู่ */
-                                --ag-odd-row-background-color: #cbd8f2 !important; # สีพื้นหลังแถวคี่ */
-                                --ag-data-color: #111844 !important;              /* สีตัวอักษรในตาราง */
-                                --ag-foreground-color: #111844 !important;        /* สีตัวอักษรหลัก */
-
-                                --ag-row-hover-color: #b3c5e6 !important;         /* สีตอนเอาเมาส์ชี้ */
-                                --ag-border-color: rgba(255, 255, 255, 0.2) !important; /* สีเส้นตัดช่อง */
-                            }
-
-                            /* บังคับความหนาและสีของกรอบตารางด้านนอกสุด */
-                            .ag-root-wrapper {
-                                border: 2px solid #5b7db1 !important;
-                                border-radius: 8px !important;
-                                overflow: hidden !important;
-                            }
-
-                            /* ดักจับฟอนต์หัวตารางให้เป็นตัวหนา */
-                            .ag-header-cell-text {
-                                font-weight: bold !important;
-                            }
-                            </style>
-                        """, unsafe_allow_html=True)
-
-            # 3. สั่งแสดงผลโดยเลือกใช้ธีมพื้นฐานเป็น ALPINE (เพื่อให้ CSS วิ่งเข้าไปดักเปลี่ยนสีง่ายขึ้น)
-            AgGrid(
-                df_tab2,
-                gridOptions=gridOptions,
-                theme=AgGridTheme.ALPINE,  # บังคับใช้ธีม Alpine เพื่อรับค่า CSS ตัวแปรด้านบน
-                fit_columns_on_grid_load=True,
-                allow_unsafe_jscode=True
+            st.dataframe(
+                df_display.style.set_properties(**{
+                    'background-color': '#cbd8f2',  # บังคับพื้นหลังในตารางให้เป็นสีน้ำเงินเข้มตามธีม
+                    'color': '#111844',  # บังคับตัวหนังสือด้านในให้เป็นสีขาวนวล (อ่านง่าย ชัดเจน 100%)
+                    'border-color': 'rgba(255, 255, 255, 0.1)'  # เส้นตัดขอบในตารางจางๆ
+                }),
+                use_container_width=True,
+                hide_index=True
             )
-
-
 
             # แสดงผลลัพธ์ (แนะนำให้ใส่ hide_index=True เพื่อไม่ให้มี index ซ้ำซ้อนโผล่มาซ้ายสุดอีก)
             #st.dataframe(df_tab2, use_container_width=True, hide_index=True)
@@ -760,7 +747,7 @@ with tab2:
 
 with tab3:
     df = load_sheet_data("Emergency_Safety_Equipment")
-    st.markdown("<h3 style='color: #111844; font-weight: bold;'>🚨 Emergency_Safety_Equipment</h3>",
+    st.markdown("<h3 style='color: #ffffff; font-weight: bold;'>🚨 Emergency_Safety_Equipment</h3>",
                 unsafe_allow_html=True)
     try:
         df_tab3 = load_sheet_data("Emergency_Safety_Equipment")
@@ -785,7 +772,7 @@ with tab3:
         st.error(f"❌ {type(e).__name__}: {e}")
 
 with tab4:
-    st.markdown("<h3 style='color: #111844; font-weight: bold;'>🔧 ติดตามการแก้ไข</h3>",
+    st.markdown("<h3 style='color: #ffffff; font-weight: bold;'>🔧 ติดตามการแก้ไข</h3>",
                 unsafe_allow_html=True)
     try:
         inspection_sheet = client.open(sheet_name).worksheet("Inspection_Log")
@@ -808,6 +795,10 @@ with tab4:
                                                           ["ทั้งหมด"] + list(df_need_repair['Inspector'].unique()))
                         selected_id = st.selectbox("เลือก ID อุปกรณ์",
                                                    ["ทั้งหมด"] + list(df_need_repair['ID'].unique()))
+
+
+
+
 
                 # ทำการกรองข้อมูล
                 df_filtered = df_need_repair.copy()
