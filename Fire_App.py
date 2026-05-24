@@ -80,13 +80,6 @@ st.markdown("""
         color: #111844 !important;            /* สีตัวหนังสือในแถวปกติ */
     }
 
-    /* 5. เปลี่ยนสีไฮไลท์พื้นหลังและตัวหนังสือ ตอนเอาเมาส์ไปชี้ (Hover) หรือแถวที่กำลังเลือกอยู่ */
-    div[data-baseweb="popover"] li:hover,
-    div[data-baseweb="popover"] li[aria-selected="true"] {
-        background-color: #eaf1ff !important; /* สีพื้นหลังฟ้าอ่อนตอนเมาส์ชี้ */
-        color: #1a3263 !important;            /* สีตัวหนังสือตอนเมาส์ชี้ */
-    }
-
     </style>
 """, unsafe_allow_html=True)
 
