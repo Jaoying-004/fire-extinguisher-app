@@ -33,34 +33,24 @@ except Exception as e:
 # โซนปรับแต่งสีจ้า
 st.markdown("""
     <style>
-    /* ตกแต่งทุก dataframe ในหน้านี้ */
-    [data-testid="stDataFrame"] {
-        background-color: #cbd8f2 !important;  /* พื้นหลังน้ำเงินอ่อน */
+    /* 1. บังคับสีพื้นหลังและสีตัวอักษรของเซลล์ข้อมูลทั้งหมดในตาราง */
+    [data-testid="stDataFrame"] div[role="grid"] div {
+        background-color: #cbd8f2 !important;
+        color: #111844 !important;
     }
 
-    /* หัวตาราง */
-    [data-testid="stDataFrame"] th {
-        background-color: #5b7db1 !important;  /* น้ำเงินเข้มขึ้น */
-        color: white !important;                /* ตัวอักษรขาว */
+    /* 2. บังคับสีพื้นหลังของแถวหัวตาราง (Header) */
+    [data-testid="stDataFrame"] div[role="columnheader"] {
+        background-color: #5b7db1 !important;
+    }
+
+    /* 3. บังคับสีตัวอักษรของหัวตารางให้เป็นสีขาว */
+    [data-testid="stDataFrame"] div[role="columnheader"] span {
+        color: white !important;
         font-weight: bold !important;
-        padding: 12px !important;
-        border-color: rgba(255, 255, 255, 0.1) !important;
     }
 
-    /* เซลล์ข้อมูล */
-    [data-testid="stDataFrame"] td {
-        background-color: #cbd8f2 !important;  /* สีเดียวกับที่คุณตั้ง */
-        color: #111844 !important;             /* สีตัวอักษรเข้ม */
-        padding: 10px !important;
-        border-color: rgba(255, 255, 255, 0.1) !important;
-    }
-
-    /* Hover effect */
-    [data-testid="stDataFrame"] tbody tr:hover {
-        background-color: #b3c5e6 !important;  /* เข้มขึ้นเล็กน้อยเมื่อเลื่อนเมาส์ */
-    }
-
-    /* ขอบตาราง */
+    /* 4. ใส่เส้นขอบหนาและโค้งมนให้ตัวกล่องตารางชั้นนอก */
     [data-testid="stDataFrame"] {
         border: 2px solid #5b7db1 !important;
         border-radius: 8px !important;
@@ -68,7 +58,6 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
-
 #ส่วนที่ 1 ของล็อคอิน======================================================================================================
 
 COOKIE_NAME = "emp_auth_token"
