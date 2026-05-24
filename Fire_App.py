@@ -10,11 +10,31 @@ import extra_streamlit_components as stx
 
 def colored_button(label, color, text_color="white", key=None):
     """
-    ฟังก์ชันสำหรับสร้างปุ่มเปลี่ยนสีได้อิสระใน Python
+    ฟังก์ชันสร้างปุ่มเปลี่ยนสีฉบับปลอดภัย
     """
-    # กำหนด key สำหรับปุ่ม ถ้าไม่ส่งมาจะใช้ชื่อปุ่มเป็น key อัตโนมัติ
-    button_key = key if key else f"btn_{label.replace(' ', '_').lower()}"
+    btn_key = key if key else f"btn_{label.replace(' ', '_').lower()}"
 
+    # ใช้สไตล์จัดการสีฉบับย่อ ไม่พึ่งพิงพาธที่เปราะบาง
+    st.markdown(f"""
+        <style>
+        button:has(div p:contains("{label}")),
+        button:has(span:contains("{label}")) {{
+            background-color: {color} !important;
+            color: {text_color} !important;
+            border: 1px solid {color} !important;
+            border-radius: 8px !important;
+            font-weight: bold !important;
+        }}
+        button:has(div p:contains("{label}")) *,
+        button:has(span:contains("{label}")) * {{
+            color: {text_color} !important;
+            fill: {text_color} !important;
+        }}
+        </style>
+    """, unsafe_allow_html=True)
+
+    # ห้ามลบบรรทัดนี้เด็ดขาด ตัวนี้คือตัววาดปุ่มลงหน้าจอครับ!
+    return st.button(label, key=btn_key)
 
 
 # ตั้งค่าเวลาไทยไว้ใช้ทั้งแอป
@@ -154,22 +174,6 @@ st.markdown("""
     [data-testid="stTextArea"] textarea {
     caret-color: #111844 !important; /* เปลี่ยนเป็นสีน้ำเงินเข้มตามธีมคุณ หรือสีที่ต้องการได้เลย */
     }
-    
-    button:has(:contains("{label}")) {{
-        background-color: {color} !important;
-        color: {text_color} !important;
-        border: 1px solid {color} !important;
-        border-radius: 8px !important;
-        font-weight: bold !important;
-    }}
-    button:has(:contains("{label}")):hover {{
-        opacity: 0.85 !important;
-        border-color: {color} !important;
-    }}
-    button:has(:contains("{label}")) * {{
-        color: {text_color} !important;
-        fill: {text_color} !important;
-    }}
     
     </style>
 """, unsafe_allow_html=True)
