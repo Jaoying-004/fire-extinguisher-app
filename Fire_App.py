@@ -11,12 +11,43 @@ import extra_streamlit_components as stx
 
 def colored_button(label, color, text_color="white", key=None):
     """
-    ฟังก์ชันสร้างปุ่มเปลี่ยนสีเวอร์ชันล็อกเป้าหมาย (สีเปลี่ยนชัวร์ ไม่สนอีโมจิ)
+    ฟังก์ชันสร้างปุ่มเปลี่ยนสีแบบล็อกเป้าหมายรายปุ่ม (เวอร์ชันอัปเกรดปี 2026 แยกสีชัวร์ ไม่ตีกัน)
     """
-    # 1. บังคับสร้าง key สำหรับปุ่มนี้ให้ชัดเจน
+    # 1. สร้างคีย์เฉพาะของ Streamlit ตามปกติเพื่อไม่ให้ปุ่มซ้ำ
     btn_key = key if key else f"btn_{label.replace(' ', '_').lower()}"
 
-    # 3. ส่งปุ่มออกหน้าจอ
+    # 2. ปรับชื่อเพื่อเอาไปทำเป็นไอดีหมุดปักใน HTML (ห้ามมีอักขระพิเศษหรืออีโมจิ)
+    safe_id = "".join([c for c in btn_key if c.isalnum() or c in ["_", "-"]])
+
+    # 3. พ่นสไตล์แบบล็อกเป้า โดยสั่งให้ส่งผลเฉพาะปุ่มที่อยู่ติดกับหมุดไอดีนี้เท่านั้น
+    st.markdown(f"""
+        <div id="anchor-{safe_id}"></div>
+        <style>
+        /* สั่งงานจากหมุดปัก วิ่งไปหาปุ่ม stButton ที่อยู่ติดกันด้านล่าง */
+        div:has(> #anchor-{safe_id}) + div[data-testid="stButton"] button {{
+            background-color: {color} !important;
+            color: {text_color} !important;
+            border: 1px solid {color} !important;
+            border-radius: 8px !important;
+            font-weight: bold !important;
+        }}
+
+        /* บังคับสีข้อความและอีโมจิทั้งหมดภายในปุ่มนี้ */
+        div:has(> #anchor-{safe_id}) + div[data-testid="stButton"] button * {{
+            color: {text_color} !important;
+            fill: {text_color} !important;
+        }}
+
+        /* สไตล์ตอนเมาส์ชี้ (Hover) */
+        div:has(> #anchor-{safe_id}) + div[data-testid="stButton"] button:hover {{
+            opacity: 0.85 !important;
+            border-color: {color} !important;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+        }}
+        </style>
+    """, unsafe_allow_html=True)
+
+    # 4. วาดปุ่มออกหน้าจอต่อท้ายสไตล์ทันที
     return st.button(label, key=btn_key)
 
 # ตั้งค่าเวลาไทยไว้ใช้ทั้งแอป
@@ -827,24 +858,7 @@ with tab4:
     except Exception as e:
         st.error(f"❌ Error: {e}")
 
-st.markdown("""
-    <style>
-    /* สั่งเปลี่ยนสีปุ่มใดๆก็ตามที่อยู่ในบล็อกนี้ */
-    div.stButton > button {
-        background-color: #ffe683 !important; /* น้ำเงินเข้ม */
-        color: white !important;
-        font-weight: bold !important;
-        border: 1px solid #111844 !important;
-        border-radius: 6px !important;
-    }
-    div.stButton > button * {
-        color: white !important;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-# วางปุ่มต่อท้ายสไตล์ทันที สีจะเปลี่ยนเฉพาะปุ่มนี้ปุ่มเดียวครับ
-if st.button("🔄 อัปเดตข้อมูลล่าสุด", key="refresh_data_btn"):
+if colored_button("🔄 อัปเดตข้อมูลล่าสุด", color="#ffe683", text_color="white"):
     st.rerun()
 
 
