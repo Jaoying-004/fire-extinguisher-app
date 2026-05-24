@@ -148,32 +148,36 @@ st.markdown("""
     caret-color: #111844 !important; /* เปลี่ยนเป็นสีน้ำเงินเข้มตามธีมคุณ หรือสีที่ต้องการได้เลย */
     }
         /* ==========================================================
-       4. เปลี่ยนสีปุ่ม Popover (🔍 ตัวกรองข้อมูล)
+       4. บังคับเปลี่ยนสีปุ่ม Popover (🔍 ตัวกรองข้อมูล) ด้วยวิธีเจาะจงข้อความ
        ========================================================== */
-    /* บังคับสีปุ่ม Popover ตอนสถานะปกติ */
-    [data-testid="stPopoverTarget"] button {
+    /* ดักจับปุ่มที่มีคำว่า ตัวกรองข้อมูล อยู่ข้างใน */
+    button:has(span:contains("ตัวกรองข้อมูล")), 
+    button:has([data-testid="stMarkdownContainer"] p:contains("ตัวกรองข้อมูล")),
+    [data-testid="stPopoverTarget"] button,
+    [data-testid="stPopover"] button {
         background-color: #111844 !important; /* ปุ่มสีน้ำเงินเข้ม */
-        color: #ffffff !important;            /* ตัวหนังสือและไอคอนสีขาว */
-        border: 1px solid #111844 !important; /* เส้นขอบสีน้ำเงินเข้ม */
+        color: #ffffff !important;            /* ตัวหนังสือสีขาว */
+        border: 1px solid #111844 !important; /* เส้นขอบน้ำเงินเข้ม */
         border-radius: 6px !important;
         font-weight: bold !important;
+        box-shadow: none !important;
     }
-    
-    /* สีของปุ่ม Popover ตอนเอาเมาส์ไปชี้ (Hover) */
+
+    /* สีตอนเอาเมาส์ไปชี้ปุ่ม (Hover) */
+    button:has(span:contains("ตัวกรองข้อมูล")):hover,
     [data-testid="stPopoverTarget"] button:hover {
-        background-color: #21325e !important; /* สีน้ำเงินสว่างขึ้นนิดนึงดูมีมิติ */
+        background-color: #21325e !important; /* สว่างขึ้นนิดนึงดูมีมิติ */
         color: #ffffff !important;
         border-color: #21325e !important;
     }
 
-    /* สีของปุ่ม Popover ตอนที่กดเปิดกางหน้าต่างออกมาแล้ว (Active) */
-    [data-testid="stPopoverTarget"] button:active, 
+    /* สีตอนที่กดเปิดหน้าต่างทิ้งไว้ (Active / Expanded) */
+    button:has(span:contains("ตัวกรองข้อมูล"))[aria-expanded="true"],
     [data-testid="stPopoverTarget"] button[aria-expanded="true"] {
-        background-color: #5b7db1 !important; /* เปลี่ยนเป็นสีน้ำเงินฟ้าให้รู้ว่ากดอยู่ */
+        background-color: #5b7db1 !important; /* เปลี่ยนเป็นสีน้ำเงินฟ้าเมื่อเปิดใช้งาน */
         color: #ffffff !important;
         border-color: #5b7db1 !important;
     }
-    
     
     </style>
 """, unsafe_allow_html=True)
