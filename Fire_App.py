@@ -147,35 +147,37 @@ st.markdown("""
     [data-testid="stTextArea"] textarea {
     caret-color: #111844 !important; /* เปลี่ยนเป็นสีน้ำเงินเข้มตามธีมคุณ หรือสีที่ต้องการได้เลย */
     }
-        /* ==========================================================
-       4. บังคับเปลี่ยนสีปุ่ม Popover (🔍 ตัวกรองข้อมูล) ด้วยวิธีเจาะจงข้อความ
-       ========================================================== */
-    /* ดักจับปุ่มที่มีคำว่า ตัวกรองข้อมูล อยู่ข้างใน */
-    button:has(span:contains("ตัวกรองข้อมูล")), 
-    button:has([data-testid="stMarkdownContainer"] p:contains("ตัวกรองข้อมูล")),
+   
+
+    /* ดักจับปุ่ม Popover ทุกตัวด้วยคลาสหลักและ attributes ชั้นนอกสุด */
     [data-testid="stPopoverTarget"] button,
-    [data-testid="stPopover"] button {
-        background-color: #f4d160 !important; /* ปุ่มสีน้ำเงินเข้ม */
-        color: #111844 !important;            /* ตัวหนังสือสีขาว */
+    [data-testid="stPopover"] > button,
+    div[data-opened="true"] button {
+        background-color: #f4d160 !important; /* บังคับปุ่มเป็นสีน้ำเงินเข้ม */
+        color: #ffffff !important;            /* ตัวหนังสือสีขาว */
         border: 1px solid #f4d160 !important; /* เส้นขอบน้ำเงินเข้ม */
         border-radius: 6px !important;
         font-weight: bold !important;
-        box-shadow: none !important;
+    }
+
+    /* บังคับสีตัวอักษรและไอคอนทั้งหมดที่อยู่บนตัวปุ่ม Popover ให้เป็นสีขาว */
+    [data-testid="stPopoverTarget"] button *,
+    [data-testid="stPopover"] > button * {
+        color: #ffffff !important;
+        fill: #ffffff !important;
     }
 
     /* สีตอนเอาเมาส์ไปชี้ปุ่ม (Hover) */
-    button:has(span:contains("ตัวกรองข้อมูล")):hover,
-    [data-testid="stPopoverTarget"] button:hover {
-        background-color: #21325e !important; /* สว่างขึ้นนิดนึงดูมีมิติ */
-        color: #ffffff !important;
+    [data-testid="stPopoverTarget"] button:hover,
+    [data-testid="stPopover"] > button:hover {
+        background-color: #21325e !important; /* น้ำเงินสว่างขึ้นนิดนึงดูมีมิติ */
         border-color: #21325e !important;
     }
 
-    /* สีตอนที่กดเปิดหน้าต่างทิ้งไว้ (Active / Expanded) */
-    button:has(span:contains("ตัวกรองข้อมูล"))[aria-expanded="true"],
-    [data-testid="stPopoverTarget"] button[aria-expanded="true"] {
-        background-color: #5b7db1 !important; /* เปลี่ยนเป็นสีน้ำเงินฟ้าเมื่อเปิดใช้งาน */
-        color: #ffffff !important;
+    /* สีปุ่มตอนที่เปิดกางหน้าต่างตัวกรองออกมาแล้ว (Active / Expanded) */
+    [data-testid="stPopoverTarget"] button[aria-expanded="true"],
+    [data-testid="stPopover"] > button[aria-expanded="true"] {
+        background-color: #5b7db1 !important; /* เปลี่ยนเป็นสีน้ำเงินฟ้าให้รู้ว่าเปิดอยู่ */
         border-color: #5b7db1 !important;
     }
     
