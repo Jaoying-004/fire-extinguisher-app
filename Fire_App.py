@@ -33,55 +33,39 @@ except Exception as e:
 # โซนปรับแต่งสีจ้า
 st.markdown("""
     <style>
-        /* ---------------- [ส่วนที่ 1: สีของแท็บ st.tabs - อัปเดตล่าสุด] ---------------- */
-        /* บังคับตัวหนังสือของแท็บทั้งหมดให้เป็นสีน้ำเงินเข้ม */
-        div[data-testid="stTabs"] button [data-testid="stMarkdownContainer"] p {
-            color: #1A3263 !important;
-            font-weight: 500 !important;
-        }
-        /* เวลาคลิกเลือก ให้ตัวหนาขึ้น */
-        div[data-testid="stTabs"] button[aria-selected="true"] [data-testid="stMarkdownContainer"] p {
-            color: #1A3263 !important;
-            font-weight: bold !important;
-        }
-        /* เส้นไฮไลท์ใต้แท็บให้เป็นสีส้มทอง */
-        div[data-testid="stTabs"] [data-baseweb="tab-highlight-bar"] {
-            background-color: #FFC570 !important;
-        }
+    /* ตกแต่งทุก dataframe ในหน้านี้ */
+    [data-testid="stDataFrame"] {
+        background-color: #cbd8f2 !important;  /* พื้นหลังน้ำเงินอ่อน */
+    }
 
-        /* ---------------- [ส่วนที่ 2: หัวตาราง st.dataframe] ---------------- */
-        /* 1. บังคับย้อมสีพื้นหลังหัวตารางเป็นสีน้ำเงินเข้ม */
-        div[data-testid="stDataFrame"] [role="columnheader"] {
-            background-color: #1A3263 !important;
-        }
+    /* หัวตาราง */
+    [data-testid="stDataFrame"] th {
+        background-color: #5b7db1 !important;  /* น้ำเงินเข้มขึ้น */
+        color: white !important;                /* ตัวอักษรขาว */
+        font-weight: bold !important;
+        padding: 12px !important;
+        border-color: rgba(255, 255, 255, 0.1) !important;
+    }
 
-        /* 2. บังคับย้อมสีตัวหนังสือหัวตารางให้เป็นสีส้มทองตัวหนา */
-        div[data-testid="stDataFrame"] [role="columnheader"] * {
-            color: #FFC570 !important;
-            font-weight: bold !important;
-        }
+    /* เซลล์ข้อมูล */
+    [data-testid="stDataFrame"] td {
+        background-color: #cbd8f2 !important;  /* สีเดียวกับที่คุณตั้ง */
+        color: #111844 !important;             /* สีตัวอักษรเข้ม */
+        padding: 10px !important;
+        border-color: rgba(255, 255, 255, 0.1) !important;
+    }
 
-        /* 3. ย้อมสีตัวเลขนับแถว (ฝั่งซ้ายสุด 1, 2, 3...) */
-        div[data-testid="stDataFrame"] [role="rowheader"], 
-        div[data-testid="stDataFrame"] [role="rowheader"] * {
-            background-color: #1A3263 !important;
-            color: #FFC570 !important;
-        }
-        
-        /* 🎨 1. บังคับย้อมสีพื้นหลังตารางด้านในทั้งหมดเป็นสีน้ำเงินเข้ม */
-        div[data-testid="stDataFrame"] [role="gridcell"] {
-        background-color: #1A3263 !important;
-        }
+    /* Hover effect */
+    [data-testid="stDataFrame"] tbody tr:hover {
+        background-color: #b3c5e6 !important;  /* เข้มขึ้นเล็กน้อยเมื่อเลื่อนเมาส์ */
+    }
 
-        /* 🎨 2. บังคับย้อมสีตัวหนังสือข้างในตารางทั้งหมดให้เป็นสีขาวนวล */
-        div[data-testid="stDataFrame"] [role="gridcell"] * {
-        color: #FFFFFF !important;
-        }
-
-        /* 🎨 3. (แถม) เส้นตัดขอบในตารางจางๆ เพื่อความสวยงาม */
-        div[data-testid="stDataFrame"] [role="gridcell"] {
-        border: 0.5px solid rgba(255, 255, 255, 0.1) !important;
-        }
+    /* ขอบตาราง */
+    [data-testid="stDataFrame"] {
+        border: 2px solid #5b7db1 !important;
+        border-radius: 8px !important;
+        overflow: hidden !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
