@@ -142,6 +142,12 @@ st.markdown("""
         border-color: #5b7db1 !important;
         box-shadow: 0 0 0 1px #5b7db1 !important;
     }
+    
+    [data-testid="stTextInput"] input, 
+    [data-testid="stTextArea"] textarea {
+    caret-color: #111844 !important; /* เปลี่ยนเป็นสีน้ำเงินเข้มตามธีมคุณ หรือสีที่ต้องการได้เลย */
+    }
+    
     </style>
 """, unsafe_allow_html=True)
 
