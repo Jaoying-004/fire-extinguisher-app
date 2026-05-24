@@ -79,6 +79,62 @@ st.markdown("""
         background-color: #fff8e9 !important; /* พื้นหลังของแถว */
         color: #111844 !important;            /* สีตัวหนังสือในแถวปกติ */
     }
+    
+        /* ==========================================================
+       1. เปลี่ยนสีกล่องอัปโหลดไฟล์ (st.file_uploader)
+       ========================================================== */
+    /* เปลี่ยนสีพื้นหลังกล่องใหญ่ */
+    [data-testid="stFileUploader"] > section {
+        background-color: #fff8e9 !important;
+        border: 1px dashed #5b7db1 !important; /* เปลี่ยนเส้นประเป็นสีน้ำเงินฟ้า */
+    }
+    /* เปลี่ยนสีตัวหนังสือคำแนะนำใต้ปุ่ม Upload */
+    [data-testid="stFileUploader"] small {
+        color: #111844 !important;
+    }
+    /* เปลี่ยนสีปุ่ม Upload ด้านในกล่อง */
+    [data-testid="stFileUploader"] button {
+        background-color: #5b7db1 !important; /* ปุ่มสีน้ำเงินฟ้า */
+        color: white !important;                /* ตัวหนังสือขาว */
+        border: none !important;
+    }
+    [data-testid="stFileUploader"] button:hover {
+        background-color: #466699 !important; /* เข้มขึ้นเล็กน้อยเมื่อเอาเมาส์ชี้ */
+    }
+
+    /* ==========================================================
+       2. เปลี่ยนสีกล่องพิมพ์ข้อความ (st.text_area / st.text_input)
+       ========================================================== */
+    [data-testid="stTextArea"] textarea {
+        background-color: #fff8e9 !important; /* พื้นหลังกล่องสีครีมสว่าง */
+        color: #111844 !important;            /* ตัวหนังสือสีน้ำเงินเข้ม */
+        border: 1px solid #cbd8f2 !important; /* เส้นขอบกล่อง */
+    }
+    /* สีเส้นขอบตอนที่เรากำลังคลิกพิมพ์ (Focus) */
+    [data-testid="stTextArea"] textarea:focus {
+        border-color: #5b7db1 !important;
+        box-shadow: 0 0 0 1px #5b7db1 !important;
+    }
+
+    /* ==========================================================
+       3. เปลี่ยนสีปุ่มบันทึกข้อมูล (st.button) ให้เด่นชัด
+       ========================================================== */
+    /* ถ้าต้องการเจาะจงเฉพาะปุ่มบันทึกข้อมูล แนะนำให้ใช้ปุ่มแบบจริตเด่น (type="primary" ใน Python) 
+       หรือถ้าเป็นปุ่มทั่วไปในหน้านี้ โก้ดนี้จะเปลี่ยนสีให้ทั้งหมดครับ */
+    [data-testid="stBaseButton-secondary"], [data-testid="stBaseButton-primary"] {
+        background-color: #111844 !important; /* ปุ่มสีน้ำเงินเข้มตัดกับพื้นหลังครีม */
+        color: #ffffff !important;            /* ตัวหนังสือสีขาวชัดเจน */
+        border: 1px solid #111844 !important;
+        border-radius: 6px !important;
+        padding: 0.5rem 1.5rem !important;
+        font-weight: bold !important;
+    }
+    /* สีตอนเอาเมาส์ไปชี้ปุ่ม (Hover) */
+    [data-testid="stBaseButton-secondary"]:hover, [data-testid="stBaseButton-primary"]:hover {
+        background-color: #21325e !important; /* สว่างขึ้นนิดนึงดูมีมิติ */
+        color: #ffffff !important;
+        border-color: #21325e !important;
+    }
 
     </style>
 """, unsafe_allow_html=True)
