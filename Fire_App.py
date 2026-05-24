@@ -8,7 +8,7 @@ import streamlit as st
 import time
 import uuid
 import extra_streamlit_components as stx
-from st_aggrid import AgGrid, GridOptionsBuilder
+from st_aggrid import AgGrid, GridOptionsBuilder, AgGridTheme
 
 # ตั้งค่าเวลาไทยไว้ใช้ทั้งแอป
 tz = pytz.timezone('Asia/Bangkok')
@@ -603,57 +603,51 @@ with tab2:
 
             df_tab2.insert(0, "No.", df_tab2.index)
 
-            from st_aggrid import AgGrid, GridOptionsBuilder
+            from st_aggrid import AgGrid, GridOptionsBuilder, AgGridTheme
 
-            # 1. ตั้งค่าคุณสมบัติพื้นฐานของตาราง (เปิด Filter, Sorting, ขยายขนาดคอลัมน์ได้)
+            # 1. ตั้งค่าคุณสมบัติพื้นฐานและการกรอง
             gb = GridOptionsBuilder.from_dataframe(df_tab2)
             gb.configure_default_column(filterable=True, sortable=True, resizable=True)
-
-            # ซ่อนคอลัมน์ Index ดั้งเดิมของ Pandas เพื่อไม่ให้ซ้ำซ้อนกับคอลัมน์ "No." ที่เราสร้างขึ้นมา
             gb.configure_grid_options(hideGridCellSelection=True)
             gridOptions = gb.build()
 
-            # 2. ใส่ CSS คุมสีตาราง AgGrid ให้เข้ากับธีมสีน้ำเงิน-ฟ้าของคุณ
+            # 2. ใช้ CSS ชุดใหม่ที่เจาะลึกเข้าไปถึงตัวแปรของ AgGrid (ครอบคลุมทุกเวอร์ชัน)
             st.markdown("""
                             <style>
-                            /* สีแถวหัวตาราง (Header) */
-                            .ag-header {
-                                background-color: #5b7db1 !important;
-                            }
-                            /* สีตัวอักษรของหัวตาราง */
-                            .ag-header-cell-text {
-                                color: white !important;
-                                font-weight: bold !important;
+                            /* บังคับตัวแปรสีหลักของตัวตาราง AgGrid ทั้งหมด */
+                            .ag-theme-alpine, .ag-theme-material, .st-aggrid {
+                                --ag-header-background-color: #5b7db1 !important; /* สีหัวตาราง */
+                                --ag-header-foreground-color: #ffffff !important; /* สีตัวอักษรหัวตาราง */
+
+                                --ag-background-color: #cbd8f2 !important;        /* สีพื้นหลังแถวคู่ */
+                                --ag-odd-row-background-color: #cbd8f2 !important; # สีพื้นหลังแถวคี่ */
+                                --ag-data-color: #111844 !important;              /* สีตัวอักษรในตาราง */
+                                --ag-foreground-color: #111844 !important;        /* สีตัวอักษรหลัก */
+
+                                --ag-row-hover-color: #b3c5e6 !important;         /* สีตอนเอาเมาส์ชี้ */
+                                --ag-border-color: rgba(255, 255, 255, 0.2) !important; /* สีเส้นตัดช่อง */
                             }
 
-                            /* สีเนื้อหาข้อมูลและพื้นหลังภายในตารางทั้งหมด */
-                            .ag-row {
-                                background-color: #cbd8f2 !important;
-                                color: #111844 !important;
-                            }
-                            /* สีแถวเมื่อนำเมาส์ไปชี้ (Hover) */
-                            .ag-row-hover {
-                                background-color: #b3c5e6 !important;
-                            }
-
-                            /* สีเส้นกรอบตารางภายนอกสุด */
+                            /* บังคับความหนาและสีของกรอบตารางด้านนอกสุด */
                             .ag-root-wrapper {
                                 border: 2px solid #5b7db1 !important;
                                 border-radius: 8px !important;
+                                overflow: hidden !important;
                             }
-                            /* สีของเส้นตารางด้านใน (Grid Lines) */
-                            .ag-cell {
-                                border-right: 1px solid rgba(255, 255, 255, 0.15) !important;
-                                border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+
+                            /* ดักจับฟอนต์หัวตารางให้เป็นตัวหนา */
+                            .ag-header-cell-text {
+                                font-weight: bold !important;
                             }
                             </style>
                         """, unsafe_allow_html=True)
 
-            # 3. สั่งแสดงผลตารางอัจฉริยะแทน st.dataframe ตัวเดิม
+            # 3. สั่งแสดงผลโดยเลือกใช้ธีมพื้นฐานเป็น ALPINE (เพื่อให้ CSS วิ่งเข้าไปดักเปลี่ยนสีง่ายขึ้น)
             AgGrid(
                 df_tab2,
                 gridOptions=gridOptions,
-                fit_columns_on_grid_load=True,  # ปรับความกว้างคอลัมน์ให้พอดีกับหน้าจออัตโนมัติ
+                theme=AgGridTheme.ALPINE,  # บังคับใช้ธีม Alpine เพื่อรับค่า CSS ตัวแปรด้านบน
+                fit_columns_on_grid_load=True,
                 allow_unsafe_jscode=True
             )
 
