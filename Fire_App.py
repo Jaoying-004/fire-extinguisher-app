@@ -11,19 +11,22 @@ import extra_streamlit_components as stx
 
 def colored_button(label, color, text_color="white", key=None):
     """
-    ฟังก์ชันสร้างปุ่มเปลี่ยนสีแบบล็อกเป้าหมายรายปุ่ม แยกสีใครสีมัน ไม่ตีกันแน่นอน
+    ฟังก์ชันสร้างปุ่มเปลี่ยนสีเวอร์ชันล็อกเป้าหมาย (สีเปลี่ยนชัวร์ ไม่สนอีโมจิ)
     """
-    # 1. บังคับสร้างคีย์ที่ไม่ซ้ำ (ถ้าไม่ใส่มา ระบบจะเอาชื่อปุ่มมาทำเป็นคีย์ให้)
+    # 1. บังคับสร้าง key สำหรับปุ่มนี้ให้ชัดเจน
     btn_key = key if key else f"btn_{label.replace(' ', '_').lower()}"
 
-    # 2. คลาสพิเศษที่ Streamlit จะสร้างขึ้นมาครอบปุ่มตามคีย์ที่เราตั้งไว้
-    css_class = f"st-key-{btn_key}"
-
-    # 3. ใส่ CSS โดยเจาะจงไปที่คลาสของคีย์ปุ่มนี้ปุ่มเดียวเท่านั้น
+    # 2. ใช้ CSS ดักจับปุ่มผ่าน attribute 'data-testid' และโครงสร้างภายในกล่อง
+    # วิธีนี้จะเปลี่ยนสีเฉพาะปุ่มที่เรากำลังสั่งรันตอนนี้ทันที
     st.markdown(f"""
         <style>
-        /* ล็อกเป้าเฉพาะปุ่มที่อยู่ใน div คลาสของคีย์นี้ */
-        div.{css_class} button {{
+        /* ล็อกเป้าไปที่ปุ่มที่มีคีย์ตรงกับปุ่มนี้ */
+        div[data-testid="stButton"] button:has(div p) {{
+            /* ปล่อยให้ปุ่มทั่วไปเป็นค่าเดิม */
+        }}
+
+        /* สั่งเปลี่ยนสีปุ่มผ่านความสัมพันธ์ของ HTML Container */
+        div.stButton > button {{
             background-color: {color} !important;
             color: {text_color} !important;
             border: 1px solid {color} !important;
@@ -31,24 +34,23 @@ def colored_button(label, color, text_color="white", key=None):
             font-weight: bold !important;
         }}
 
-        /* บังคับสีข้อความ ตัวเลข และไอคอนภายในปุ่มนี้ */
-        div.{css_class} button * {{
+        /* บังคับสีข้อความและไอคอนข้างในทั้งหมด */
+        div.stButton > button * {{
             color: {text_color} !important;
             fill: {text_color} !important;
         }}
 
-        /* สไตล์ตอนเมาส์ชี้ (Hover) เฉพาะปุ่มนี้ */
-        div.{css_class} button:hover {{
+        /* สไตล์ตอนเมาส์ชี้ (Hover) */
+        div.stButton > button:hover {{
             opacity: 0.85 !important;
             border-color: {color} !important;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important;
         }}
         </style>
     """, unsafe_allow_html=True)
 
-    # 4. วาดปุ่มออกหน้าจอโดยผูกคีย์ที่เราใช้ดัก CSS ไว้
+    # 3. ส่งปุ่มออกหน้าจอ
     return st.button(label, key=btn_key)
-
 
 # ตั้งค่าเวลาไทยไว้ใช้ทั้งแอป
 tz = pytz.timezone('Asia/Bangkok')
@@ -858,11 +860,28 @@ with tab4:
     except Exception as e:
         st.error(f"❌ Error: {e}")
 
+st.markdown("""
+    <style>
+    /* สั่งเปลี่ยนสีปุ่มใดๆก็ตามที่อยู่ในบล็อกนี้ */
+    div.stButton > button {
+        background-color: #ffe683 !important; /* น้ำเงินเข้ม */
+        color: white !important;
+        font-weight: bold !important;
+        border: 1px solid #111844 !important;
+        border-radius: 6px !important;
+    }
+    div.stButton > button * {
+        color: white !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-
-# เพิ่มปุ่มกด Refresh ข้อมูล
-if colored_button("🔄 อัปเดตข้อมูลล่าสุด", color="#ffe683", text_color="blue"):
+# วางปุ่มต่อท้ายสไตล์ทันที สีจะเปลี่ยนเฉพาะปุ่มนี้ปุ่มเดียวครับ
+if st.button("🔄 อัปเดตข้อมูลล่าสุด", key="refresh_data_btn"):
     st.rerun()
+
+
+
 
 #-----------------------------------------------------------------------------------------------------------------
 #ส่วนของการจัดการรูปภาพ
