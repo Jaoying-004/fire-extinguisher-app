@@ -694,7 +694,7 @@ with tab1:
                 df_display.style.set_properties(**{
                     'background-color': '#cbd8f2',  # บังคับพื้นหลังในตารางให้เป็นสีน้ำเงินเข้มตามธีม
                     'color': '#111844',  # บังคับตัวหนังสือด้านในให้เป็นสีขาวนวล (อ่านง่าย ชัดเจน 100%)
-                    'border-color': 'rgba(255, 255, 255, 0.6)' # เส้นตัดขอบในตารางจางๆ
+                    'border-color': '#FFFFFF' #เส้นตัดขอบในตารางจางๆ
                 }),
                 use_container_width=True,
                 hide_index=True
