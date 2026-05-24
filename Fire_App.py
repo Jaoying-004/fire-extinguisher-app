@@ -115,27 +115,33 @@ st.markdown("""
         border-color: #5b7db1 !important;
         box-shadow: 0 0 0 1px #5b7db1 !important;
     }
-
-    /* ==========================================================
-       3. เปลี่ยนสีปุ่มบันทึกข้อมูล (st.button) ให้เด่นชัด
+    
+        /* ==========================================================
+       2. เปลี่ยนสีกล่องพิมพ์ข้อความ (ครอบคลุมทั้ง text_input และ text_area)
        ========================================================== */
-    /* ถ้าต้องการเจาะจงเฉพาะปุ่มบันทึกข้อมูล แนะนำให้ใช้ปุ่มแบบจริตเด่น (type="primary" ใน Python) 
-       หรือถ้าเป็นปุ่มทั่วไปในหน้านี้ โก้ดนี้จะเปลี่ยนสีให้ทั้งหมดครับ */
-    [data-testid="stBaseButton-secondary"], [data-testid="stBaseButton-primary"] {
-        background-color: #111844 !important; /* ปุ่มสีน้ำเงินเข้มตัดกับพื้นหลังครีม */
-        color: #ffffff !important;            /* ตัวหนังสือสีขาวชัดเจน */
-        border: 1px solid #111844 !important;
-        border-radius: 6px !important;
-        padding: 0.5rem 1.5rem !important;
-        font-weight: bold !important;
+    /* ดักจับช่อง st.text_input (ช่องชื่อผู้ตรวจในภาพ) */
+    [data-testid="stTextInput"] input {
+        background-color: #fff8e9 !important; /* พื้นหลังกล่องสีครีมสว่าง */
+        color: #111844 !important;            /* ตัวหนังสือสีน้ำเงินเข้ม */
+        border: 1px solid #cbd8f2 !important; /* เส้นขอบกล่อง */
     }
-    /* สีตอนเอาเมาส์ไปชี้ปุ่ม (Hover) */
-    [data-testid="stBaseButton-secondary"]:hover, [data-testid="stBaseButton-primary"]:hover {
-        background-color: #21325e !important; /* สว่างขึ้นนิดนึงดูมีมิติ */
-        color: #ffffff !important;
-        border-color: #21325e !important;
+    /* สีเส้นขอบตอนที่เรากำลังคลิกพิมพ์ช่อง text_input (Focus) */
+    [data-testid="stTextInput"] input:focus {
+        border-color: #5b7db1 !important;
+        box-shadow: 0 0 0 1px #5b7db1 !important;
     }
 
+    /* ดักจับช่อง st.text_area (กล่องพิมพ์ยาวๆ ด้านล่าง) */
+    [data-testid="stTextArea"] textarea {
+        background-color: #fff8e9 !important; 
+        color: #111844 !important;            
+        border: 1px solid #cbd8f2 !important; 
+    }
+    /* สีเส้นขอบตอนที่เรากำลังคลิกพิมพ์ช่อง text_area (Focus) */
+    [data-testid="stTextArea"] textarea:focus {
+        border-color: #5b7db1 !important;
+        box-shadow: 0 0 0 1px #5b7db1 !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
