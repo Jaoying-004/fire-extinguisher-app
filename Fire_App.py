@@ -733,7 +733,7 @@ with tab2:
                 df_tab2.style.set_properties(**{
                     'background-color': '#cbd8f2',  # บังคับพื้นหลังในตารางให้เป็นสีน้ำเงินเข้มตามธีม
                     'color': '#111844',  # บังคับตัวหนังสือด้านในให้เป็นสีขาวนวล (อ่านง่าย ชัดเจน 100%)
-                    'border-color': '#FFC570' #  # เส้นตัดขอบในตารางจางๆ
+                    'border-color': '#FFFFFF' #  # เส้นตัดขอบในตารางจางๆ
                 }),
                 use_container_width=True,
                 hide_index=True
@@ -766,7 +766,15 @@ with tab3:
             df_tab3.insert(0, "No.", df_tab3.index)
 
             # แสดงผลลัพธ์ (แนะนำให้ใส่ hide_index=True เพื่อไม่ให้มี index ซ้ำซ้อนโผล่มาซ้ายสุดอีก)
-            st.dataframe(df_tab3, use_container_width=True, hide_index=True)
+            st.dataframe(
+                df_tab3.style.set_properties(**{
+                    'background-color': '#cbd8f2',  # บังคับพื้นหลังในตารางให้เป็นสีน้ำเงินเข้มตามธีม
+                    'color': '#111844',  # บังคับตัวหนังสือด้านในให้เป็นสีขาวนวล (อ่านง่าย ชัดเจน 100%)
+                    'border-color': '#FFFFFF'  # # เส้นตัดขอบในตารางจางๆ
+                }),
+                use_container_width=True,
+                hide_index=True
+            )
 
     except Exception as e:
         st.error(f"❌ {type(e).__name__}: {e}")
@@ -823,7 +831,15 @@ with tab4:
                     df_need_repair.insert(0, "No.", df_need_repair.index)
 
                     # แสดงผลโดยซ่อน index เดิมเพื่อความสวยงาม
-                    st.dataframe(df_need_repair, use_container_width=True, hide_index=True)
+                    st.dataframe(
+                        df_need_repair.style.set_properties(**{
+                            'background-color': '#cbd8f2',  # บังคับพื้นหลังในตารางให้เป็นสีน้ำเงินเข้มตามธีม
+                            'color': '#111844',  # บังคับตัวหนังสือด้านในให้เป็นสีขาวนวล (อ่านง่าย ชัดเจน 100%)
+                            'border-color': '#FFFFFF'  # # เส้นตัดขอบในตารางจางๆ
+                        }),
+                        use_container_width=True,
+                        hide_index=True
+                    )
                 else:
                     st.success("🎉 ไม่มีรายการที่ต้องแก้ไข")
 
