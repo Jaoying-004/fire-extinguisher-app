@@ -730,7 +730,7 @@ with tab2:
             df_tab2.insert(0, "No.", df_tab2.index)
 
             st.dataframe(
-                df_display.style.set_properties(**{
+                df_tab2.style.set_properties(**{
                     'background-color': '#cbd8f2',  # บังคับพื้นหลังในตารางให้เป็นสีน้ำเงินเข้มตามธีม
                     'color': '#111844',  # บังคับตัวหนังสือด้านในให้เป็นสีขาวนวล (อ่านง่าย ชัดเจน 100%)
                     'border-color': 'rgba(255, 255, 255, 0.1)'  # เส้นตัดขอบในตารางจางๆ
