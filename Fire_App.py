@@ -147,40 +147,7 @@ st.markdown("""
     [data-testid="stTextArea"] textarea {
     caret-color: #111844 !important; /* เปลี่ยนเป็นสีน้ำเงินเข้มตามธีมคุณ หรือสีที่ต้องการได้เลย */
     }
-   
 
-    /* ดักจับปุ่ม Popover ทุกตัวด้วยคลาสหลักและ attributes ชั้นนอกสุด */
-    [data-testid="stPopoverTarget"] button,
-    [data-testid="stPopover"] > button,
-    div[data-opened="true"] button {
-        background-color: #f4d160 !important; /* บังคับปุ่มเป็นสีน้ำเงินเข้ม */
-        color: #ffffff !important;            /* ตัวหนังสือสีขาว */
-        border: 1px solid #f4d160 !important; /* เส้นขอบน้ำเงินเข้ม */
-        border-radius: 6px !important;
-        font-weight: bold !important;
-    }
-
-    /* บังคับสีตัวอักษรและไอคอนทั้งหมดที่อยู่บนตัวปุ่ม Popover ให้เป็นสีขาว */
-    [data-testid="stPopoverTarget"] button *,
-    [data-testid="stPopover"] > button * {
-        color: #ffffff !important;
-        fill: #ffffff !important;
-    }
-
-    /* สีตอนเอาเมาส์ไปชี้ปุ่ม (Hover) */
-    [data-testid="stPopoverTarget"] button:hover,
-    [data-testid="stPopover"] > button:hover {
-        background-color: #21325e !important; /* น้ำเงินสว่างขึ้นนิดนึงดูมีมิติ */
-        border-color: #21325e !important;
-    }
-
-    /* สีปุ่มตอนที่เปิดกางหน้าต่างตัวกรองออกมาแล้ว (Active / Expanded) */
-    [data-testid="stPopoverTarget"] button[aria-expanded="true"],
-    [data-testid="stPopover"] > button[aria-expanded="true"] {
-        background-color: #5b7db1 !important; /* เปลี่ยนเป็นสีน้ำเงินฟ้าให้รู้ว่าเปิดอยู่ */
-        border-color: #5b7db1 !important;
-    }
-    
     </style>
 """, unsafe_allow_html=True)
 
@@ -851,6 +818,29 @@ with tab4:
 
     except Exception as e:
         st.error(f"❌ Error: {e}")
+
+st.markdown("""
+    <style>
+    /* เจาะจงเฉพาะปุ่มที่มีข้อความคำว่า "อัปเดตข้อมูลล่าสุด" เท่านั้น */
+    button:has(span p:contains("อัปเดตข้อมูลล่าสุด")) {
+        background-color: #ffffff !important; /* เปลี่ยนเป็นสีน้ำเงินเข้มเฉพาะปุ่มนี้ */
+        color: white !important;                /* ตัวหนังสือสีขาว */
+        font-weight: bold !important;           /* ตัวหนังสือหนา */
+        border: 1px solid #111844 !important;   /* เส้นขอบสีน้ำเงินเข้ม */
+        border-radius: 6px !important;          /* ความโค้งมนของปุ่ม */
+    }
+
+    /* สไตล์ตอนที่เอาเมาส์ไปชี้ปุ่ม (Hover) */
+    button:has(span p:contains("อัปเดตข้อมูลล่าสุด")):hover {
+        background-color: #21325e !important;   /* สีน้ำเงินสว่างขึ้นนิดนึงดูมีมิติ */
+        border-color: #21325e !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+
+
+
 
 # เพิ่มปุ่มกด Refresh ข้อมูล
 if st.button("🔄 อัปเดตข้อมูลล่าสุด"):
