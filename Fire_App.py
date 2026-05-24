@@ -1162,7 +1162,7 @@ def send_line_notify(message):
     requests.post(url, headers=headers, json=data)
 
 import pandas as pd
-if st.button("📊 ส่งสรุปรายงานประจำเดือนเข้า LINE"):
+if colored_button("🚪 ออกจากระบบ", color="#1791e0", text_color="#ffffff"):
     all_data = log_sheet.get_all_records()
     df = pd.DataFrame(all_data)
 
