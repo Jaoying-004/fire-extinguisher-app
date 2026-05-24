@@ -3,16 +3,12 @@
 primaryColor = "#FFC570"          
 
 # 💡 สีพื้นหลังหลัก (ขวา): ใช้สีครีมทองอ่อนๆ ให้ความรู้สึกนุ่มนวล สบายตา ไม่สว่างจ้าเกินไป
-backgroundColor = "#EBEFF5"       
+backgroundColor = "#1a3263"       
 
 # 💡 สีของ Sidebar และกล่องสี่เหลี่ยม: ใช้สีน้ำเงินเข้มขรึม เพื่อให้ข้อมูลผู้ใช้และเมนูลอยเด่นขึ้นมาอย่างทรงพลัง
-secondaryBackgroundColor = "#1A3263" 
+secondaryBackgroundColor = "#EBEFF5" 
 
 # 💡 สีตัวอักษร: ใช้สีขาวนวล (หรือจะใช้สี #EFD2B0) เพื่อให้ตัดกับพื้นหลังกล่องสีน้ำเงินเข้มและอ่านง่ายชัดเจน
 textColor = "#FFFFFF"
 
-[table]
-headerBackgroundColor = "#5b7db1"
-headerTextColor = "#ffffff"
-cellBackgroundColor = "#cbd8f2"
-cellTextColor = "#111844"
+
