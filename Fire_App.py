@@ -36,7 +36,7 @@ st.markdown("""
     <style>
     /* 1. เปลี่ยนสีตัวหนังสือทั่วไปทั้งหมดใน Sidebar (ข้อความ, หัวข้อ, สลากข้อความ) */
     [data-testid="stSidebar"] {
-        color: #ffffff !important; /* เปลี่ยนเป็นสีที่คุณต้องการ เช่น #ffffff (สีขาว) */
+        color: #111844 !important; /* เปลี่ยนเป็นสีที่คุณต้องการ เช่น #ffffff (สีขาว) */
     }
 
     /* 2. เปลี่ยนสีตัวหนังสือของพวก Widget ต่างๆ ใน Sidebar (เช่น st.selectbox, st.text_input) */
@@ -48,7 +48,7 @@ st.markdown("""
 
     /* 3. (แถม) ถ้าอยากเปลี่ยนสีพื้นหลังของ Sidebar แยกจากหน้าเว็บหลักด้วย */
     [data-testid="stSidebar"] > div:first-child {
-        background-color: #111844 !important; /* เปลี่ยนสีพื้นหลังเฉพาะ Sidebar */
+        background-color: #f9e0ae !important; /* เปลี่ยนสีพื้นหลังเฉพาะ Sidebar */
     }
     </style>
 """, unsafe_allow_html=True)
