@@ -3,12 +3,19 @@ from oauth2client.service_account import ServiceAccountCredentials
 import pandas as pd
 import pytz
 from datetime import datetime, timedelta
-from streamlit_cookies_controller import CookieController
 import streamlit as st
 import time
 import uuid
 import extra_streamlit_components as stx
-from st_aggrid import AgGrid, GridOptionsBuilder, AgGridTheme
+
+def colored_button(label, color, text_color="white", key=None):
+    """
+    ฟังก์ชันสำหรับสร้างปุ่มเปลี่ยนสีได้อิสระใน Python
+    """
+    # กำหนด key สำหรับปุ่ม ถ้าไม่ส่งมาจะใช้ชื่อปุ่มเป็น key อัตโนมัติ
+    button_key = key if key else f"btn_{label.replace(' ', '_').lower()}"
+
+
 
 # ตั้งค่าเวลาไทยไว้ใช้ทั้งแอป
 tz = pytz.timezone('Asia/Bangkok')
@@ -147,10 +154,25 @@ st.markdown("""
     [data-testid="stTextArea"] textarea {
     caret-color: #111844 !important; /* เปลี่ยนเป็นสีน้ำเงินเข้มตามธีมคุณ หรือสีที่ต้องการได้เลย */
     }
-
+    
+    button:has(:contains("{label}")) {{
+        background-color: {color} !important;
+        color: {text_color} !important;
+        border: 1px solid {color} !important;
+        border-radius: 8px !important;
+        font-weight: bold !important;
+    }}
+    button:has(:contains("{label}")):hover {{
+        opacity: 0.85 !important;
+        border-color: {color} !important;
+    }}
+    button:has(:contains("{label}")) * {{
+        color: {text_color} !important;
+        fill: {text_color} !important;
+    }}
+    
     </style>
 """, unsafe_allow_html=True)
-
 
 #ส่วนที่ 1 ของล็อคอิน======================================================================================================
 
@@ -819,37 +841,10 @@ with tab4:
     except Exception as e:
         st.error(f"❌ Error: {e}")
 
-st.markdown("""
-    <style>
-    /* ค้นหาปุ่มที่มีคำว่า อัปเดตข้อมูลล่าสุด อยู่ข้างใน ไม่ว่าจะซ่อนอยู่ในแท็กไหนก็ตาม */
-    button:has(:contains("อัปเดตข้อมูลล่าสุด")) {
-        background-color: #ffffff !important; /* สีน้ำเงินเข้มเฉพาะปุ่มนี้ */
-        color: white !important;                /* ตัวหนังสือขาว */
-        font-weight: bold !important;           /* ตัวหนา */
-        border: 1px solid #111844 !important;   /* ขอบน้ำเงินเข้ม */
-        border-radius: 6px !important;
-    }
-
-    /* บังคับสีไอคอนและตัวหนังสือทุกตัวข้างในปุ่มให้เป็นสีขาว (ป้องกันสีเก่าดื้อ) */
-    button:has(:contains("อัปเดตข้อมูลล่าสุด")) * {
-        color: white !important;
-        fill: white !important;
-    }
-
-    /* สไตล์ตอนเอาเมาส์ไปชี้ (Hover) */
-    button:has(:contains("อัปเดตข้อมูลล่าสุด")):hover {
-        background-color: #21325e !important;  /* สีสว่างขึ้นนิดนึงดูมีมิติ */
-        border-color: #21325e !important;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-
-
 
 
 # เพิ่มปุ่มกด Refresh ข้อมูล
-if st.button("🔄 อัปเดตข้อมูลล่าสุด"):
+if colored_button("🔄 อัปเดตข้อมูลล่าสุด", color="#ffe683", text_color="white"):
     st.rerun()
 
 #-----------------------------------------------------------------------------------------------------------------
