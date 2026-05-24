@@ -620,6 +620,12 @@ st.markdown("""
             color: #ebeff5 !important;
             font-weight: bold;
         }
+        
+        /* 3. ปรับสีของเส้นขีดล่าง (เส้นใต้แท็บ) เวลาที่เลือก ให้เป็นสีส้มทอง */
+        div[data-testid="stTabs"] [data-baseweb="tab-highlight-bar"] {
+            background-color: #FFC570 !important;
+            height: 4px !important; /* เพิ่มความหนาของเส้นไฮไลท์ให้ดูโมเดิร์นสปอร์ตขึ้น */
+        }
     </style>
 """, unsafe_allow_html=True)
 
