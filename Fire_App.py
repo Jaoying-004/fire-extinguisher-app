@@ -590,7 +590,7 @@ with st.container(border=True):
 
         # 2. ลดขนาดปุ่ม โดยเอา use_container_width=True ออก
         # และเปลี่ยน type="primary" หรือคง secondary ไว้ตามต้องการเพื่อความสวยงาม
-        if st.button("🚪 ออกจากระบบ", type="secondary"):
+        if colored_button("🚪 ออกจากระบบ", color="#ff4949", text_color="#111844"):
             with st.spinner("กำลังออกจากระบบ..."):
                 current_token = get_cookie_safe(COOKIE_NAME)
                 if current_token:
@@ -845,7 +845,7 @@ with tab4:
     except Exception as e:
         st.error(f"❌ Error: {e}")
 
-if colored_button("🔄 อัปเดตข้อมูลล่าสุด", color="#ffe683", text_color="white"):
+if colored_button("🔄 อัปเดตข้อมูลล่าสุด", color="#ffe683", text_color="#111844"):
     st.rerun()
 
 
