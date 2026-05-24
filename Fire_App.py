@@ -31,34 +31,29 @@ except Exception as e:
     st.error(f"เกิดข้อผิดพลาดในการเชื่อมต่อกุญแจ: {e}")
     st.stop()
 #==================================================================================================================
-# โซนปรับแต่งสีจ้า
+# โซนปรับแต่งสีจ้า (Sidebar)
 st.markdown("""
     <style>
-    /* 1. บังคับสีพื้นหลังและสีตัวอักษรของเซลล์ข้อมูลทั้งหมดในตาราง */
-    [data-testid="stDataFrame"] div[role="grid"] div {
-        background-color: #cbd8f2 !important;
-        color: #111844 !important;
+    /* 1. เปลี่ยนสีตัวหนังสือทั่วไปทั้งหมดใน Sidebar (ข้อความ, หัวข้อ, สลากข้อความ) */
+    [data-testid="stSidebar"] {
+        color: #ffffff !important; /* เปลี่ยนเป็นสีที่คุณต้องการ เช่น #ffffff (สีขาว) */
     }
 
-    /* 2. บังคับสีพื้นหลังของแถวหัวตาราง (Header) */
-    [data-testid="stDataFrame"] div[role="columnheader"] {
-        background-color: #5b7db1 !important;
+    /* 2. เปลี่ยนสีตัวหนังสือของพวก Widget ต่างๆ ใน Sidebar (เช่น st.selectbox, st.text_input) */
+    [data-testid="stSidebar"] p, 
+    [data-testid="stSidebar"] label, 
+    [data-testid="stSidebar"] span {
+        color: #ffffff !important; /* บังคับตัวอักษรของปุ่ม/ข้อความให้เป็นสีนี้ */
     }
 
-    /* 3. บังคับสีตัวอักษรของหัวตารางให้เป็นสีขาว */
-    [data-testid="stDataFrame"] div[role="columnheader"] span {
-        color: white !important;
-        font-weight: bold !important;
-    }
-
-    /* 4. ใส่เส้นขอบหนาและโค้งมนให้ตัวกล่องตารางชั้นนอก */
-    [data-testid="stDataFrame"] {
-        border: 2px solid #5b7db1 !important;
-        border-radius: 8px !important;
-        overflow: hidden !important;
+    /* 3. (แถม) ถ้าอยากเปลี่ยนสีพื้นหลังของ Sidebar แยกจากหน้าเว็บหลักด้วย */
+    [data-testid="stSidebar"] > div:first-child {
+        background-color: #111844 !important; /* เปลี่ยนสีพื้นหลังเฉพาะ Sidebar */
     }
     </style>
 """, unsafe_allow_html=True)
+
+
 #ส่วนที่ 1 ของล็อคอิน======================================================================================================
 
 COOKIE_NAME = "emp_auth_token"
@@ -519,12 +514,12 @@ st.markdown("""
     <style>
         /* 1. เปลี่ยนสีตัวอักษรแท็บปกติที่ยังไม่ได้กด */
         button[data-baseweb="tab"] p {
-            color: #111844 !important;
+            color: #ffffff !important;
             font-weight: 500;
         }
         /* 2. เปลี่ยนสีตัวอักษรแท็บตอนที่เราคลิกเลือกอยู่ (Active Tab) */
         button[aria-selected="true"] p {
-            color: #1A3263 !important;
+            color: #ebeff5 !important;
             font-weight: bold;
         }
     </style>
