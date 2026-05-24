@@ -182,46 +182,38 @@ st.markdown("""
 
 COOKIE_NAME = "emp_auth_token"
 SESSION_EXPIRY_DAYS = 1
-
-
-
 # เรียกใช้ครั้งเดียว
 cookie_manager = stx.CookieManager()
 
-# ✅ เพิ่มการตรวจสอบว่า Cookie Manager พร้อมใช้งานแล้วหรือยัง
 if "cookie_ready" not in st.session_state:
     st.session_state["cookie_ready"] = False
 
-# รอให้ CookieManager พร้อม (สำคัญมาก!)
+# รอให้ CookieManager พร้อม
 if not st.session_state["cookie_ready"]:
     try:
-        # ลองเรียก get_all() เพื่อ trigger initialization
         _ = cookie_manager.get_all()
-
-        # รอ JavaScript execute เสร็จ
-        time.sleep(0.8)
-
+        time.sleep(1.2)  # ✅ เพิ่มเวลารอเป็น 1.2 วินาที (จากเดิม 0.8)
         st.session_state["cookie_ready"] = True
 
-        # ✅ เก็บ query params ไว้ก่อน rerun
+        # เก็บ query params ไว้
         if st.query_params:
             st.session_state["saved_query_params"] = dict(st.query_params)
 
         st.rerun()
     except Exception as e:
-        st.warning(f"⏳ กำลังเตรียม Cookie Manager... ({e})")
-        time.sleep(0.5)
+        st.warning(f"⏳ กำลังเตรียม Cookie Manager...")
+        time.sleep(0.8)
         st.rerun()
 
-# ✅ กู้คืน query params หลัง rerun
+# กู้คืน query params
 if "saved_query_params" in st.session_state:
     for key, value in st.session_state["saved_query_params"].items():
         if key not in st.query_params:
             st.query_params[key] = value
-    # ลบออกหลังใช้แล้ว
     del st.session_state["saved_query_params"]
 
 
+# ========== ฟังก์ชัน Cookie (แก้ไขแล้ว) ==========
 def get_cookie_safe(name):
     """อ่าน Cookie อย่างปลอดภัย"""
     if not st.session_state.get("cookie_ready", False):
@@ -230,9 +222,11 @@ def get_cookie_safe(name):
     try:
         all_cookies = cookie_manager.get_all()
         if all_cookies and isinstance(all_cookies, dict):
-            return all_cookies.get(name)
-    except Exception as e:
-        # st.warning(f"⚠️ ไม่สามารถอ่าน cookie: {e}")
+            value = all_cookies.get(name)
+            # ✅ แก้ไข: ตรวจสอบค่าว่างเปล่า
+            if value and value != "None" and value.strip():
+                return value
+    except Exception:
         pass
     return None
 
@@ -244,20 +238,28 @@ def set_cookie_safe(name, value, expiry_days=1):
         return False
 
     try:
+        # ✅ แก้ไข: ลบ Cookie เก่าก่อนบันทึกใหม่
+        try:
+            cookie_manager.delete(name)
+            time.sleep(0.3)
+        except:
+            pass
+
+        # บันทึก Cookie ใหม่
         cookie_manager.set(
             name,
             value,
             expires_at=datetime.now() + timedelta(days=expiry_days)
         )
 
-        time.sleep(0.5)
+        time.sleep(0.8)  # ✅ เพิ่มเวลารอ
 
         # ตรวจสอบว่าบันทึกสำเร็จ
-        saved_value = cookie_manager.get(name)
-        if saved_value == value:
+        all_cookies = cookie_manager.get_all()
+        if all_cookies and all_cookies.get(name) == value:
             return True
         else:
-            st.warning("⚠️ Cookie อาจยังไม่ถูกบันทึก")
+            st.warning("⚠️ Cookie อาจยังไม่ถูกบันทึก กรุณาลองใหม่")
             return False
 
     except Exception as e:
@@ -271,12 +273,22 @@ def remove_cookie_safe(name):
         return False
 
     try:
-        cookie_manager.delete(name)
-        time.sleep(0.3)
-        return True
+        # ✅ แก้ไข: ลบหลายครั้งเพื่อให้แน่ใจ
+        for _ in range(3):
+            cookie_manager.delete(name)
+            time.sleep(0.3)
+
+        # ตรวจสอบว่าลบสำเร็จ
+        all_cookies = cookie_manager.get_all()
+        if not all_cookies or name not in all_cookies:
+            return True
+        else:
+            st.warning("⚠️ ไม่สามารถลบ Cookie ได้สมบูรณ์")
+            return False
+
     except Exception as e:
         st.warning(f"⚠️ ไม่สามารถลบ cookie: {e}")
-    return False
+        return False
 
 #-----------------------------------------------------------------------------------------------------------------
 # ส่วนที่ 2: การเชื่อมต่อแผ่นงานและฐานข้อมูล Google Sheet (Database Connection)
@@ -425,43 +437,54 @@ def revoke_token_in_sheet(token):
 
 # ส่วนที่ 4: การจัดกระบวนการทำงานและตรวจสอบสิทธิ์อัตโนมัติ (Execution Flow)
 
-# เริ่มต้น session state
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
 
-# ตรวจสอบ Auto-login หลังจากที่ Cookie พร้อมใช้งานแล้ว
+# ✅ แก้ไข: เพิ่มการป้องกัน Auto-login ซ้ำ
+if "auto_login_attempted" not in st.session_state:
+    st.session_state["auto_login_attempted"] = False
+
+# Auto-login (ทำครั้งเดียว)
 if st.session_state.get("cookie_ready", False):
     if not st.session_state.get("authenticated", False):
+        if not st.session_state.get("auto_login_attempted", False):
 
-        # อ่าน Cookie
-        saved_token = get_cookie_safe(COOKIE_NAME)
+            st.session_state["auto_login_attempted"] = True
 
-        if saved_token and saved_token != "None":
-            # ตรวจสอบ Token
-            emp_id = verify_token_in_sheet(saved_token)
+            saved_token = get_cookie_safe(COOKIE_NAME)
 
-            if emp_id:
-                # ✅ Login สำเร็จ
-                st.session_state["authenticated"] = True
-                st.session_state["emp_id"] = emp_id
-                st.session_state["last_login"] = datetime.now().date().isoformat()
+            if saved_token:
+                # ตรวจสอบ Token
+                emp_id = verify_token_in_sheet(saved_token)
 
-                # แสดงข้อความ
-                st.success(f"✅ ยินดีต้อนรับกลับ {get_employee_name_by_id(emp_id)}")
+                if emp_id:
+                    # ✅ Login สำเร็จ
+                    st.session_state["authenticated"] = True
+                    st.session_state["emp_id"] = emp_id
+                    st.session_state["last_login"] = datetime.now().date().isoformat()
+                    st.session_state["emp_name"] = get_employee_name_by_id(emp_id)
 
-                # ✅ สำคัญ: ไม่ rerun ถ้ามี query params (เพื่อไม่ให้หายไป)
-                if not st.query_params:
-                    time.sleep(0.5)
-                    st.rerun()
-            else:
-                # Token หมดอายุ
-                remove_cookie_safe(COOKIE_NAME)
+                    # ✅ เก็บ tank_id ถ้ามี
+                    tank_id = st.query_params.get("tank_id")
+                    if tank_id:
+                        st.session_state["selected_tank"] = tank_id
 
+                    st.success(f"✅ ยินดีต้อนรับกลับ {st.session_state['emp_name']}")
+                    time.sleep(0.8)
+
+                    # ✅ ไม่ rerun ถ้ามี query params
+                    if not tank_id:
+                        st.rerun()
+                else:
+                    # Token หมดอายุ
+                    remove_cookie_safe(COOKIE_NAME)
+
+# ========== หน้า Login ==========
 if not st.session_state.get("authenticated"):
     st.title("🚒 ระบบตรวจเช็คอุปกรณ์ดับเพลิง")
     st.subheader("กรุณาเข้าสู่ระบบ")
 
-    # ✅ แสดง query params ถ้ามี
+    # แสดงข้อมูล tank_id ถ้ามี
     tank_id = st.query_params.get("tank_id")
     if tank_id:
         st.info(f"📍 คุณกำลังจะตรวจสอบถัง: **{tank_id}**")
@@ -511,41 +534,39 @@ if not st.session_state.get("authenticated"):
                 except Exception:
                     pass
 
-                # 3. บันทึก Cookie
-                cookie_saved = set_cookie_safe(
-                    COOKIE_NAME,
-                    new_token,
-                    expiry_days=SESSION_EXPIRY_DAYS
-                )
+                cookie_saved = set_cookie_safe(COOKIE_NAME, new_token, expiry_days=SESSION_EXPIRY_DAYS)
 
                 if cookie_saved:
                     # อัปเดต Session State
                     st.session_state["authenticated"] = True
                     st.session_state["emp_id"] = emp_input
                     st.session_state["last_login"] = datetime.now().date().isoformat()
+                    st.session_state["emp_name"] = get_employee_name_by_id(emp_input)
+                    st.session_state["auto_login_attempted"] = True
 
-                    # ✅ เก็บ tank_id ไว้ใน session_state (ถ้ามี)
+                    # เก็บ tank_id
                     if tank_id:
                         st.session_state["selected_tank"] = tank_id
 
                     st.success("✅ เข้าสู่ระบบสำเร็จ!")
                     st.balloons()
-                    time.sleep(1)
+                    time.sleep(1.5)
                     st.rerun()
                 else:
-                    st.error("❌ ไม่สามารถบันทึก Session ได้")
+                    st.error("❌ ไม่สามารถบันทึก Session ได้ กรุณาลองใหม่")
         else:
             st.error("❌ ไม่พบรหัสพนักงานในระบบ")
 
     with st.expander("ℹ️ ข้อมูลการใช้งาน"):
         st.markdown("""
-        **คำแนะนำ:**
-        - ใช้รหัสพนักงานที่ได้รับจากแผนก HR
-        - ระบบจะจดจำการเข้าสู่ระบบไว้ 1 วัน
+           **คำแนะนำ:**
+           - ใช้รหัสพนักงานที่ได้รับจากแผนก HR
+           - ระบบจะจดจำการเข้าสู่ระบบไว้ 1 วัน
+           - ใช้เบราว์เซอร์เดิมเพื่อไม่ต้องล็อกอินซ้ำ
 
-        **ความปลอดภัย:**
-        - Session หมดอายุอัตโนมัติภายใน 24 ชั่วโมง
-        """)
+           **ความปลอดภัย:**
+           - Session หมดอายุอัตโนมัติภายใน 24 ชั่วโมง
+           """)
 
     st.stop()
 
@@ -566,7 +587,6 @@ if "emp_name" not in st.session_state or not st.session_state["emp_name"]:
 # [เขียนส่วนที่เหลือของกระบวนการควบคุม การดำเนินเรื่องตรวจเช็คถังดับเพลิงและระบบหน้าของคุณด้านล่างนี้ได้เลย]
 
 
-# ปุ่มควบคุมการออกจากระบบ (Logout Service)
 st.markdown("---")
 with st.container(border=True):
     col_info, col_profile = st.columns([3, 1])
@@ -582,31 +602,51 @@ with st.container(border=True):
         """, unsafe_allow_html=True)
 
         selected_tank = st.session_state.get("selected_tank") or st.query_params.get("tank_id")
+        if selected_tank:
+            st.info(f"📍 ถังที่เลือก: **{selected_tank}**")
 
     with col_profile:
-        # 1. เพิ่มขนาดรูปภาพ (จากเดิม 90 เป็น 120-130 หรือปรับตามชอบ)
         user_image = "FirePig.png"
         st.image(user_image, width=130)
 
         # 2. ลดขนาดปุ่ม โดยเอา use_container_width=True ออก
         # และเปลี่ยน type="primary" หรือคง secondary ไว้ตามต้องการเพื่อความสวยงาม
-        if colored_button("🚪 ออกจากระบบ", color="#ff4949", text_color="#111844"):
+        if colored_button("🚪 ออกจากระบบ", color="#ff4949", text_color="#ffffff"):
             with st.spinner("กำลังออกจากระบบ..."):
+                # 1) เพิกถอน token ใน sheet
                 current_token = get_cookie_safe(COOKIE_NAME)
                 if current_token:
-                    revoke_token_in_sheet(current_token)
+                    try:
+                        revoke_token_in_sheet(current_token)
+                    except Exception as e:
+                        st.warning(f"ไม่สามารถเพิกถอน token ได้: {e}")
 
-                remove_cookie_safe(COOKIE_NAME)
+                # 2) ลบ cookie
+                cookie_removed = remove_cookie_safe(COOKIE_NAME)
 
-                for key in list(st.session_state.keys()):
-                    if key != "cookie_ready":
-                        del st.session_state[key]
-
+                # 3) ตั้งค่า session สำคัญก่อน
                 st.session_state["authenticated"] = False
+                st.session_state["auto_login_attempted"] = False
 
-                st.success("✅ ออกจากระบบสำเร็จ")
-                time.sleep(0.8)
-                st.rerun()
+                # 4) ลบ session_state อื่น ๆ
+                keys_to_delete = [k for k in st.session_state.keys() if
+                                  k not in ["cookie_ready", "authenticated", "auto_login_attempted"]]
+                for key in keys_to_delete:
+                    del st.session_state[key]
+
+                # 5) ลบ query params
+                try:
+                    for key in list(st.query_params.keys()):
+                        del st.query_params[key]
+                except Exception:
+                    pass
+
+                # 6) rerun
+                if cookie_removed:
+                    st.success("✅ ออกจากระบบสำเร็จ")
+                    st.rerun()
+                else:
+                    st.error("❌ ไม่สามารถลบ Cookie ได้ กรุณาลองใหม่หรือล้าง Cache ของเบราว์เซอร์")
 #จบส่วนล็อคอิน==========================================================================================================
 
 #------------------------------กำหนดลิมิตของข้อมูล-------------------------------------------------------------------------
