@@ -8,6 +8,7 @@ import streamlit as st
 import time
 import uuid
 import extra_streamlit_components as stx
+from st_aggrid import AgGrid, GridOptionsBuilder
 
 # ตั้งค่าเวลาไทยไว้ใช้ทั้งแอป
 tz = pytz.timezone('Asia/Bangkok')
@@ -602,9 +603,64 @@ with tab2:
 
             df_tab2.insert(0, "No.", df_tab2.index)
 
-            # แสดงผลลัพธ์ (แนะนำให้ใส่ hide_index=True เพื่อไม่ให้มี index ซ้ำซ้อนโผล่มาซ้ายสุดอีก)
-            st.dataframe(df_tab2, use_container_width=True, hide_index=True)
+            from st_aggrid import AgGrid, GridOptionsBuilder
 
+            # 1. ตั้งค่าคุณสมบัติพื้นฐานของตาราง (เปิด Filter, Sorting, ขยายขนาดคอลัมน์ได้)
+            gb = GridOptionsBuilder.from_dataframe(df_tab2)
+            gb.configure_default_column(filterable=True, sortable=True, resizable=True)
+
+            # ซ่อนคอลัมน์ Index ดั้งเดิมของ Pandas เพื่อไม่ให้ซ้ำซ้อนกับคอลัมน์ "No." ที่เราสร้างขึ้นมา
+            gb.configure_grid_options(hideGridCellSelection=True)
+            gridOptions = gb.build()
+
+            # 2. ใส่ CSS คุมสีตาราง AgGrid ให้เข้ากับธีมสีน้ำเงิน-ฟ้าของคุณ
+            st.markdown("""
+                            <style>
+                            /* สีแถวหัวตาราง (Header) */
+                            .ag-header {
+                                background-color: #5b7db1 !important;
+                            }
+                            /* สีตัวอักษรของหัวตาราง */
+                            .ag-header-cell-text {
+                                color: white !important;
+                                font-weight: bold !important;
+                            }
+
+                            /* สีเนื้อหาข้อมูลและพื้นหลังภายในตารางทั้งหมด */
+                            .ag-row {
+                                background-color: #cbd8f2 !important;
+                                color: #111844 !important;
+                            }
+                            /* สีแถวเมื่อนำเมาส์ไปชี้ (Hover) */
+                            .ag-row-hover {
+                                background-color: #b3c5e6 !important;
+                            }
+
+                            /* สีเส้นกรอบตารางภายนอกสุด */
+                            .ag-root-wrapper {
+                                border: 2px solid #5b7db1 !important;
+                                border-radius: 8px !important;
+                            }
+                            /* สีของเส้นตารางด้านใน (Grid Lines) */
+                            .ag-cell {
+                                border-right: 1px solid rgba(255, 255, 255, 0.15) !important;
+                                border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+                            }
+                            </style>
+                        """, unsafe_allow_html=True)
+
+            # 3. สั่งแสดงผลตารางอัจฉริยะแทน st.dataframe ตัวเดิม
+            AgGrid(
+                df_tab2,
+                gridOptions=gridOptions,
+                fit_columns_on_grid_load=True,  # ปรับความกว้างคอลัมน์ให้พอดีกับหน้าจออัตโนมัติ
+                allow_unsafe_jscode=True
+            )
+
+
+
+            # แสดงผลลัพธ์ (แนะนำให้ใส่ hide_index=True เพื่อไม่ให้มี index ซ้ำซ้อนโผล่มาซ้ายสุดอีก)
+            #st.dataframe(df_tab2, use_container_width=True, hide_index=True)
     except Exception as e:
         st.error(f"❌ {type(e).__name__}: {e}")
 
