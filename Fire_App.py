@@ -61,6 +61,35 @@ st.markdown("""
     [data-testid="stSidebar"] label {
         color: #111844 !important;
     }
+    
+    /* 1. เปลี่ยนสีตัวกล่องข้อความ และสีตัวหนังสือข้างใน Selectbox (ตอนยังไม่ได้กด) */
+    [data-testid="stSidebar"] div[data-baseweb="select"] > div {
+        background-color: #fff8e9 !important; /* สีพื้นหลังของกล่องข้อความ */
+        color: #111844 !important;            /* สีตัวหนังสือภายในกล่อง */
+        border: 1px solid #fff8e9 !important; /* สีเส้นขอบกล่อง */
+    }
+
+    /* 2. เปลี่ยนสีไอคอนลูกศรชี้ลง (Dropdown Arrow) ในกล่อง */
+    [data-testid="stSidebar"] div[data-baseweb="select"] svg {
+        fill: #111844 !important;             /* สีของลูกศร */
+    }
+
+    /* 3. เปลี่ยนสีของ "รายการตัวเลือก" ที่เด้งดรอปดาวน์ลงมา (Dropdown Menu) */
+    div[data-baseweb="menu"] ul {
+        background-color: #fff8e9 !important; /* สีพื้นหลังของเมนูตัวเลือก */
+    }
+    
+    /* 4. เปลี่ยนสีตัวหนังสือในรายการตัวเลือก */
+    div[data-baseweb="menu"] li {
+        color: #111844 !important;            /* สีตัวหนังสือในเมนู */
+    }
+
+    /* 5. เปลี่ยนสีไฮไลท์ตอนเอาเมาส์ไปชี้ตัวเลือก (Hover) */
+    div[data-baseweb="menu"] li:hover {
+        background-color: #eaf1ff !important; /* สีพื้นหลังตอนเมาส์ชี้ */
+        color: #1a3263 !important;            /* สีตัวหนังสือตอนเมาส์ชี้ */
+    }
+
     </style>
 """, unsafe_allow_html=True)
 
