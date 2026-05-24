@@ -10,3 +10,9 @@ secondaryBackgroundColor = "#1A3263"
 
 # 💡 สีตัวอักษร: ใช้สีขาวนวล (หรือจะใช้สี #EFD2B0) เพื่อให้ตัดกับพื้นหลังกล่องสีน้ำเงินเข้มและอ่านง่ายชัดเจน
 textColor = "#FFFFFF"
+
+[table]
+headerBackgroundColor = "#5b7db1"
+headerTextColor = "#ffffff"
+cellBackgroundColor = "#cbd8f2"
+cellTextColor = "#111844"
