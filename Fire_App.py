@@ -653,7 +653,7 @@ with tab1:
         df_temp = df.copy()
 
         # 1. แปลงคอลัมน์ Timestamp ให้กลายเป็นวันที่ (ตัดเวลาออก)
-        df_temp['parsed_date'] = pd.to_datetime(df_temp[date_col], errors='coerce').dt.date
+        df_temp['parsed_date'] = pd.to_datetime(df_temp[date_col], errors='coerce', dayfirst=True).dt.date
 
         # ดึงวันที่ปัจจุบันของวันนี้จริงๆ มาเก็บไว้
         today_date = datetime.now().date()
