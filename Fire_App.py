@@ -98,6 +98,11 @@ st.markdown("""
     border-radius: 10px !important;
 }
 
+/* selectbox text */
+[data-testid="stSidebar"] div[data-baseweb="select"] {
+    color: #111844 !important;
+}
+
 /* ลูกศร dropdown */
 [data-testid="stSidebar"] div[data-baseweb="select"] svg {
     fill: #111844 !important;
