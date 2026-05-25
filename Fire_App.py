@@ -196,8 +196,8 @@ if "cookie_ready" not in st.session_state:
 # รอให้ CookieManager พร้อม (สำคัญมาก!)
 if not st.session_state["cookie_ready"]:
     try:
-        # ✅ เรียก get_all() เพียงครั้งเดียว และเก็บใน cache
-        st.session_state["cached_cookies"] = cookie_manager.get_all()
+        # ลองเรียก get_all() เพื่อ trigger initialization
+        _ = cookie_manager.get_all()
 
         # รอ JavaScript execute เสร็จ
         time.sleep(0.8)
@@ -224,20 +224,16 @@ if "saved_query_params" in st.session_state:
 
 
 def get_cookie_safe(name):
-    """อ่าน Cookie อย่างปลอดภัย โดยใช้ session state cache"""
+    """อ่าน Cookie อย่างปลอดภัย"""
     if not st.session_state.get("cookie_ready", False):
         return None
 
     try:
-        # ✅ ใช้ cached cookies จาก session_state
-        if "cached_cookies" not in st.session_state:
-            st.session_state["cached_cookies"] = cookie_manager.get_all()
-
-        all_cookies = st.session_state.get("cached_cookies", {})
-
+        all_cookies = cookie_manager.get_all()
         if all_cookies and isinstance(all_cookies, dict):
             return all_cookies.get(name)
     except Exception as e:
+        # st.warning(f"⚠️ ไม่สามารถอ่าน cookie: {e}")
         pass
     return None
 
@@ -257,12 +253,12 @@ def set_cookie_safe(name, value, expiry_days=1):
 
         time.sleep(0.5)
 
-        # ✅ อัปเดต cached_cookies
-        try:
-            st.session_state["cached_cookies"] = cookie_manager.get_all()
-            saved_value = st.session_state["cached_cookies"].get(name)
-            return saved_value == value
-        except Exception:
+        # ตรวจสอบว่าบันทึกสำเร็จ
+        saved_value = cookie_manager.get(name)
+        if saved_value == value:
+            return True
+        else:
+            st.warning("⚠️ Cookie อาจยังไม่ถูกบันทึก")
             return False
 
     except Exception as e:
@@ -271,38 +267,17 @@ def set_cookie_safe(name, value, expiry_days=1):
 
 
 def remove_cookie_safe(name):
-    """ลบ Cookie อย่างปลอดภัย"""
+    """ลบ Cookie"""
     if not st.session_state.get("cookie_ready", False):
         return False
 
     try:
-        # ลบหลายครั้ง
-        for _ in range(3):
-            try:
-                cookie_manager.delete(name)
-            except Exception:
-                pass
-            time.sleep(0.2)
-
-        # ✅ อัปเดต cache โดยไม่เรียก get_all() ซ้ำ
-        if "cached_cookies" in st.session_state:
-            if name in st.session_state["cached_cookies"]:
-                del st.session_state["cached_cookies"][name]
-            return True
-
+        cookie_manager.delete(name)
+        time.sleep(0.3)
         return True
-
     except Exception as e:
         st.warning(f"⚠️ ไม่สามารถลบ cookie: {e}")
-        return False
-
-
-def refresh_cookie_cache():
-    """รีเฟรช cookie cache (เรียกเมื่อจำเป็นเท่านั้น)"""
-    try:
-        st.session_state["cached_cookies"] = cookie_manager.get_all()
-    except Exception:
-        st.session_state["cached_cookies"] = {}
+    return False
 
 #-----------------------------------------------------------------------------------------------------------------
 # ส่วนที่ 2: การเชื่อมต่อแผ่นงานและฐานข้อมูล Google Sheet (Database Connection)
@@ -455,35 +430,33 @@ def revoke_token_in_sheet(token):
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
 
-if "auto_login_attempted" not in st.session_state:
-    st.session_state["auto_login_attempted"] = False
+# ตรวจสอบ Auto-login หลังจากที่ Cookie พร้อมใช้งานแล้ว
+if st.session_state.get("cookie_ready", False):
+    if not st.session_state.get("authenticated", False):
 
-if st.session_state.get("cookie_ready", False) and not st.session_state.get("authenticated", False):
-    if not st.session_state["auto_login_attempted"]:
-        st.session_state["auto_login_attempted"] = True
-
-        # ✅ ใช้ get_cookie_safe แทนการเรียก get_all() โดยตรง
+        # อ่าน Cookie
         saved_token = get_cookie_safe(COOKIE_NAME)
 
-        if saved_token and saved_token != "None" and len(saved_token) > 10:
+        if saved_token and saved_token != "None":
+            # ตรวจสอบ Token
             emp_id = verify_token_in_sheet(saved_token)
 
             if emp_id:
+                # ✅ Login สำเร็จ
                 st.session_state["authenticated"] = True
                 st.session_state["emp_id"] = emp_id
                 st.session_state["last_login"] = datetime.now().date().isoformat()
-                st.session_state["auth_token"] = saved_token
 
-                # เก็บ tank_id ถ้ามี
-                tank_id = st.query_params.get("tank_id")
-                if tank_id:
-                    st.session_state["selected_tank"] = tank_id
+                # แสดงข้อความ
+                st.success(f"✅ ยินดีต้อนรับกลับ {get_employee_name_by_id(emp_id)}")
 
-                st.rerun()
+                # ✅ สำคัญ: ไม่ rerun ถ้ามี query params (เพื่อไม่ให้หายไป)
+                if not st.query_params:
+                    time.sleep(0.5)
+                    st.rerun()
             else:
-                # Token ไม่ถูกต้อง - ลบ cookie
+                # Token หมดอายุ
                 remove_cookie_safe(COOKIE_NAME)
-                st.session_state["auto_login_attempted"] = False
 
 if not st.session_state.get("authenticated"):
     st.title("🚒 ระบบตรวจเช็คอุปกรณ์ดับเพลิง")
@@ -612,85 +585,29 @@ with st.container(border=True):
         selected_tank = st.session_state.get("selected_tank") or st.query_params.get("tank_id")
 
     with col_profile:
+        # 1. เพิ่มขนาดรูปภาพ (จากเดิม 90 เป็น 120-130 หรือปรับตามชอบ)
         user_image = "FirePig.png"
         st.image(user_image, width=130)
 
-        # ✅ สร้าง flag เพื่อควบคุม logout
-        if "logout_process" not in st.session_state:
-            st.session_state.logout_process = False
-
-        # ปุ่ม Logout
-        if st.button("🚪 ออกจากระบบ", type="secondary", use_container_width=True, key="logout_btn"):
-            st.session_state.logout_process = True
-            st.rerun()  # รันทันที
-
-    # ✅ ประมวลผล logout ที่นอก column (สำคัญมาก!)
-    if st.session_state.get("logout_process", False):
-        with st.spinner("กำลังออกจากระบบ..."):
-
-            # Debug: ให้เห็นว่าเข้ามาทำงาน
-            st.info("🔄 กำลังดำเนินการออกจากระบบ...")
-
-            try:
-                # 1) อ่าน token
+        # 2. ลดขนาดปุ่ม โดยเอา use_container_width=True ออก
+        # และเปลี่ยน type="primary" หรือคง secondary ไว้ตามต้องการเพื่อความสวยงาม
+        if st.button("🚪 ออกจากระบบ", type="secondary"):
+            with st.spinner("กำลังออกจากระบบ..."):
                 current_token = get_cookie_safe(COOKIE_NAME)
-                st.write(f"Debug: Token = {current_token[:10]}..." if current_token else "No token")
+                if current_token:
+                    revoke_token_in_sheet(current_token)
 
-                # 2) เพิกถอนในชีต
-                if current_token and current_token != "None":
-                    try:
-                        revoke_token_in_sheet(current_token)
-                        st.write("✓ เพิกถอน token ในชีตสำเร็จ")
-                    except Exception as e:
-                        st.warning(f"⚠️ ไม่สามารถเพิกถอน token: {e}")
+                remove_cookie_safe(COOKIE_NAME)
 
-                # 3) ลบ cookie
-                st.write("🔄 กำลังลบ cookie...")
-                for i in range(3):
-                    remove_cookie_safe(COOKIE_NAME)
-                    time.sleep(0.2)
-                    st.write(f"  ลบครั้งที่ {i + 1}")
+                for key in list(st.session_state.keys()):
+                    if key != "cookie_ready":
+                        del st.session_state[key]
 
-                # 4) ล้าง session_state
-                st.write("🔄 กำลังล้าง session...")
-
-                # เก็บ keys ที่ต้องการลบ
-                keys_to_delete = []
-                for key in st.session_state.keys():
-                    keys_to_delete.append(key)
-
-                # ลบทีละตัว
-                for key in keys_to_delete:
-                    del st.session_state[key]
-
-                st.write("✓ ล้าง session สำเร็จ")
-
-                # 5) ตั้งค่าใหม่
                 st.session_state["authenticated"] = False
-                st.session_state["cookie_ready"] = True
-                st.session_state["auto_login_attempted"] = False
-                st.session_state["cached_cookies"] = {}
 
-                st.success("✅ ออกจากระบบสำเร็จ!")
-
-                # Animation
-                try:
-                    from streamlit_extras.let_it_rain import rain
-
-                    rain(emoji="👋", font_size=30, falling_speed=5, animation_length=1)
-                except:
-                    st.balloons()
-
-                time.sleep(1.5)
-
-                # ✅ Force rerun
-                st.write("🔄 กำลัง reload หน้า...")
+                st.success("✅ ออกจากระบบสำเร็จ")
+                time.sleep(0.8)
                 st.rerun()
-
-            except Exception as e:
-                st.error(f"❌ ERROR: {e}")
-                st.exception(e)  # แสดง full error
-                st.session_state.logout_process = False
 
 #จบส่วนล็อคอิน==========================================================================================================
 
