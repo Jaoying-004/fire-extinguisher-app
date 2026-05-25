@@ -537,7 +537,7 @@ if not st.session_state.get("authenticated"):
 
 # ส่วนที่ 5: ฟังก์ชันควบคุมและควบคุมระบบแสดงผล หน้าจอหลัก / หน้าจอล็อกอิน==========================================================
 
-st.markdown("<h1 style='color: #111844;'>ยินดีต้อนรับเข้าใช้งานหน้าการตรวจเช็คตรวจสอบระบบ 🚒</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='color: #ffffff;'>SafePig Safety Inspection System 🧯</h1>", unsafe_allow_html=True)
 # ดึงชื่อแสดงผลแบบปลอดภัย
 current_user = st.session_state.get("emp_id")
 
@@ -619,8 +619,7 @@ sheet = spreadsheet.worksheet("FireExtinguisher_Data")
 log_sheet = spreadsheet.worksheet("Inspection_Log")
 
 # --- 3. หน้าตาแอป (UI) และ Tabs ---
-st.markdown("<h2 style='color: #111844;'>🔥 FireExtinguisher</h2>", unsafe_allow_html=True)
-# 💡 ฝัง CSS เพื่อบังคับเปลี่ยนสีตัวอักษรของปุ่ม Tab ทั้งหมดในหน้าหลักให้เป็นสีน้ำเงินเข้ม
+
 st.markdown("""
     <style>
         /* 1. เปลี่ยนสีตัวอักษรแท็บปกติที่ยังไม่ได้กด */
