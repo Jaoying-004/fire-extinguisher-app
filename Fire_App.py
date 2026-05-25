@@ -124,7 +124,7 @@ st.markdown("""
     [data-testid="stFileUploader"] button {
         background-color: #f3f6fb !important; /* ปุ่มสีน้ำเงินฟ้า */
         color: #111844 !important;                /* ตัวหนังสือขาว */
-        border: none !important;
+        border: #111844 !important;
     }
     [data-testid="stFileUploader"] button:hover {
         background-color: #466699 !important; /* เข้มขึ้นเล็กน้อยเมื่อเอาเมาส์ชี้ */
@@ -167,7 +167,7 @@ st.markdown("""
     }
     /* สีเส้นขอบตอนที่เรากำลังคลิกพิมพ์ช่อง text_area (Focus) */
     [data-testid="stTextArea"] textarea:focus {
-        border-color: #5b7db1 !important;
+        border-color: #f3f6fb !important;
         box-shadow: 0 0 0 1px #5b7db1 !important;
     }
     
