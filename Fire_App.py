@@ -98,10 +98,14 @@ st.markdown("""
     border-radius: 10px !important;
 }
 
-/* selectbox text */
-[data-testid="stSidebar"] div[data-baseweb="select"] {
-    color: #111844 !important;
+ /* 1. เปลี่ยนสีตัวกล่องข้อความ และสีตัวหนังสือข้างใน Selectbox (ตอนยังไม่ได้กด) */
+[data-testid="stSidebar"] div[data-baseweb="select"] > div {
+    background-color: #f3f6fb !important; /* สีพื้นหลังของกล่องข้อความ */
+    color: #111844 !important;            /* สีตัวหนังสือภายในกล่อง */
+    border: 1px solid #d9e2f2 !important; /* สีเส้นขอบกล่อง */
 }
+
+
 
 /* ลูกศร dropdown */
 [data-testid="stSidebar"] div[data-baseweb="select"] svg {
