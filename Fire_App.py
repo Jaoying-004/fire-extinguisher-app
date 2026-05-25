@@ -615,48 +615,82 @@ with st.container(border=True):
         user_image = "FirePig.png"
         st.image(user_image, width=130)
 
-        if st.button("🚪 ออกจากระบบ", type="secondary", use_container_width=True):
-            with st.spinner("กำลังออกจากระบบ..."):
-                try:
-                    # 1) อ่าน token
-                    current_token = get_cookie_safe(COOKIE_NAME)
+        # ✅ สร้าง flag เพื่อควบคุม logout
+        if "logout_process" not in st.session_state:
+            st.session_state.logout_process = False
 
-                    # 2) เพิกถอนในชีต
-                    if current_token and current_token != "None":
-                        try:
-                            revoke_token_in_sheet(current_token)
-                        except Exception as e:
-                            st.warning(f"⚠️ ไม่สามารถเพิกถอน token: {e}")
+        # ปุ่ม Logout
+        if st.button("🚪 ออกจากระบบ", type="secondary", use_container_width=True, key="logout_btn"):
+            st.session_state.logout_process = True
+            st.rerun()  # รันทันที
 
-                    # 3) ลบ cookie
-                    for _ in range(3):
-                        remove_cookie_safe(COOKIE_NAME)
-                        time.sleep(0.2)
+    # ✅ ประมวลผล logout ที่นอก column (สำคัญมาก!)
+    if st.session_state.get("logout_process", False):
+        with st.spinner("กำลังออกจากระบบ..."):
 
-                    # 4) ✅ ล้าง session_state ทั้งหมด (รวม cached_cookies)
-                    st.session_state.clear()
+            # Debug: ให้เห็นว่าเข้ามาทำงาน
+            st.info("🔄 กำลังดำเนินการออกจากระบบ...")
 
-                    # 5) ตั้งค่าใหม่
-                    st.session_state["authenticated"] = False
-                    st.session_state["cookie_ready"] = True
-                    st.session_state["auto_login_attempted"] = False
-                    st.session_state["cached_cookies"] = {}  # ✅ รีเซ็ต cache
+            try:
+                # 1) อ่าน token
+                current_token = get_cookie_safe(COOKIE_NAME)
+                st.write(f"Debug: Token = {current_token[:10]}..." if current_token else "No token")
 
-                    st.success("✅ ออกจากระบบสำเร็จ")
-
-                    # แสดง animation (ถ้าติดตั้ง streamlit-extras)
+                # 2) เพิกถอนในชีต
+                if current_token and current_token != "None":
                     try:
-                        from streamlit_extras.let_it_rain import rain
+                        revoke_token_in_sheet(current_token)
+                        st.write("✓ เพิกถอน token ในชีตสำเร็จ")
+                    except Exception as e:
+                        st.warning(f"⚠️ ไม่สามารถเพิกถอน token: {e}")
 
-                        rain(emoji="👋", font_size=30, falling_speed=5, animation_length=1)
-                    except ImportError:
-                        st.balloons()  # ใช้ balloons แทนถ้าไม่มี streamlit-extras
+                # 3) ลบ cookie
+                st.write("🔄 กำลังลบ cookie...")
+                for i in range(3):
+                    remove_cookie_safe(COOKIE_NAME)
+                    time.sleep(0.2)
+                    st.write(f"  ลบครั้งที่ {i + 1}")
 
-                    time.sleep(1)
-                    st.rerun()
+                # 4) ล้าง session_state
+                st.write("🔄 กำลังล้าง session...")
 
-                except Exception as e:
-                    st.error(f"❌ เกิดข้อผิดพลาด: {e}")
+                # เก็บ keys ที่ต้องการลบ
+                keys_to_delete = []
+                for key in st.session_state.keys():
+                    keys_to_delete.append(key)
+
+                # ลบทีละตัว
+                for key in keys_to_delete:
+                    del st.session_state[key]
+
+                st.write("✓ ล้าง session สำเร็จ")
+
+                # 5) ตั้งค่าใหม่
+                st.session_state["authenticated"] = False
+                st.session_state["cookie_ready"] = True
+                st.session_state["auto_login_attempted"] = False
+                st.session_state["cached_cookies"] = {}
+
+                st.success("✅ ออกจากระบบสำเร็จ!")
+
+                # Animation
+                try:
+                    from streamlit_extras.let_it_rain import rain
+
+                    rain(emoji="👋", font_size=30, falling_speed=5, animation_length=1)
+                except:
+                    st.balloons()
+
+                time.sleep(1.5)
+
+                # ✅ Force rerun
+                st.write("🔄 กำลัง reload หน้า...")
+                st.rerun()
+
+            except Exception as e:
+                st.error(f"❌ ERROR: {e}")
+                st.exception(e)  # แสดง full error
+                st.session_state.logout_process = False
 
 #จบส่วนล็อคอิน==========================================================================================================
 
