@@ -541,9 +541,9 @@ st.markdown("""
 <div style="
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 6px;
     color: #ffffff;
-    font-size: 32px;
+    font-size: 40px;
     font-weight: 800;
     line-height: 1;
     margin-bottom: 12px;
