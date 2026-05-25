@@ -541,15 +541,16 @@ st.markdown("""
 <div style="
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     color: #ffffff;
     font-size: 40px;
     font-weight: 800;
     line-height: 1;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
+    letter-spacing: 0.3px;
 ">
-    <span style="color: #ffffff;">SafePig Safety Inspection System</span>
-    <span style="font-size: 34px;">🧯</span>
+    <span>SafePig Safety Inspection System</span>
+    <span style="font-size: 32px;">🧯</span>
 </div>
 """, unsafe_allow_html=True)
 # ดึงชื่อแสดงผลแบบปลอดภัย
