@@ -537,7 +537,22 @@ if not st.session_state.get("authenticated"):
 
 # ส่วนที่ 5: ฟังก์ชันควบคุมและควบคุมระบบแสดงผล หน้าจอหลัก / หน้าจอล็อกอิน==========================================================
 
-st.markdown("<h1 style='color: #ffffff;'>SafePig Safety Inspection System 🧯</h1>", unsafe_allow_html=True)
+st.markdown("""
+<div style="
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #ffffff;
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 12px;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.25);
+">
+    <span>SafePig Safety Inspection System</span>
+    <span style="font-size: 34px;">🧯</span>
+</div>
+""", unsafe_allow_html=True)
 # ดึงชื่อแสดงผลแบบปลอดภัย
 current_user = st.session_state.get("emp_id")
 
