@@ -1143,7 +1143,7 @@ def send_line_notify(message):
     }
 
     data = {
-        "to": st.secrets["user_ids"],
+        "to": target_ids,
         "messages": [{"type": "text", "text": message}]
     }
         # ส่งข้อมูล
