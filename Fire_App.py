@@ -64,7 +64,7 @@ st.markdown("""
     <style>
     /* 1. เปลี่ยนสีพื้นหลังของ Sidebar */
     [data-testid="stSidebar"] > div:first-child {
-        background-color: #f9e0ae !important; 
+        background-color: #14264d !important; 
     }
 
     /* 2. บังคับสีตัวหนังสือของหัวข้อและข้อความทุกชนิดที่อยู่ใน Sidebar */
@@ -77,24 +77,24 @@ st.markdown("""
     [data-testid="stSidebar"] p,
     [data-testid="stSidebar"] div,
     [data-testid="stSidebar"] span {
-        color: #111844 !important; /* สีกราฟิกหลักที่คุณต้องการ เช่น น้ำเงินเข้ม */
+        color: #ffffff !important; /* สีกราฟิกหลักที่คุณต้องการ เช่น น้ำเงินเข้ม */
     }
 
     /* 3. บังคับสีของข้อความป้ายกำกับ (Labels) ด้านบนของทุกๆ Widget (เช่น selectbox, text_input) */
     [data-testid="stSidebar"] [data-testid="stWidgetLabel"] p {
-        color: #111844 !important; 
+        color: #ffffff!important; 
     }
 
     /* 4. บังคับสีข้อความตัวเลือกวิทยุ (st.radio) หรือ Checkbox ถ้ามีใช้งาน */
     [data-testid="stSidebar"] label {
-        color: #111844 !important;
+        color: #ffffff !important;
     }
     
     /* 1. เปลี่ยนสีตัวกล่องข้อความ และสีตัวหนังสือข้างใน Selectbox (ตอนยังไม่ได้กด) */
     [data-testid="stSidebar"] div[data-baseweb="select"] > div {
-        background-color: #fff8e9 !important; /* สีพื้นหลังของกล่องข้อความ */
-        color: #111844 !important;            /* สีตัวหนังสือภายในกล่อง */
-        border: 1px solid #fff8e9 !important; /* สีเส้นขอบกล่อง */
+        background-color: #f3f6fb !important; /* สีพื้นหลังของกล่องข้อความ */
+        color: #1f2a44 !important;            /* สีตัวหนังสือภายในกล่อง */
+        border: 1px solid #d9e2f2 !important; /* สีเส้นขอบกล่อง */
     }
 
     /* 2. เปลี่ยนสีไอคอนลูกศรชี้ลง (Dropdown Arrow) ในกล่อง */
@@ -104,7 +104,7 @@ st.markdown("""
 
     /* 4. บังคับสีพื้นหลังและสีตัวหนังสือของรายการตัวเลือกรายแถว (List Items) */
     div[data-baseweb="popover"] li {
-        background-color: #fff8e9 !important; /* พื้นหลังของแถว */
+        background-color: #f3f6fb !important; /* พื้นหลังของแถว */
         color: #111844 !important;            /* สีตัวหนังสือในแถวปกติ */
     }
     
@@ -113,7 +113,7 @@ st.markdown("""
        ========================================================== */
     /* เปลี่ยนสีพื้นหลังกล่องใหญ่ */
     [data-testid="stFileUploader"] > section {
-        background-color: #fff8e9 !important;
+        background-color: #f3f6fb !important;
         border: 1px dashed #5b7db1 !important; /* เปลี่ยนเส้นประเป็นสีน้ำเงินฟ้า */
     }
     /* เปลี่ยนสีตัวหนังสือคำแนะนำใต้ปุ่ม Upload */
@@ -122,8 +122,8 @@ st.markdown("""
     }
     /* เปลี่ยนสีปุ่ม Upload ด้านในกล่อง */
     [data-testid="stFileUploader"] button {
-        background-color: #5b7db1 !important; /* ปุ่มสีน้ำเงินฟ้า */
-        color: white !important;                /* ตัวหนังสือขาว */
+        background-color: #f3f6fb !important; /* ปุ่มสีน้ำเงินฟ้า */
+        color: #111844 !important;                /* ตัวหนังสือขาว */
         border: none !important;
     }
     [data-testid="stFileUploader"] button:hover {
@@ -134,7 +134,7 @@ st.markdown("""
        2. เปลี่ยนสีกล่องพิมพ์ข้อความ (st.text_area / st.text_input)
        ========================================================== */
     [data-testid="stTextArea"] textarea {
-        background-color: #fff8e9 !important; /* พื้นหลังกล่องสีครีมสว่าง */
+        background-color: #f3f6fb !important; /* พื้นหลังกล่องสีครีมสว่าง */
         color: #111844 !important;            /* ตัวหนังสือสีน้ำเงินเข้ม */
         border: 1px solid #cbd8f2 !important; /* เส้นขอบกล่อง */
     }
@@ -149,7 +149,7 @@ st.markdown("""
        ========================================================== */
     /* ดักจับช่อง st.text_input (ช่องชื่อผู้ตรวจในภาพ) */
     [data-testid="stTextInput"] input {
-        background-color: #fff8e9 !important; /* พื้นหลังกล่องสีครีมสว่าง */
+        background-color: #f3f6fb !important; /* พื้นหลังกล่องสีครีมสว่าง */
         color: #111844 !important;            /* ตัวหนังสือสีน้ำเงินเข้ม */
         border: 1px solid #cbd8f2 !important; /* เส้นขอบกล่อง */
     }
@@ -575,7 +575,7 @@ with st.container(border=True):
     with col_info:
         st.markdown(f"""
         <div style="
-            background: linear-gradient(135deg, #fff3cd, #ffe0a3);
+            background: linear-gradient(135deg, #fff6dd, #f7e8bc);
             padding: 22px;
             border-radius: 16px;
             box-shadow: 0 6px 18px rgba(0,0,0,0.12);
