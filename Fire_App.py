@@ -559,13 +559,26 @@ with st.container(border=True):
 
     with col_info:
         st.markdown(f"""
-        <div style='background-color: #f9e0ae; color: #111844; padding: 20px; border-radius: 10px; margin-bottom: 20px;'>
-            <h3 style='margin: 0;'>📰 User Profile</h3>
-            <p style='margin: 5px 0;'><strong>ชื่อ:</strong> {st.session_state.get('emp_name', 'ไม่ระบุ')}</p>
-            <p style='margin: 5px 0;'><strong>รหัส:</strong> {current_user}</p>
-            <p style='margin: 5px 0;'><strong>Login:</strong> {st.session_state.get('last_login', '-')}</p>
+        <div style="
+            background: linear-gradient(135deg, #fff3cd, #ffe0a3);
+            padding: 22px;
+            border-radius: 16px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+            border: 1px solid rgba(255,255,255,0.4);
+            color: #1f2a44;
+            min-height: 180px;
+        ">
+            <div style="font-size: 24px; font-weight: 700; margin-bottom: 16px; color: #0b3d91;">
+                📰 User Profile
+            </div>
+            <div style="font-size: 16px; line-height: 1.8;">
+                <p style="margin: 0;"><strong>ชื่อ:</strong> {st.session_state.get('emp_name', 'ไม่ระบุ')}</p>
+                <p style="margin: 0;"><strong>รหัส:</strong> {current_user}</p>
+                <p style="margin: 0;"><strong>Login:</strong> {st.session_state.get('last_login', '-')}</p>
+            </div>
         </div>
         """, unsafe_allow_html=True)
+
 
         selected_tank = st.session_state.get("selected_tank") or st.query_params.get("tank_id")
 
