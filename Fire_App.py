@@ -267,17 +267,33 @@ def set_cookie_safe(name, value, expiry_days=1):
 
 
 def remove_cookie_safe(name):
-    """ลบ Cookie"""
+    """ลบ Cookie อย่างปลอดภัยและมีประสิทธิภาพ"""
     if not st.session_state.get("cookie_ready", False):
         return False
 
     try:
-        cookie_manager.delete(name)
-        time.sleep(0.3)
+        # ลบหลายรอบเพื่อให้แน่ใจ
+        for attempt in range(5):
+            try:
+                cookie_manager.delete(name)
+                # ✅ ตั้งค่าเป็น empty string แทนการลบ (บางครั้งมีประสิทธิภาพกว่า)
+                cookie_manager.set(name, "", expires_at=datetime.now() - timedelta(days=1))
+            except Exception:
+                pass
+            time.sleep(0.2)
+
+        # ตรวจสอบว่าลบสำเร็จหรือไม่
+        all_cookies = cookie_manager.get_all()
+        if all_cookies and name in all_cookies:
+            # ถ้ายังมี ให้ลองตั้งเป็นค่าว่างอีกครั้ง
+            cookie_manager.set(name, "deleted", expires_at=datetime.now() - timedelta(days=1))
+            return False
+
         return True
+
     except Exception as e:
         st.warning(f"⚠️ ไม่สามารถลบ cookie: {e}")
-    return False
+        return False
 
 #-----------------------------------------------------------------------------------------------------------------
 # ส่วนที่ 2: การเชื่อมต่อแผ่นงานและฐานข้อมูล Google Sheet (Database Connection)
@@ -431,32 +447,32 @@ if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
 
 # ตรวจสอบ Auto-login หลังจากที่ Cookie พร้อมใช้งานแล้ว
-if st.session_state.get("cookie_ready", False):
-    if not st.session_state.get("authenticated", False):
+if st.session_state.get("cookie_ready", False) and not st.session_state.get("authenticated", False):
+    if not st.session_state["auto_login_attempted"]:
+        st.session_state["auto_login_attempted"] = True
 
-        # อ่าน Cookie
         saved_token = get_cookie_safe(COOKIE_NAME)
 
-        if saved_token and saved_token != "None":
-            # ตรวจสอบ Token
+        # ✅ ตรวจสอบว่า token มีค่าและไม่ใช่ค่าว่าง
+        if saved_token and saved_token != "None" and len(saved_token) > 10:
             emp_id = verify_token_in_sheet(saved_token)
 
             if emp_id:
-                # ✅ Login สำเร็จ
                 st.session_state["authenticated"] = True
                 st.session_state["emp_id"] = emp_id
                 st.session_state["last_login"] = datetime.now().date().isoformat()
+                st.session_state["auth_token"] = saved_token
 
-                # แสดงข้อความ
-                st.success(f"✅ ยินดีต้อนรับกลับ {get_employee_name_by_id(emp_id)}")
+                # ✅ เก็บ tank_id ถ้ามี
+                tank_id = st.query_params.get("tank_id")
+                if tank_id:
+                    st.session_state["selected_tank"] = tank_id
 
-                # ✅ สำคัญ: ไม่ rerun ถ้ามี query params (เพื่อไม่ให้หายไป)
-                if not st.query_params:
-                    time.sleep(0.5)
-                    st.rerun()
+                st.rerun()
             else:
-                # Token หมดอายุ
+                # Token ไม่ถูกต้อง - ลบ cookie
                 remove_cookie_safe(COOKIE_NAME)
+                st.session_state["auto_login_attempted"] = False  # รีเซ็ตเพื่อลองใหม่
 
 if not st.session_state.get("authenticated"):
     st.title("🚒 ระบบตรวจเช็คอุปกรณ์ดับเพลิง")
