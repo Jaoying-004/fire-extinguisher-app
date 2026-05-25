@@ -656,7 +656,8 @@ with tab1:
         df_temp['parsed_date'] = pd.to_datetime(df_temp[date_col], errors='coerce', dayfirst=True).dt.date
 
         # ดึงวันที่ปัจจุบันของวันนี้จริงๆ มาเก็บไว้
-        today_date = datetime.now().date()
+        thai_tz = pytz.timezone("Asia/Bangkok")
+        today_date = datetime.now(thai_tz).date()
 
         # 💡 ปรับปรุงจุดนี้: เปลี่ยนมากรองข้อมูลเจาะจงเฉพาะ "วันนี้จริงๆ (today_date)" เท่านั้น
         df_today = df_temp[df_temp['parsed_date'] == today_date].copy()
