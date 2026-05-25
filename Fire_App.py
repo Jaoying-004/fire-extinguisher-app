@@ -559,8 +559,8 @@ with st.container(border=True):
 
     with col_info:
         st.markdown(f"""
-        <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin-bottom: 20px;'>
-            <h3 style='margin: 0;'>👤 ข้อมูลผู้ใช้งาน</h3>
+        <div style='background-color: #f9e0ae; color: #111844; padding: 20px; border-radius: 10px; margin-bottom: 20px;'>
+            <h3 style='margin: 0;'>📰 User Profile</h3>
             <p style='margin: 5px 0;'><strong>ชื่อ:</strong> {st.session_state.get('emp_name', 'ไม่ระบุ')}</p>
             <p style='margin: 5px 0;'><strong>รหัส:</strong> {current_user}</p>
             <p style='margin: 5px 0;'><strong>Login:</strong> {st.session_state.get('last_login', '-')}</p>
