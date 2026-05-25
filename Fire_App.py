@@ -537,7 +537,7 @@ if not st.session_state.get("authenticated"):
 
 # ส่วนที่ 5: ฟังก์ชันควบคุมและควบคุมระบบแสดงผล หน้าจอหลัก / หน้าจอล็อกอิน==========================================================
 
-st.markdown("<h1 style='color: #ffffff;'>SafePig Safety Inspection System 🧯</h2>", unsafe_allow_html=True)
+st.markdown("<h1 style='color: #ffffff;'>SafePig Safety Inspection System 🧯</h1>", unsafe_allow_html=True)
 # ดึงชื่อแสดงผลแบบปลอดภัย
 current_user = st.session_state.get("emp_id")
 
