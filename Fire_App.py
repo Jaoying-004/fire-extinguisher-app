@@ -430,33 +430,18 @@ def revoke_token_in_sheet(token):
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
 
+if "logged_out" not in st.session_state:
+    st.session_state["logged_out"] = False
+
 # ตรวจสอบ Auto-login หลังจากที่ Cookie พร้อมใช้งานแล้ว
 if st.session_state.get("cookie_ready", False):
-    if not st.session_state.get("authenticated", False):
-
-        # อ่าน Cookie
+    if not st.session_state.get("authenticated", False) and not st.session_state.get("logged_out", False):
         saved_token = get_cookie_safe(COOKIE_NAME)
-
         if saved_token and saved_token != "None":
-            # ตรวจสอบ Token
             emp_id = verify_token_in_sheet(saved_token)
-
             if emp_id:
-                # ✅ Login สำเร็จ
                 st.session_state["authenticated"] = True
                 st.session_state["emp_id"] = emp_id
-                st.session_state["last_login"] = datetime.now().date().isoformat()
-
-                # แสดงข้อความ
-                st.success(f"✅ ยินดีต้อนรับกลับ {get_employee_name_by_id(emp_id)}")
-
-                # ✅ สำคัญ: ไม่ rerun ถ้ามี query params (เพื่อไม่ให้หายไป)
-                if not st.query_params:
-                    time.sleep(0.5)
-                    st.rerun()
-            else:
-                # Token หมดอายุ
-                remove_cookie_safe(COOKIE_NAME)
 
 if not st.session_state.get("authenticated"):
     st.title("🚒 ระบบตรวจเช็คอุปกรณ์ดับเพลิง")
@@ -600,13 +585,13 @@ with st.container(border=True):
                 remove_cookie_safe(COOKIE_NAME)
 
                 for key in list(st.session_state.keys()):
-                    if key != "cookie_ready":
+                    if key not in ["cookie_ready", "logged_out"]:
                         del st.session_state[key]
 
                 st.session_state["authenticated"] = False
+                st.session_state["logged_out"] = True
 
-                st.success("✅ ออกจากระบบสำเร็จ")
-                time.sleep(0.8)
+                time.sleep(1)
                 st.rerun()
 
 #จบส่วนล็อคอิน==========================================================================================================
