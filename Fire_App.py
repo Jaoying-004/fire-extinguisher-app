@@ -11,59 +11,33 @@ from streamlit_extras.stylable_container import stylable_container
 from streamlit_extras.let_it_rain import rain
 
 
-def colored_button(label, color="#ff4949", text_color="#ffffff", icon=""):
+def colored_button(label, color, text_color="white", key=None):
     """
-    สร้างปุ่มสีที่กำหนดเองด้วย HTML/CSS
-
-    Args:
-        label (str): ข้อความในปุ่ม
-        color (str): สีพื้นหลัง (hex)
-        text_color (str): สีข้อความ (hex)
-        icon (str): emoji หรือ icon (optional)
-
-    Returns:
-        bool: True ถ้าปุ่มถูกกด
+    ฟังก์ชันสร้างปุ่มเปลี่ยนสีแยกรายปุ่ม (เวอร์ชันทางการ)
     """
-    button_id = f"btn_{hash(label)}"
+    btn_key = key if key else f"btn_{label.replace(' ', '_').lower()}"
 
-    # สร้าง CSS สำหรับปุ่ม
-    button_style = f"""
-    <style>
-    #{button_id} {{
-        background-color: {color};
-        color: {text_color};
-        border: none;
-        border-radius: 8px;
-        padding: 0.6rem 1.5rem;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        width: 100%;
-        text-align: center;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }}
-    #{button_id}:hover {{
-        background-color: {color}ee;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        transform: translateY(-2px);
-    }}
-    #{button_id}:active {{
-        transform: translateY(0px);
-        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-    }}
-    </style>
-    """
+    with stylable_container(
+            key=f"container_{btn_key}",
+            css_styles=f"""
+            button {{
+                background-color: {color} !important;
+                color: {text_color} !important;
+                border: 1px solid {color} !important;
+                border-radius: 8px !important;
+                font-weight: bold !important;
+            }}
+            button * {{
+                color: {text_color} !important;
+            }}
+            button:hover {{
+                opacity: 0.85 !important;
+                border-color: {color} !important;
+            }}
+        """,
+    ):
 
-    st.markdown(button_style, unsafe_allow_html=True)
-
-    # ใช้ st.button ธรรมดา แต่ wrap ด้วย markdown
-    return st.button(
-        f"{icon} {label}".strip(),
-        key=button_id,
-        use_container_width=True
-    )
-
+        return st.button(label, key=btn_key)
 # ตั้งค่าเวลาไทยไว้ใช้ทั้งแอป
 tz = pytz.timezone('Asia/Bangkok')
 def get_now():
@@ -617,10 +591,10 @@ with st.container(border=True):
 
         # 2. ลดขนาดปุ่ม โดยเอา use_container_width=True ออก
         # และเปลี่ยน type="primary" หรือคง secondary ไว้ตามต้องการเพื่อความสวยงาม
-        if colored_button("ออกจากระบบ", color="#ff4949", text_color="#ffffff", icon="🚪"):
+        if st.button("🚪 ออกจากระบบ", type="secondary", use_container_width=True):
             with st.spinner("กำลังออกจากระบบ..."):
                 try:
-                    # 1) อ่าน token
+                    # 1) อ่าน token ก่อน
                     current_token = get_cookie_safe(COOKIE_NAME)
 
                     # 2) เพิกถอนในชีต
@@ -630,24 +604,23 @@ with st.container(border=True):
                         except Exception as e:
                             st.warning(f"⚠️ ไม่สามารถเพิกถอน token: {e}")
 
-                    # 3) ลบ cookie หลายครั้ง
+                    # 3) ลบ cookie หลายครั้งเพื่อให้แน่ใจ
                     for _ in range(3):
                         remove_cookie_safe(COOKIE_NAME)
                         time.sleep(0.2)
 
-                    # 4) ล้าง session_state
-                    keys_to_keep = {"cookie_ready"}  # เก็บเฉพาะที่จำเป็น
-                    keys_to_delete = [k for k in st.session_state.keys() if k not in keys_to_keep]
+                    # 4) ✅ ล้าง session_state ทั้งหมด (รวม cookie_ready)
+                    st.session_state.clear()
 
-                    for key in keys_to_delete:
-                        del st.session_state[key]
-
-                    # 5) ตั้งค่าใหม่
+                    # 5) ✅ ตั้งค่าใหม่หลังจาก clear
                     st.session_state["authenticated"] = False
-                    st.session_state["auto_login_attempted"] = False
+                    st.session_state["cookie_ready"] = True  # เก็บไว้เพื่อไม่ให้ต้อง init ใหม่
+                    st.session_state["auto_login_attempted"] = False  # ป้องกัน auto-login
 
                     st.success("✅ ออกจากระบบสำเร็จ")
-                    time.sleep(0.8)
+                    time.sleep(0.5)
+
+                    # 6) ✅ ใช้ st.rerun() หลัง delay
                     st.rerun()
 
                 except Exception as e:
