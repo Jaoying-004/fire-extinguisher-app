@@ -167,55 +167,61 @@ st.markdown("""
     }
     
     /* ==========================================================
-       6. MODERN RADIO BUTTONS (เปลี่ยนปุ่มวิทยุเป็นกล่องเมนูโมเดิร์น)
+       6. MODERN RADIO BUTTONS (เวอร์ชันแก้ไขตัวหนังสือหาย)
        ========================================================== */
-    /* จัดเลย์เอาต์ของกลุ่มตัวเลือกให้เรียงกันสวยงาม */
+    /* จัดเลย์เอาต์ของกลุ่มตัวเลือกให้เรียงกัน */
     [data-testid="stSidebar"] [data-testid="stRadio"] div[role="radiogroup"] {
-        gap: 12px !important; /* เว้นระยะห่างระหว่างกล่อง */
+        gap: 12px !important; 
         padding-top: 8px !important;
     }
 
-    /* สไตล์ของแต่ละตัวเลือก (แปลงร่างจากข้อความเป็นกล่องการ์ด) */
+    /* สไตล์ของแต่ละกล่อง (สถานะปกติ / ยังไม่ถูกเลือก) */
     [data-testid="stSidebar"] [data-testid="stRadio"] label[data-baseweb="radio"] {
-        background-color: rgba(243, 246, 251, 0.08) !important; /* พื้นหลังโปร่งแสงกลืนกับธีมน้ำเงิน */
-        border: 1px solid rgba(203, 216, 242, 0.2) !important;  /* เส้นขอบจางๆ */
-        padding: 14px 20px !important;                          /* เพิ่มพื้นที่ด้านในกล่อง */
-        border-radius: 10px !important;                         /* ทำมุมโค้งมนแบบโมเดิร์น */
+        background-color: rgba(243, 246, 251, 0.08) !important; 
+        border: 1px solid rgba(203, 216, 242, 0.2) !important;  
+        padding: 14px 20px !important;                          
+        border-radius: 10px !important;                         
         width: 100% !important;
-        transition: all 0.25s ease !important;                  /* เคลื่อนไหวสมูทตอน Hover/Select */
+        transition: all 0.25s ease !important;                  
         cursor: pointer !important;
+        display: flex !important;
+        align-items: center !important;
     }
 
-    /* ซ่อนวงกลม Radio Button ดั้งเดิมของระบบออกไป */
-    [data-testid="stSidebar"] [data-testid="stRadio"] label[data-baseweb="radio"] div:first-child {
+    /* ซ่อนวงกลมดั้งเดิม */
+    [data-testid="stSidebar"] [data-testid="stRadio"] label[data-baseweb="radio"] > div:first-child {
         display: none !important;
     }
 
-    /* ปรับแต่งข้อความและอีโมจิด้านในกล่อง */
-    [data-testid="stSidebar"] [data-testid="stRadio"] label[data-baseweb="radio"] div[data-testid="stMarkdownContainer"] p {
+    /* ดักจับบังคับสีตัวหนังสือ + อีโมจิ (สถานะปกติ / ยังไม่ถูกเลือก) ให้เป็นสีขาว */
+    [data-testid="stSidebar"] [data-testid="stRadio"] label[data-baseweb="radio"] div,
+    [data-testid="stSidebar"] [data-testid="stRadio"] label[data-baseweb="radio"] p,
+    [data-testid="stSidebar"] [data-testid="stRadio"] label[data-baseweb="radio"] span {
         color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
         font-size: 16px !important;
         font-weight: 500 !important;
-        margin: 0 !important;
     }
 
     /* เอฟเฟกต์ตอนเมาส์ชี้ (Hover) */
     [data-testid="stSidebar"] [data-testid="stRadio"] label[data-baseweb="radio"]:hover {
         background-color: rgba(243, 246, 251, 0.15) !important;
         border-color: #5b7db1 !important;
-        transform: translateY(-1px) !important; /* ยกตัวขึ้นเล็กน้อย */
     }
 
-    /* เอฟเฟกต์เมื่อตัวเลือกนั้น "ถูกคลิกเลือก" (Active State) */
-    [data-testid="stSidebar"] [data-testid="stRadio"] div[aria-checked="true"] {
-        background-color: #f3f6fb !important; /* เปลี่ยนพื้นหลังเป็นสีฟ้าอ่อนสว่าง */
+    /* เอฟเฟกต์เมื่อกล่องนั้น "ถูกเลือก" (Active State) */
+    [data-testid="stSidebar"] [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) {
+        background-color: #f3f6fb !important; /* พื้นหลังเปลี่ยนเป็นสีฟ้าอ่อนสว่าง */
         border: 1px solid #5b7db1 !important;
-        box-shadow: 0 4px 12px rgba(17, 24, 68, 0.15) !important; /* เพิ่มมิติเงา */
+        box-shadow: 0 4px 12px rgba(17, 24, 68, 0.15) !important;
     }
 
-    /* เปลี่ยนสีตัวอักษรด้านในกล่องที่โดนเลือก ให้กลายเป็นสีน้ำเงินเข้มเพื่อตัดกับพื้นหลังฟ้าอ่อน */
-    [data-testid="stSidebar"] [data-testid="stRadio"] div[aria-checked="true"] div[data-testid="stMarkdownContainer"] p {
+    /* ดักจับบังคับสีตัวหนังสือ + อีโมจิ ของกล่องที่ "ถูกเลือกแล้ว" ให้เปลี่ยนเป็นน้ำเงินเข้ม */
+    [data-testid="stSidebar"] [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) div,
+    [data-testid="stSidebar"] [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) p,
+    [data-testid="stSidebar"] [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) span {
         color: #111844 !important;
+        -webkit-text-fill-color: #111844 !important;
         font-weight: 600 !important;
     }
 """, unsafe_allow_html=True)
