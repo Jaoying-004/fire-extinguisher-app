@@ -61,141 +61,122 @@ except Exception as e:
 #==================================================================================================================
 # โซนปรับแต่งสีจ้า (Sidebar)
 st.markdown("""
-<style>
-/* ==========================================================
-   1. SIDEBAR BASE (จัดการพื้นหลังและตัวหนังสือทั่วไป)
-   ========================================================== */
-/* พื้นหลังของ Sidebar */
-[data-testid="stSidebar"] > div:first-child {
-    background-color: #14264d !important;
-}
+    <style>
+    /* 1. เปลี่ยนสีพื้นหลังของ Sidebar */
+    [data-testid="stSidebar"] > div:first-child {
+        background-color: #14264d !important; 
+    }
 
-/* ตัวหนังสือทั่วไป หัวข้อ และสลาก (Labels) ใน Sidebar ให้เป็นสีขาว */
-[data-testid="stSidebar"] .stWidgetLabel label,
-[data-testid="stSidebar"] .stWidgetLabel p,
-[data-testid="stSidebar"] .stWidgetLabel span,
-[data-testid="stSidebar"] h1, 
-[data-testid="stSidebar"] h2, 
-[data-testid="stSidebar"] h3, 
-[data-testid="stSidebar"] p {
-    color: #ffffff !important;
-}
+    /* 2. บังคับสีตัวหนังสือของหัวข้อและข้อความทุกชนิดที่อยู่ใน Sidebar */
+    [data-testid="stSidebar"] h1, 
+    [data-testid="stSidebar"] h2, 
+    [data-testid="stSidebar"] h3, 
+    [data-testid="stSidebar"] h4, 
+    [data-testid="stSidebar"] h5, 
+    [data-testid="stSidebar"] h6,
+    [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] div,
+    [data-testid="stSidebar"] span {
+        color:  #ffffff !important; /* สีกราฟิกหลักที่คุณต้องการ เช่น น้ำเงินเข้ม */
+    }
 
-/* ==========================================================
-   2. SELECTBOX (ช่องเลือกข้อมูลใน Sidebar - บังคับสีตัวหนังสือด้านใน)
-   ========================================================== */
-/* ตัวกล่อง Selectbox ตอนปิดปกติ */
-[data-testid="stSidebar"] div[data-baseweb="select"] > div {
-    background-color: #f3f6fb !important; /* พื้นหลังสีครีม/ฟ้าสว่าง */
-    border: 1px solid #cbd8f2 !important;  /* เส้นขอบ */
-    border-radius: 10px !important;
-}
+    /* 3. บังคับสีของข้อความป้ายกำกับ (Labels) ด้านบนของทุกๆ Widget (เช่น selectbox, text_input) */
+    [data-testid="stSidebar"] [data-testid="stWidgetLabel"] p {
+        color:  #ffffff !important; 
+    }
 
-/* 🎯 เจาะจงบังคับสีตัวหนังสือ "ด้านในกล่อง Selectbox" ให้เป็นสีน้ำเงินเข้ม (ไม่ให้โดนสีขาวกลบ) */
-[data-testid="stSidebar"] div[data-baseweb="select"] div[data-testid="stMarkdownContainer"] p,
-[data-testid="stSidebar"] div[data-baseweb="select"] [data-testid="stSelectboxInputValue"],
-[data-testid="stSidebar"] div[data-baseweb="select"] div[role="button"] *,
-[data-testid="stSidebar"] div[data-baseweb="select"] span {
-    color: #111844 !important;
-    -webkit-text-fill-color: #111844 !important;
-}
+    /* 4. บังคับสีข้อความตัวเลือกวิทยุ (st.radio) หรือ Checkbox ถ้ามีใช้งาน */
+    [data-testid="stSidebar"] label {
+        color:  #ffffff !important;
+    }
 
-/* สีของลูกศรสามเหลี่ยมกดลง */
-[data-testid="stSidebar"] div[data-baseweb="select"] svg {
-    fill: #111844 !important;
-}
+    /* 1. เปลี่ยนสีตัวกล่องข้อความ และสีตัวหนังสือข้างใน Selectbox (ตอนยังไม่ได้กด) */
+    [data-testid="stSidebar"] div[data-baseweb="select"] > div {
+        background-color: #f3f6fb !important; /* สีพื้นหลังของกล่องข้อความ */
+        color: #111844 !important;            /* สีตัวหนังสือภายในกล่อง */
+        border: 1px solid #cbd8f2 !important; /* สีเส้นขอบกล่อง */
+    }
 
-/* ==========================================================
-   3. DROPDOWN MENU (หน้าต่างตัวเลือกที่เด้งกางออกมา)
-   ========================================================== */
-/* พื้นหลังของกล่องเมนูทั้งหมด */
-div[role="listbox"],
-div[data-baseweb="popover"] {
-    background-color: #ffffff !important;
-}
+    /* 2. เปลี่ยนสีไอคอนลูกศรชี้ลง (Dropdown Arrow) ในกล่อง */
+    [data-testid="stSidebar"] div[data-baseweb="select"] svg {
+        fill: #111844 !important;             /* สีของลูกศร */
+    }
 
-/* รายการตัวเลือกสถานะปกติ */
-div[role="listbox"] li,
-div[data-baseweb="popover"] li,
-div[role="listbox"] li *,
-div[data-baseweb="popover"] li * {
-    background-color: #f3f6fb !important;
-    color: #111844 !important;
-}
+    /* 4. บังคับสีพื้นหลังและสีตัวหนังสือของรายการตัวเลือกรายแถว (List Items) */
+    div[data-baseweb="popover"] li {
+        background-color: #f3f6fb !important; /* พื้นหลังของแถว */
+        color: #111844 !important;            /* สีตัวหนังสือในแถวปกติ */
+    }
 
-/* รายการตัวเลือกตอนเอาเมาส์ไปชี้ (Hover) */
-div[role="listbox"] li:hover,
-div[data-baseweb="popover"] li:hover,
-div[role="listbox"] li:hover *,
-div[data-baseweb="popover"] li:hover * {
-    background-color: #cbd8f2 !important;
-    color: #111844 !important;
-}
+        /* ==========================================================
+       1. เปลี่ยนสีกล่องอัปโหลดไฟล์ (st.file_uploader)
+       ========================================================== */
+    /* เปลี่ยนสีพื้นหลังกล่องใหญ่ */
+    [data-testid="stFileUploader"] > section {
+        background-color: #f3f6fb !important;
+        border: 1px dashed #5b7db1 !important; /* เปลี่ยนเส้นประเป็นสีน้ำเงินฟ้า */
+    }
+    /* เปลี่ยนสีตัวหนังสือคำแนะนำใต้ปุ่ม Upload */
+    [data-testid="stFileUploader"] small {
+        color: #5b7db1 !important;
+    }
+    /* เปลี่ยนสีปุ่ม Upload ด้านในกล่อง */
+    [data-testid="stFileUploader"] button {
+        background-color: #cbd8f2 !important; /* ปุ่มสีน้ำเงินฟ้า */
+        color: white !important;                /* ตัวหนังสือขาว */
+        border: none !important;
+    }
+    [data-testid="stFileUploader"] button:hover {
+        background-color: #466699 !important; /* เข้มขึ้นเล็กน้อยเมื่อเอาเมาส์ชี้ */
+    }
 
-/* รายการตัวเลือกอันที่กดเลือกอยู่ ณ ปัจจุบัน (Selected) */
-div[role="listbox"] li[aria-selected="true"],
-div[data-baseweb="popover"] li[aria-selected="true"],
-div[role="listbox"] li[aria-selected="true"] *,
-div[data-baseweb="popover"] li[aria-selected="true"] * {
-    background-color: #5b7db1 !important;
-    color: #ffffff !important;
-}
+    /* ==========================================================
+       2. เปลี่ยนสีกล่องพิมพ์ข้อความ (st.text_area / st.text_input)
+       ========================================================== */
+    [data-testid="stTextArea"] textarea {
+        background-color: #f3f6fb !important; /* พื้นหลังกล่องสีครีมสว่าง */
+        color: #111844 !important;            /* ตัวหนังสือสีน้ำเงินเข้ม */
+        border: 1px solid #cbd8f2 !important; /* เส้นขอบกล่อง */
+    }
+    /* สีเส้นขอบตอนที่เรากำลังคลิกพิมพ์ (Focus) */
+    [data-testid="stTextArea"] textarea:focus {
+        border-color: #5b7db1 !important;
+        box-shadow: 0 0 0 1px #5b7db1 !important;
+    }
 
-/* ==========================================================
-   4. TEXT INPUT / TEXT AREA (ช่องพิมพ์ข้อความใน Sidebar)
-   ========================================================== */
-[data-testid="stSidebar"] [data-testid="stTextInput"] input,
-[data-testid="stSidebar"] [data-testid="stTextArea"] textarea {
-    background-color: #f3f6fb !important;
-    color: #111844 !important;
-    border: 1px solid #cbd8f2 !important;
-    border-radius: 10px !important;
-    caret-color: #111844 !important; /* สีเส้นเคอร์เซอร์กะพริบตอนพิมพ์ */
-}
+        /* ==========================================================
+       2. เปลี่ยนสีกล่องพิมพ์ข้อความ (ครอบคลุมทั้ง text_input และ text_area)
+       ========================================================== */
+    /* ดักจับช่อง st.text_input (ช่องชื่อผู้ตรวจในภาพ) */
+    [data-testid="stTextInput"] input {
+        background-color: #f3f6fb !important; /* พื้นหลังกล่องสีครีมสว่าง */
+        color: #111844 !important;            /* ตัวหนังสือสีน้ำเงินเข้ม */
+        border: 1px solid #cbd8f2 !important; /* เส้นขอบกล่อง */
+    }
+    /* สีเส้นขอบตอนที่เรากำลังคลิกพิมพ์ช่อง text_input (Focus) */
+    [data-testid="stTextInput"] input:focus {
+        border-color: #5b7db1 !important;
+        box-shadow: 0 0 0 1px #5b7db1 !important;
+    }
 
-/* สีเส้นขอบตอนกำลังคลิกพิมพ์ (Focus) */
-[data-testid="stSidebar"] [data-testid="stTextInput"] input:focus,
-[data-testid="stSidebar"] [data-testid="stTextArea"] textarea:focus {
-    border-color: #5b7db1 !important;
-    box-shadow: 0 0 0 1px #5b7db1 !important;
-    outline: none !important;
-}
+    /* ดักจับช่อง st.text_area (กล่องพิมพ์ยาวๆ ด้านล่าง) */
+    [data-testid="stTextArea"] textarea {
+        background-color: #fff8e9 !important; 
+        color: #111844 !important;            
+        border: 1px solid #cbd8f2 !important; 
+    }
+    /* สีเส้นขอบตอนที่เรากำลังคลิกพิมพ์ช่อง text_area (Focus) */
+    [data-testid="stTextArea"] textarea:focus {
+        border-color: #5b7db1 !important;
+        box-shadow: 0 0 0 1px #5b7db1 !important;
+    }
 
-/* สีของข้อความคำแนะนำจางๆ (Placeholder) */
-[data-testid="stSidebar"] [data-testid="stTextInput"] input::placeholder,
-[data-testid="stSidebar"] [data-testid="stTextArea"] textarea::placeholder {
-    color: #6b7aa6 !important;
-}
+    [data-testid="stTextInput"] input, 
+    [data-testid="stTextArea"] textarea {
+    caret-color: #111844 !important; /* เปลี่ยนเป็นสีน้ำเงินเข้มตามธีมคุณ หรือสีที่ต้องการได้เลย */
+    }
 
-/* ==========================================================
-   5. FILE UPLOADER (กล่องอัปโหลดไฟล์)
-   ========================================================== */
-[data-testid="stFileUploader"] section {
-    background-color: #f3f6fb !important;
-    border: 1px dashed #5b7db1 !important;
-    border-radius: 10px !important;
-}
-
-[data-testid="stFileUploader"] small {
-    color: #111844 !important;
-}
-
-[data-testid="stFileUploader"] button {
-    background-color: #f3f6fb !important;
-    color: #111844 !important;
-    border: 1px solid #cbd8f2 !important;
-}
-
-[data-testid="stFileUploader"] button:hover {
-    background-color: #e9eef7 !important;
-    border-color: #5b7db1 !important;
-}
-
-/* เอฟเฟกต์ปุ่มกดทั่วไปเมื่อเอาเมาส์ชี้ */
-[data-testid="stSidebar"] button:hover {
-    opacity: 0.95;
-}
-</style>
+    </style>
 """, unsafe_allow_html=True)
 
 #ส่วนที่ 1 ของล็อคอิน======================================================================================================
