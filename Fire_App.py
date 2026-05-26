@@ -84,7 +84,7 @@ st.markdown("""
     }
 
     /* ==========================================================
-       2. SELECTBOX (ช่องเลือกข้อมูลใน Sidebar - ฉบับตัดขาดสีระบบ)
+       2. SELECTBOX (ช่องเลือกข้อมูลใน Sidebar - บังคับสีน้ำเงินเข้ม #111844)
        ========================================================== */
     /* ตัวกล่อง Selectbox ตอนปิดปกติ */
     [data-testid="stSidebar"] div[data-baseweb="select"] > div {
@@ -92,27 +92,28 @@ st.markdown("""
         border: 1px solid #cbd8f2 !important; /* สีเส้นขอบกล่อง */
     }
 
-    /* 🔥 ไม้ตาย: เจาะจงไปที่คลาสเด็ดหัวของ Base Web และบังคับสีทับทุกมิติ */
+    /* 🎯 ล็อกมง: เจาะจงบังคับสีตัวหนังสือ "ด้านในกล่องที่เลือก" ให้เปลี่ยนเป็น #111844 */
+    [data-testid="stSidebar"] div[data-baseweb="select"] [data-testid="stSelectboxInputValue"],
     [data-testid="stSidebar"] div[data-baseweb="select"] [data-user-value="true"],
-    [data-testid="stSidebar"] div[data-baseweb="select"] [role="button"] div,
+    [data-testid="stSidebar"] div[data-baseweb="select"] div[role="button"] *,
     [data-testid="stSidebar"] div[data-baseweb="select"] div[title],
-    [data-testid="stSidebar"] [data-testid="stSelectboxInputValue"] {
+    [data-testid="stSidebar"] div[data-baseweb="select"] span,
+    [data-testid="stSidebar"] div[data-baseweb="select"] p {
         color: #111844 !important;
-        background-color: transparent !important;
-        /* บังคับล้างเอฟเฟกต์สีขาวของระบบดั้งเดิม */
-        -webkit-text-fill-color: #111844 !important; 
+        -webkit-text-fill-color: #111844 !important; /* ดักทางสำหรับบางบราวเซอร์ */
     }
 
-    /* ดักทางอีกชั้นในกรณีที่เป็น Placeholder (เช่น คำว่า "เลือกข้อมูล...") */
+    /* ดักทางกรณีที่ยังไม่ได้เลือกอะไรเลย (Placeholder จาง ๆ) ให้เป็นน้ำเงินเข้มด้วย */
     [data-testid="stSidebar"] div[data-baseweb="select"] div[aria-live="polite"] {
         color: #111844 !important;
-        opacity: 0.9 !important;
+        opacity: 1 !important;
     }
 
     /* เปลี่ยนสีไอคอนลูกศรชี้ลง (Dropdown Arrow) ในกล่อง */
     [data-testid="stSidebar"] div[data-baseweb="select"] svg {
         fill: #111844 !important;
     }
+
     /* ==========================================================
        3. DROPDOWN MENU (หน้าต่างรายการตัวเลือกที่เด้งกางออกมา)
        ========================================================== */
@@ -143,6 +144,7 @@ st.markdown("""
     [data-testid="stSidebar"] [data-testid="stTextArea"] textarea:focus {
         border-color: #5b7db1 !important;
         box-shadow: 0 0 0 1px #5b7db1 !important;
+        outline: none !important;
     }
     /* สีเส้นเคอร์เซอร์กะพริบตอนพิมพ์ */
     [data-testid="stSidebar"] [data-testid="stTextInput"] input, 
