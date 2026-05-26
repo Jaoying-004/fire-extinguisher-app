@@ -392,65 +392,6 @@ st.markdown("""
         margin-top: 20px !important;
     }
     
-    /* ==========================================================
-       1. ปรับขนาดหัวข้อ และคำว่า กรุณาเข้าสู่ระบบ
-       ========================================================== */
-    /* เพิ่มขนาดหัวข้อบนสุด */
-    [data-testid="stMain"] h1, 
-    [data-testid="stMain"] [data-testid="stMarkdownContainer"] h1 p {
-        font-size: 38px !important;    /* ปรับความใหญ่ของหัวข้ออังกฤษ */
-        font-weight: 700 !important;
-        text-align: center !important;
-    }
-
-    /* ลดขนาดคำว่า "กรุณาเข้าสู่ระบบ" และดึงให้ขยับลงมาด้านล่าง */
-    [data-testid="stMain"] h3, 
-    [data-testid="stMain"] [data-testid="stMarkdownContainer"] h3 p,
-    [data-testid="stMain"] p:has(+ div[data-testid="stTextInput"]) {
-        font-size: 16px !important;    /* ปรับให้เล็กลงตามต้องการ */
-        color: rgba(255, 255, 255, 0.7) !important;
-        margin-bottom: -40px !important; /* 👈 ไม้ตายดึงข้อความให้ดิ่งลงมาใกล้กล่องกรอกรหัส */
-        position: relative !important;
-        z-index: 10 !important;
-    }
-
-    /* ==========================================================
-       2. RE-DESIGN TEXT INPUT (เวอร์ชันแก้ทางกล่องที่มี max_chars)
-       ========================================================== */
-    /* ดักจับกล่องข้อความที่มีตัวนับอักษร (max_chars) และสั่งเปลี่ยนเป็นสีฟ้าอ่อน */
-    [data-testid="stMain"] [data-testid="stTextInput"] div[data-baseweb="base-input"] {
-        background-color: #f3f6fb !important; /* เปลี่ยนจากเหลืองครีมเป็นฟ้าอ่อน */
-        border: 1px solid #cbd8f2 !important; 
-        border-radius: 8px !important;
-        height: 46px !important;
-    }
-
-    /* สั่งเคลียร์พื้นหลังของ Input ชั้นในสุดไม่ให้สีซ้อนกัน */
-    [data-testid="stMain"] [data-testid="stTextInput"] input {
-        background-color: transparent !important; 
-        color: #111844 !important;                /* ตัวหนังสือตอนพิมพ์เป็นสีน้ำเงินเข้ม */
-        -webkit-text-fill-color: #111844 !important;
-        caret-color: #111844 !important;          /* สีเคอร์เซอร์กระพริบ */
-        font-size: 15px !important;
-    }
-
-    /* สีของตัวอักษรบอกสถานะ 0/20 มุมขวา */
-    [data-testid="stMain"] [data-testid="stTextInput"] div[data-baseweb="base-input"] ~ div {
-        color: #5b7db1 !important; /* ปรับตัวเลข 0/20 ให้เป็นสีฟ้าเข้าธีม ไม่กลืนหาย */
-    }
-
-    /* สีข้อความคำใบ้ตอนยังไม่ได้พิมพ์ (Placeholder) */
-    [data-testid="stMain"] [data-testid="stTextInput"] input::placeholder {
-        color: #8fa0c0 !important; 
-    }
-
-    /* เส้นขอบตอนคลิกพิมพ์ (Focus) */
-    [data-testid="stMain"] [data-testid="stTextInput"] div[data-baseweb="base-input"]:focus-within {
-        border-color: #5b7db1 !important;
-        box-shadow: 0 0 0 1px #5b7db1 !important;
-    }
-    
-    
     
 """, unsafe_allow_html=True)
 
