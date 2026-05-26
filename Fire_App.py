@@ -105,53 +105,60 @@ st.markdown("""
         color: #111844 !important;            
     }
 
-    /* ==========================================================
+/* ==========================================================
        4. TEXT INPUT / TEXT AREA (ช่องพิมพ์ข้อความใน Sidebar)
        ========================================================== */
     /* ดักจับช่อง st.text_input */
-    [data-testid="stSidebar"] [data-testid="stTextInput"] input {
+    [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"] input {
         background-color: #f3f6fb !important; 
         color: #111844 !important;            
-        border: 1px solid #cbd8f2 !important; 
+        -webkit-text-fill-color: #111844 !important; /* บังคับสีตัวอักษรสำหรับบางเบราว์เซอร์ */
     }
     /* ดักจับช่อง st.text_area */
-    [data-testid="stSidebar"] [data-testid="stTextArea"] textarea {
-        background-color: #fff8e9 !important; /* พื้นหลังสีครีมตามโค้ดเดิมของคุณ */
+    [data-testid="stSidebar"] [data-testid="stTextArea"] div[data-baseweb="textarea"] textarea {
+        background-color: #fff8e9 !important; /* พื้นหลังสีครีมตามดีไซน์ */
         color: #111844 !important;            
-        border: 1px solid #cbd8f2 !important; 
+        -webkit-text-fill-color: #111844 !important; 
     }
-    /* สีเส้นขอบตอนกำลังคลิกพิมพ์ (Focus) ทั้ง input และ textarea */
-    [data-testid="stSidebar"] [data-testid="stTextInput"] input:focus,
-    [data-testid="stSidebar"] [data-testid="stTextArea"] textarea:focus {
+    /* คุมเส้นขอบรอบกล่องพิมพ์ข้อความ (สภาวะปกติ) */
+    [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"],
+    [data-testid="stSidebar"] [data-testid="stTextArea"] div[data-baseweb="textarea"] {
+        border: 1px solid #cbd8f2 !important; 
+        background-color: transparent !important;
+    }
+    /* สีเส้นขอบตอนกำลังคลิกพิมพ์ (Focus) */
+    [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"]:focus-within,
+    [data-testid="stSidebar"] [data-testid="stTextArea"] div[data-baseweb="textarea"]:focus-within {
         border-color: #5b7db1 !important;
         box-shadow: 0 0 0 1px #5b7db1 !important;
-        outline: none !important;
-    }
-    /* สีเส้นเคอร์เซอร์กะพริบตอนพิมพ์ */
-    [data-testid="stSidebar"] [data-testid="stTextInput"] input, 
-    [data-testid="stSidebar"] [data-testid="stTextArea"] textarea {
-        caret-color: #111844 !important; 
     }
 
     /* ==========================================================
        5. FILE UPLOADER (กล่องอัปโหลดไฟล์)
        ========================================================== */
-    [data-testid="stFileUploader"] > section {
+    /* ตัวกล่องอัปโหลดภาพรวม */
+    [data-testid="stSidebar"] [data-testid="stFileUploader"] section {
         background-color: #f3f6fb !important;
         border: 1px dashed #5b7db1 !important; 
     }
-    [data-testid="stFileUploader"] small {
+    /* คำอธิบายขนาดไฟล์ด้านล่าง (200MB per file...) */
+    [data-testid="stSidebar"] [data-testid="stFileUploader"] section div div small {
         color: #5b7db1 !important;
     }
-    [data-testid="stFileUploader"] button {
-        background-color: #cbd8f2 !important; 
-        color: white !important;                
+    /* ตัวปุ่ม Upload ด้านใน */
+    [data-testid="stSidebar"] [data-testid="stFileUploader"] button[data-testid="stBaseButton-secondary"] {
+        background-color: #5b7db1 !important; /* ปรับเฉดเข้มขึ้นเล็กน้อยเพื่อให้เห็นข้อความชัดเจน */
         border: none !important;
     }
-    [data-testid="stFileUploader"] button:hover {
+    /* ตัวอักษรบนปุ่ม Upload */
+    [data-testid="stSidebar"] [data-testid="stFileUploader"] button[data-testid="stBaseButton-secondary"] p {
+        color: #ffffff !important;                
+        -webkit-text-fill-color: #ffffff !important;
+    }
+    /* เอฟเฟกต์ตอนเอาเมาส์ไปชี้ปุ่ม (Hover) */
+    [data-testid="stSidebar"] [data-testid="stFileUploader"] button[data-testid="stBaseButton-secondary"]:hover {
         background-color: #466699 !important; 
     }
-    </style>
 """, unsafe_allow_html=True)
 
 #ส่วนที่ 1 ของล็อคอิน======================================================================================================
