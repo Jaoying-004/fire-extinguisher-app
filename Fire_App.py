@@ -230,35 +230,33 @@ st.markdown("""
 
 
     /* ==========================================================
-       7. MAIN CONTENT RADIO BUTTONS (เวอร์ชันล็อกขนาดตายตัวเท่ากันทุกข้อ)
+       7. MAIN CONTENT RADIO BUTTONS (เวอร์ชันสมดุล มินิมอล สวยงาม)
        ========================================================== */
-    /* ตัวควบคุมกลุ่มปุ่มวิทยุ (Radio Group) */
+    /* คุมพฤติกรรมกลุ่มปุ่มวิทยุหน้าหลัก */
     [data-testid="stMain"] [data-testid="stRadio"] div[role="radiogroup"] {
         display: flex !important;
         flex-direction: column !important; 
-        gap: 12px !important;              
+        gap: 10px !important;              /* ระยะห่างที่กำลังพอดีระหว่างกล่อง ใช่ และ ไม่ใช่ */
         padding-top: 8px !important;
         
-        /* จุดที่เพิ่ม: บังคับความกว้างสูงสุดของกลุ่มปุ่ม และจัดให้กลุ่มปุ่มอยู่กึ่งกลาง */
         width: 100% !important;
-        max-width: 400px !important;       /* 👈 บังคับความกว้างสูงสุดของกลุ่มกล่อง (ปรับเพิ่ม-ลดตัวเลขนี้ได้) */
-        margin: 0 auto !important;         /* 👈 จัดให้กลุ่มกล่องทั้งหมดอยู่กึ่งกลางหน้าหลัก */
+        max-width: 280px !important;       /* 👈 ปรับความกว้างให้มินิมอลพอดีคำ (จากเดิม 400px) */
+        margin: 0 !important;              /* จัดชิดซ้ายตามแนวหัวข้อคำถามเพื่อให้อ่านง่าย */
     }
 
-    /* สไตล์กล่อง ใช่ / ไม่ใช่ ทุกกล่อง ทุกข้อ ให้ขนาดเท่ากันเป๊ะ */
+    /* ปรับขนาดกล่อง ใช่ / ไม่ใช่ ทุกข้อให้เท่ากันและสมดุล */
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"] {
-        background-color: rgba(243, 246, 251, 0.08) !important;
-        border: 1px solid rgba(203, 216, 242, 0.2) !important;
-        padding: 0 20px !important;         
-        border-radius: 12px !important;
+        background-color: rgba(243, 246, 251, 0.06) !important; /* ปรับพื้นหลังจางลงเล็กน้อยให้ดูคลีน */
+        border: 1px solid rgba(203, 216, 242, 0.15) !important;
+        border-radius: 10px !important;    /* ปรับความมนให้เข้ากับขนาดกล่องที่เล็กลง */
         
-        /* 💎 จุดสำคัญ: กำหนดขนาดกล่องเองแบบตายตัว 💎 */
-        width: 50% !important;            /* ให้ขยายเต็มกว้างสุด (400px) ตามที่ตั้งไว้ด้านบน */
-        min-height: 52px !important;       /* บังคับความสูงมาตรฐานให้เท่ากันเป๊ะทุกข้อ */
+        width: 100% !important;            /* กางเท่ากันทุกกล่องที่ความกว้าง 280px */
+        min-height: 42px !important;       /* 👈 ลดความสูงกล่องลงมาให้เรียวสวยงาม ไม่หนาเทอะทะ */
+        padding: 0 !important;             /* ล้างค่าพื้นที่ในเพื่อคุมความสูงด้วย min-height ได้นิ่งๆ */
         
         display: flex !important;
         align-items: center !important;
-        justify-content: center !important; /* จัดตัวหนังสือ "ใช่ / ไม่ใช่" อยู่ตรงกลางกล่องพอดี */
+        justify-content: center !important; /* ตัวหนังสืออยู่กึ่งกลางกล่องเป๊ะ */
         transition: all 0.2s ease !important;
         cursor: pointer !important;
         margin: 0 !important;              
@@ -269,35 +267,35 @@ st.markdown("""
         display: none !important;
     }
 
-    /* สีฟอนต์คำว่า ใช่/ไม่ใช่ (สถานะปกติ) */
+    /* ปรับแต่งตัวอักษร ใช่ / ไม่ใช่ ข้างในกล่อง */
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"] div,
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"] p,
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"] span {
-        color: #ffffff !important;
-        -webkit-text-fill-color: #ffffff !important;
-        font-size: 15px !important; 
+        color: rgba(255, 255, 255, 0.85) !important; /* สีขาวนวลสบายตาในสถานะปกติ */
+        -webkit-text-fill-color: rgba(255, 255, 255, 0.85) !important;
+        font-size: 14px !important;        /* ขนาดตัวอักษรพอดีกับขนาดกล่องใหม่ */
         font-weight: 500 !important;
         margin: 0 !important;
     }
 
-    /* เมื่อเอาเมาส์ชี้กล่อง ใช่/ไม่ใช่ */
+    /* เอฟเฟกต์เมื่อเมาส์ชี้ */
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"]:hover {
-        background-color: rgba(243, 246, 251, 0.15) !important;
+        background-color: rgba(243, 246, 251, 0.12) !important;
         border-color: #5b7db1 !important;
     }
 
-    /* เมื่อกล่อง ใช่ หรือ ไม่ใช่ "ถูกเลือก" */
+    /* เอฟเฟกต์เมื่อกล่อง "ถูกเลือก" */
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) {
-        background-color: #f3f6fb !important;
+        background-color: #f3f6fb !important; /* ไฮไลต์ฟ้าอ่อนสว่าง */
         border: 1px solid #5b7db1 !important;
-        box-shadow: 0 4px 12px rgba(17, 24, 68, 0.1) !important;
+        box-shadow: 0 4px 10px rgba(17, 24, 68, 0.08) !important;
     }
 
-    /* สีฟอนต์คำว่า ใช่/ไม่ใช่ (เมื่อโดนเลือก) */
+    /* สีฟอนต์เมื่อกล่อง "ถูกเลือก" */
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) div,
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) p,
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) span {
-        color: #111844 !important;
+        color: #111844 !important;            /* ตัวอักษรน้ำเงินเข้มคมชัด */
         -webkit-text-fill-color: #111844 !important;
         font-weight: 600 !important;
     }
