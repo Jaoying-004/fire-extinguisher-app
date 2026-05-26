@@ -82,23 +82,24 @@ st.markdown("""
 }
 
 /* ================================
-   SELECTBOX - แก้ไขใหม่ทั้งหมด
+   SELECTBOX - แก้ไขใหม่ทั้งหมด (ฉบับบังคับเปลี่ยนสี)
 ================================ */
 
 /* กล่อง Selectbox ปิด (ยังไม่กด) */
 [data-testid="stSidebar"] div[data-baseweb="select"] > div {
-    background-color: #f3f6fb !important;
-    border: 1px solid #cbd8f2 !important;
+    background-color: #f3f6fb !important; /* สีพื้นหลังกล่อง */
+    border: 1px solid #cbd8f2 !important; /* สีเส้นขอบกล่อง */
     border-radius: 10px !important;
 }
 
-/* ✅ บังคับสีตัวหนังสือใน Selectbox */
-[data-testid="stSidebar"] div[data-baseweb="select"] > div,
-[data-testid="stSidebar"] div[data-baseweb="select"] > div > div,
-[data-testid="stSidebar"] div[data-baseweb="select"] span,
+/* 🎯 ดักจับตัวหนังสือที่แสดงผลอยู่ข้างในกล่อง Selectbox และบังคับเป็นสีน้ำเงินเข้ม */
+[data-testid="stSidebar"] div[data-baseweb="select"] div[data-testid="stMarkdownContainer"] p,
+[data-testid="stSidebar"] div[data-baseweb="select"] [data-testid="stSelectboxInputValue"],
 [data-testid="stSidebar"] div[data-baseweb="select"] div[role="button"],
-[data-testid="stSidebar"] div[data-baseweb="select"] div[role="button"] > div {
-    color: #111844 !important;
+[data-testid="stSidebar"] div[data-baseweb="select"] div[role="button"] > div,
+[data-testid="stSidebar"] div[data-baseweb="select"] span {
+    color: #111844 !important;           /* บังคับตัวหนังสือสีน้ำเงินเข้ม */
+    -webkit-text-fill-color: #111844 !important; /* ดักทางสำหรับบราวเซอร์บางตัว */
 }
 
 /* ลูกศร dropdown */
