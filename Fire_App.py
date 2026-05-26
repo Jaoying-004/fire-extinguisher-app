@@ -230,16 +230,9 @@ st.markdown("""
 
 
     /* ==========================================================
-       7. MAIN CONTENT RADIO BUTTONS (เวอร์ชันทลายบล็อกสไตล์ระบบ)
+       7. MAIN CONTENT RADIO BUTTONS (เวอร์ชันล็อกพิกเซลที่ตัวปุ่มโดยตรง)
        ========================================================== */
-    /* 🛠️ จุดสำคัญ: ดักจับและปลดล็อกการควบคุมความกว้างที่ตัวหุ้มด้านนอกสุดของ Streamlit */
-    [data-testid="stMain"] [data-testid="stRadio"] {
-        width: 100% !important;
-        max-width: 200px !important; /* 👈 กำหนดขนาดความกว้างกล่องที่คุณต้องการตรงนี้ (เช่น 260px, 280px, 300px) */
-        margin-left: 0 !important;   /* จัดชิดซ้ายตามแนวหัวข้อ */
-    }
-
-    /* คุมพฤติกรรมกลุ่มปุ่มวิทยุ (แผ่เต็มพื้นที่ 280px ที่ปลดล็อกไว้) */
+    /* ปล่อยโครงสร้างหลักให้กางตามธรรมชาติ แต่คุมระยะห่าง */
     [data-testid="stMain"] [data-testid="stRadio"] div[role="radiogroup"] {
         display: flex !important;
         flex-direction: column !important; 
@@ -248,19 +241,20 @@ st.markdown("""
         width: 100% !important;
     }
 
-    /* สไตล์กล่อง ใช่ / ไม่ใช่ ทุกข้อให้เท่ากันและสมดุล */
+    /* 💎 บังคับขนาดกล่อง ใช่ / ไม่ใช่ ทุกข้อให้เท่ากันด้วยหน่วยพิกเซลตรงๆ 💎 */
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"] {
         background-color: rgba(243, 246, 251, 0.06) !important; 
         border: 1px solid rgba(203, 216, 242, 0.15) !important;
         border-radius: 10px !important;    
         
-        width: 100% !important;            /* ขยายกว้างเต็มสัดส่วน 280px เท่ากันเป๊ะทุกข้อ */
+        /* เปลี่ยนลอจิกตรงนี้: ล็อกความกว้างตายตัว ไม่สนความยาวโจทย์ด้านบน */
+        width: 200px !important;           /* 👈 ล็อกความกว้างกล่องปุ่ม (ปรับเพิ่ม-ลดตัวเลขพิกเซลตรงนี้ได้เลยครับ) */
         min-height: 42px !important;       /* ควบคุมความสูงให้เรียวสวยงาม */
         padding: 0 !important;             
         
         display: flex !important;
         align-items: center !important;
-        justify-content: center !important; /* ตัวหนังสืออยู่กึ่งกลางกล่อง */
+        justify-content: center !important; /* จัดตัวหนังสืออยู่ตรงกลางกล่อง */
         transition: all 0.2s ease !important;
         cursor: pointer !important;
         margin: 0 !important;              
