@@ -62,54 +62,35 @@ except Exception as e:
 # โซนปรับแต่งสีจ้า (Sidebar)
 st.markdown("""
     <style>
-    /* ==========================================================
-       1. SIDEBAR BASE (จัดการพื้นหลังและตัวอักษรทั่วไป)
-       ========================================================== */
-    /* เปลี่ยนสีพื้นหลังของ Sidebar */
     [data-testid="stSidebar"] > div:first-child {
         background-color: #14264d !important; 
     }
 
-    /* บังคับสีตัวหนังสือของหัวข้อและข้อความทั่วไปใน Sidebar ให้เป็นสีขาว */
+    /* บังคับสีขาวเฉพาะ หัวข้อ (h1-h6) และ ป้ายข้อความกำกับ (Labels) เท่านั้น */
     [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, 
     [data-testid="stSidebar"] h3, [data-testid="stSidebar"] h4, 
     [data-testid="stSidebar"] h5, [data-testid="stSidebar"] h6,
-    [data-testid="stSidebar"] p, [data-testid="stSidebar"] label {
+    [data-testid="stSidebar"] [data-testid="stWidgetLabel"] p,
+    [data-testid="stSidebar"] label[data-testid="stWidgetLabel"] {
         color: #ffffff !important;
     }
 
-    /* บังคับสีของข้อความป้ายกำกับ (Labels) ด้านบนของทุกๆ Widget */
-    [data-testid="stSidebar"] [data-testid="stWidgetLabel"] p {
-        color: #ffffff !important; 
-    }
-
     /* ==========================================================
-       2. SELECTBOX (ช่องเลือกข้อมูลใน Sidebar - บังคับสีน้ำเงินเข้ม #111844)
+       2. SELECTBOX (เมื่อไม่มีข้อ 1 มาขัดขา สีน้ำเงินเข้มจะทำงานได้ 100%)
        ========================================================== */
-    /* ตัวกล่อง Selectbox ตอนปิดปกติ */
+    /* ตัวกล่อง Selectbox */
     [data-testid="stSidebar"] div[data-baseweb="select"] > div {
-        background-color: #f3f6fb !important; /* สีพื้นหลังของกล่อง */
-        border: 1px solid #cbd8f2 !important; /* สีเส้นขอบกล่อง */
+        background-color: #f3f6fb !important; /* พื้นหลังกล่อง */
+        border: 1px solid #cbd8f2 !important; /* เส้นขอบกล่อง */
     }
 
-    /* 🎯 ล็อกมง: เจาะจงบังคับสีตัวหนังสือ "ด้านในกล่องที่เลือก" ให้เปลี่ยนเป็น #111844 */
-    [data-testid="stSidebar"] div[data-baseweb="select"] [data-testid="stSelectboxInputValue"],
-    [data-testid="stSidebar"] div[data-baseweb="select"] [data-user-value="true"],
-    [data-testid="stSidebar"] div[data-baseweb="select"] div[role="button"] *,
-    [data-testid="stSidebar"] div[data-baseweb="select"] div[title],
-    [data-testid="stSidebar"] div[data-baseweb="select"] span,
-    [data-testid="stSidebar"] div[data-baseweb="select"] p {
+    /* บังคับสีตัวอักษรข้างในกล่องหลักเป็นสีน้ำเงินเข้ม */
+    [data-testid="stSidebar"] div[data-baseweb="select"] * {
         color: #111844 !important;
-        -webkit-text-fill-color: #111844 !important; /* ดักทางสำหรับบางบราวเซอร์ */
+        -webkit-text-fill-color: #111844 !important;
     }
 
-    /* ดักทางกรณีที่ยังไม่ได้เลือกอะไรเลย (Placeholder จาง ๆ) ให้เป็นน้ำเงินเข้มด้วย */
-    [data-testid="stSidebar"] div[data-baseweb="select"] div[aria-live="polite"] {
-        color: #111844 !important;
-        opacity: 1 !important;
-    }
-
-    /* เปลี่ยนสีไอคอนลูกศรชี้ลง (Dropdown Arrow) ในกล่อง */
+    /* เปลี่ยนสีไอคอนลูกศรชี้ลง */
     [data-testid="stSidebar"] div[data-baseweb="select"] svg {
         fill: #111844 !important;
     }
