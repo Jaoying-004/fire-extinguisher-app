@@ -89,33 +89,44 @@ st.markdown("""
 }
 
 /* ================================
-   SELECTBOX
+   SELECTBOX - แก้ไขใหม่ทั้งหมด
 ================================ */
+
+/* 1. กล่องหลักของ Selectbox */
 [data-testid="stSidebar"] div[data-baseweb="select"] > div {
     background-color: #f3f6fb !important;
-    color: #111844 !important;
     border: 1px solid #cbd8f2 !important;
     border-radius: 10px !important;
 }
 
- /* 1. เปลี่ยนสีตัวกล่องข้อความ และสีตัวหนังสือข้างใน Selectbox (ตอนยังไม่ได้กด) */
-[data-testid="stSidebar"] div[data-baseweb="select"] > div {
-    background-color: #f3f6fb !important; /* สีพื้นหลังของกล่องข้อความ */
-    color: #111844 !important;            /* สีตัวหนังสือภายในกล่อง */
-    border: 1px solid #d9e2f2 !important; /* สีเส้นขอบกล่อง */
+/* 2. ✅ ตัวหนังสือภายใน Selectbox (สำคัญ!) */
+[data-testid="stSidebar"] div[data-baseweb="select"] > div > div,
+[data-testid="stSidebar"] div[data-baseweb="select"] span,
+[data-testid="stSidebar"] div[data-baseweb="select"] div[role="button"] {
+    color: #111844 !important;
 }
 
-
-
-/* ลูกศร dropdown */
+/* 3. ลูกศร dropdown */
 [data-testid="stSidebar"] div[data-baseweb="select"] svg {
     fill: #111844 !important;
 }
 
-/* รายการใน dropdown */
+/* 4. ✅ รายการใน dropdown เมื่อกด */
 div[data-baseweb="popover"] li {
     background-color: #f3f6fb !important;
     color: #111844 !important;
+}
+
+/* 5. ✅ รายการที่ hover */
+div[data-baseweb="popover"] li:hover {
+    background-color: #cbd8f2 !important;
+    color: #111844 !important;
+}
+
+/* 6. ✅ รายการที่เลือกอยู่ */
+div[data-baseweb="popover"] li[aria-selected="true"] {
+    background-color: #5b7db1 !important;
+    color: #ffffff !important;
 }
 
 /* ================================
