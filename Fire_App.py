@@ -8,7 +8,6 @@ import time
 import uuid
 import extra_streamlit_components as stx
 from streamlit_extras.stylable_container import stylable_container
-from streamlit_extras.let_it_rain import rain
 
 
 def colored_button(label, color, text_color="white", key=None):
@@ -165,6 +164,59 @@ st.markdown("""
     /* เอฟเฟกต์ตอนเอาเมาส์ไปชี้ปุ่ม (Hover) */
     [data-testid="stSidebar"] [data-testid="stFileUploader"] button[data-testid="stBaseButton-secondary"]:hover {
         background-color: #466699 !important; 
+    }
+    
+    /* ==========================================================
+       6. MODERN RADIO BUTTONS (เปลี่ยนปุ่มวิทยุเป็นกล่องเมนูโมเดิร์น)
+       ========================================================== */
+    /* จัดเลย์เอาต์ของกลุ่มตัวเลือกให้เรียงกันสวยงาม */
+    [data-testid="stSidebar"] [data-testid="stRadio"] div[role="radiogroup"] {
+        gap: 12px !important; /* เว้นระยะห่างระหว่างกล่อง */
+        padding-top: 8px !important;
+    }
+
+    /* สไตล์ของแต่ละตัวเลือก (แปลงร่างจากข้อความเป็นกล่องการ์ด) */
+    [data-testid="stSidebar"] [data-testid="stRadio"] label[data-baseweb="radio"] {
+        background-color: rgba(243, 246, 251, 0.08) !important; /* พื้นหลังโปร่งแสงกลืนกับธีมน้ำเงิน */
+        border: 1px solid rgba(203, 216, 242, 0.2) !important;  /* เส้นขอบจางๆ */
+        padding: 14px 20px !important;                          /* เพิ่มพื้นที่ด้านในกล่อง */
+        border-radius: 10px !important;                         /* ทำมุมโค้งมนแบบโมเดิร์น */
+        width: 100% !important;
+        transition: all 0.25s ease !important;                  /* เคลื่อนไหวสมูทตอน Hover/Select */
+        cursor: pointer !important;
+    }
+
+    /* ซ่อนวงกลม Radio Button ดั้งเดิมของระบบออกไป */
+    [data-testid="stSidebar"] [data-testid="stRadio"] label[data-baseweb="radio"] div:first-child {
+        display: none !important;
+    }
+
+    /* ปรับแต่งข้อความและอีโมจิด้านในกล่อง */
+    [data-testid="stSidebar"] [data-testid="stRadio"] label[data-baseweb="radio"] div[data-testid="stMarkdownContainer"] p {
+        color: #ffffff !important;
+        font-size: 16px !important;
+        font-weight: 500 !important;
+        margin: 0 !important;
+    }
+
+    /* เอฟเฟกต์ตอนเมาส์ชี้ (Hover) */
+    [data-testid="stSidebar"] [data-testid="stRadio"] label[data-baseweb="radio"]:hover {
+        background-color: rgba(243, 246, 251, 0.15) !important;
+        border-color: #5b7db1 !important;
+        transform: translateY(-1px) !important; /* ยกตัวขึ้นเล็กน้อย */
+    }
+
+    /* เอฟเฟกต์เมื่อตัวเลือกนั้น "ถูกคลิกเลือก" (Active State) */
+    [data-testid="stSidebar"] [data-testid="stRadio"] div[aria-checked="true"] {
+        background-color: #f3f6fb !important; /* เปลี่ยนพื้นหลังเป็นสีฟ้าอ่อนสว่าง */
+        border: 1px solid #5b7db1 !important;
+        box-shadow: 0 4px 12px rgba(17, 24, 68, 0.15) !important; /* เพิ่มมิติเงา */
+    }
+
+    /* เปลี่ยนสีตัวอักษรด้านในกล่องที่โดนเลือก ให้กลายเป็นสีน้ำเงินเข้มเพื่อตัดกับพื้นหลังฟ้าอ่อน */
+    [data-testid="stSidebar"] [data-testid="stRadio"] div[aria-checked="true"] div[data-testid="stMarkdownContainer"] p {
+        color: #111844 !important;
+        font-weight: 600 !important;
     }
 """, unsafe_allow_html=True)
 
