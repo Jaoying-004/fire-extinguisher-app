@@ -167,59 +167,119 @@ st.markdown("""
     }
     
     /* ==========================================================
-       6. MODERN RADIO BUTTONS (เวอร์ชันแก้ไขตัวหนังสือหาย)
+       6. MODERN RADIO BUTTONS (ล็อกให้ใหญ่เฉพาะใน Sidebar)
        ========================================================== */
-    /* จัดเลย์เอาต์ของกลุ่มตัวเลือกให้เรียงกัน */
+    /* จัดเลย์เอาต์ของกลุ่มตัวเลือกใน Sidebar */
     [data-testid="stSidebar"] [data-testid="stRadio"] div[role="radiogroup"] {
-        gap: 12px !important; 
-        padding-top: 8px !important;
+        gap: 16px !important; 
+        padding-top: 12px !important;
     }
 
-    /* สไตล์ของแต่ละกล่อง (สถานะปกติ / ยังไม่ถูกเลือก) */
+    /* สไตล์ของแต่ละกล่องใน Sidebar (สถานะปกติ / ยังไม่ถูกเลือก) */
     [data-testid="stSidebar"] [data-testid="stRadio"] label[data-baseweb="radio"] {
         background-color: rgba(243, 246, 251, 0.08) !important; 
         border: 1px solid rgba(203, 216, 242, 0.2) !important;  
-        padding: 14px 20px !important;                          
-        border-radius: 10px !important;                         
-        width: 100% !important;
+        padding: 20px 24px !important;  /* เพิ่มความกว้างและความสูงเฉพาะใน Sidebar */
+        border-radius: 12px !important; 
+        width: 100% !important;         
+        min-height: 64px !important;    /* บังคับความสูงกล่องใหญ่ใน Sidebar */
         transition: all 0.25s ease !important;                  
         cursor: pointer !important;
         display: flex !important;
         align-items: center !important;
+        justify-content: center !important; 
     }
 
-    /* ซ่อนวงกลมดั้งเดิม */
+    /* ซ่อนวงกลมดั้งเดิมใน Sidebar */
     [data-testid="stSidebar"] [data-testid="stRadio"] label[data-baseweb="radio"] > div:first-child {
         display: none !important;
     }
 
-    /* ดักจับบังคับสีตัวหนังสือ + อีโมจิ (สถานะปกติ / ยังไม่ถูกเลือก) ให้เป็นสีขาว */
+    /* ตัวหนังสือในกล่อง Sidebar (สถานะปกติ) */
     [data-testid="stSidebar"] [data-testid="stRadio"] label[data-baseweb="radio"] div,
     [data-testid="stSidebar"] [data-testid="stRadio"] label[data-baseweb="radio"] p,
     [data-testid="stSidebar"] [data-testid="stRadio"] label[data-baseweb="radio"] span {
         color: #ffffff !important;
         -webkit-text-fill-color: #ffffff !important;
-        font-size: 12px !important;
+        font-size: 16px !important; /* ขนาดกล่องเมนูหลักด้านบน */
         font-weight: 500 !important;
     }
 
-    /* เอฟเฟกต์ตอนเมาส์ชี้ (Hover) */
+    /* เอฟเฟกต์ตอนเมาส์ชี้ใน Sidebar */
     [data-testid="stSidebar"] [data-testid="stRadio"] label[data-baseweb="radio"]:hover {
+        background-color: rgba(243, 246, 251, 0.15) !important;
+        border-color: #5b7db1 !important;
+        transform: translateY(-2px) !important; 
+    }
+
+    /* เอฟเฟกต์เมื่อกล่องใน Sidebar "ถูกเลือก" */
+    [data-testid="stSidebar"] [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) {
+        background-color: #f3f6fb !important; 
+        border: 1px solid #5b7db1 !important;
+        box-shadow: 0 6px 16px rgba(17, 24, 68, 0.2) !important; 
+    }
+
+    /* ตัวหนังสือในกล่อง Sidebar (สถานะเลือกแล้ว) */
+    [data-testid="stSidebar"] [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) div,
+    [data-testid="stSidebar"] [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) p,
+    [data-testid="stSidebar"] [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) span {
+        color: #111844 !important;
+        -webkit-text-fill-color: #111844 !important;
+        font-weight: 600 !important;
+    }
+
+
+    /* ==========================================================
+       7. MAIN CONTENT RADIO BUTTONS (ปรับแต่งกล่อง "ใช่/ไม่ใช่" หน้าหลัก)
+       ========================================================== */
+    /* จัดเลย์เอาต์ของกล่อง ใช่/ไม่ใช่ ให้เว้นระยะห่างเท่าๆ กัน */
+    [data-testid="stMain"] [data-testid="stRadio"] div[role="radiogroup"] {
+        gap: 10px !important;
+        padding-top: 6px !important;
+    }
+
+    /* บังคับขนาดกล่อง ใช่ และ ไม่ใช่ ให้มีความสูงและหน้าตาเท่ากันเป๊ะ ดูสมดุล */
+    [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"] {
+        background-color: rgba(243, 246, 251, 0.08) !important;
+        border: 1px solid rgba(203, 216, 242, 0.2) !important;
+        padding: 12px 16px !important;  /* ปรับขนาดด้านในให้พอดีกับคำสั้นๆ */
+        border-radius: 10px !important;
+        width: 100% !important;
+        min-height: 48px !important;    /* 👈 ล็อกความสูงมาตรฐานให้กล่อง "ใช่" กับ "ไม่ใช่" เท่ากัน 100% */
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important; /* จัดข้อความชิดซ้ายปกติเพื่อไม่ให้ฝืนโครงสร้างเดิม */
+        transition: all 0.2s ease !important;
+    }
+
+    /* ซ่อนวงกลมดั้งเดิมของกล่อง ใช่/ไม่ใช่ */
+    [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"] > div:first-child {
+        display: none !important;
+    }
+
+    /* สีฟอนต์คำว่า ใช่/ไม่ใช่ (สถานะปกติ) */
+    [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"] p {
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+        font-size: 14px !important; /* ตัวหนังสือเล็กลงมาหน่อยให้เข้ากับคำถาม */
+        font-weight: 400 !important;
+        margin: 0 !important;
+    }
+
+    /* เมื่อเอาเมาส์ชี้กล่อง ใช่/ไม่ใช่ */
+    [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"]:hover {
         background-color: rgba(243, 246, 251, 0.15) !important;
         border-color: #5b7db1 !important;
     }
 
-    /* เอฟเฟกต์เมื่อกล่องนั้น "ถูกเลือก" (Active State) */
-    [data-testid="stSidebar"] [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) {
-        background-color: #f3f6fb !important; /* พื้นหลังเปลี่ยนเป็นสีฟ้าอ่อนสว่าง */
+    /* เมื่อกล่อง ใช่ หรือ ไม่ใช่ "ถูกเลือก" */
+    [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) {
+        background-color: #f3f6fb !important;
         border: 1px solid #5b7db1 !important;
-        box-shadow: 0 4px 12px rgba(17, 24, 68, 0.15) !important;
     }
 
-    /* ดักจับบังคับสีตัวหนังสือ + อีโมจิ ของกล่องที่ "ถูกเลือกแล้ว" ให้เปลี่ยนเป็นน้ำเงินเข้ม */
-    [data-testid="stSidebar"] [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) div,
-    [data-testid="stSidebar"] [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) p,
-    [data-testid="stSidebar"] [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) span {
+    /* สีฟอนต์คำว่า ใช่/ไม่ใช่ (เมื่อโดนเลือก) */
+    [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) p {
         color: #111844 !important;
         -webkit-text-fill-color: #111844 !important;
         font-weight: 600 !important;
