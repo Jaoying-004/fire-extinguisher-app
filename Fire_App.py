@@ -253,7 +253,7 @@ st.markdown("""
         border-radius: 12px !important;
         
         /* 💎 จุดสำคัญ: กำหนดขนาดกล่องเองแบบตายตัว 💎 */
-        width: 100% !important;            /* ให้ขยายเต็มกว้างสุด (400px) ตามที่ตั้งไว้ด้านบน */
+        width: 50% !important;            /* ให้ขยายเต็มกว้างสุด (400px) ตามที่ตั้งไว้ด้านบน */
         min-height: 52px !important;       /* บังคับความสูงมาตรฐานให้เท่ากันเป๊ะทุกข้อ */
         
         display: flex !important;
