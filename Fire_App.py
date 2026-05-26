@@ -720,7 +720,7 @@ if st.session_state.get("cookie_ready", False):
 
 if not st.session_state.get("authenticated"):
     st.markdown(
-        "<h3 style='text-align: center; font-size: 60px; font-weight: 700; color: #ffffff; margin-bottom: 0px;'>"
+        "<h4 style='text-align: center; font-size: 60px; font-weight: 700; color: #ffffff; margin-bottom: 0px;'>"
         "SafePig Safety Inspection System 🧯"
         "</h1>",
         unsafe_allow_html=True
