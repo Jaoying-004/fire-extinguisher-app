@@ -393,31 +393,61 @@ st.markdown("""
     }
     
     /* ==========================================================
-       ปรับขนาดตัวอักษรหน้าเว็บหลัก (Login)
+       1. ปรับขนาดหัวข้อ และคำว่า กรุณาเข้าสู่ระบบ
        ========================================================== */
-    
-    /* 1. เพิ่มขนาดตัวหนังสือหัวข้อบนสุด (ระบบตรวจเช็คอุปกรณ์ดับเพลิง) */
+    /* เพิ่มขนาดหัวข้อบนสุด */
     [data-testid="stMain"] h1, 
-    [data-testid="stMain"] h2 {
-        font-size: 36px !important;    /* 👈 เพิ่มความใหญ่เด่นชัด (ปรับเพิ่ม-ลดตัวเลข px ได้ครับ) */
-        font-weight: 700 !important;   /* ทำตัวหนาพิเศษ */
-        letter-spacing: 0.5px !important;
-        margin-bottom: 15px !important;
+    [data-testid="stMain"] [data-testid="stMarkdownContainer"] h1 p {
+        font-size: 38px !important;    /* ปรับความใหญ่ของหัวข้ออังกฤษ */
+        font-weight: 700 !important;
+        text-align: center !important;
     }
 
-    /* 2. ลดขนาดคำว่า "กรุณาเข้าสู่ระบบ" ลงมา */
-    /* ดักจับกรณีที่เขียนด้วย st.subheader หรือ h3/h4 */
-    [data-testid="stMain"] h3,
-    [data-testid="stMain"] h4 {
-        font-size: 18px !important;    /* 👈 ลดขนาดลงมาให้ดูเป็นซับไตเติล (จากเดิมมักจะอยู่ที่ 24px) */
-        font-weight: 400 !important;   /* ปรับให้ตัวบางลงเพื่อลดความเด่น */
-        color: rgba(255, 255, 255, 0.7) !important; /* ปรับสีขาวหม่นลงเล็กน้อย ให้สบายตา */
+    /* ลดขนาดคำว่า "กรุณาเข้าสู่ระบบ" และดึงให้ขยับลงมาด้านล่าง */
+    [data-testid="stMain"] h3, 
+    [data-testid="stMain"] [data-testid="stMarkdownContainer"] h3 p,
+    [data-testid="stMain"] p:has(+ div[data-testid="stTextInput"]) {
+        font-size: 16px !important;    /* ปรับให้เล็กลงตามต้องการ */
+        color: rgba(255, 255, 255, 0.7) !important;
+        margin-bottom: -40px !important; /* 👈 ไม้ตายดึงข้อความให้ดิ่งลงมาใกล้กล่องกรอกรหัส */
+        position: relative !important;
+        z-index: 10 !important;
     }
 
-    /* ดักจับกรณีคำว่า "กรุณาเข้าสู่ระบบ" เขียนด้วยข้อความธรรมดา (st.write หรือ st.markdown ทั่วไป) */
-    [data-testid="stMain"] div[data-testid="stMarkdownContainer"] p {
-        /* ตรวจสอบว่าถ้าอยู่ในบล็อกบนๆ ให้ปรับขนาดลง */
-        font-size: 18px !important; 
+    /* ==========================================================
+       2. RE-DESIGN TEXT INPUT (เวอร์ชันแก้ทางกล่องที่มี max_chars)
+       ========================================================== */
+    /* ดักจับกล่องข้อความที่มีตัวนับอักษร (max_chars) และสั่งเปลี่ยนเป็นสีฟ้าอ่อน */
+    [data-testid="stMain"] [data-testid="stTextInput"] div[data-baseweb="base-input"] {
+        background-color: #f3f6fb !important; /* เปลี่ยนจากเหลืองครีมเป็นฟ้าอ่อน */
+        border: 1px solid #cbd8f2 !important; 
+        border-radius: 8px !important;
+        height: 46px !important;
+    }
+
+    /* สั่งเคลียร์พื้นหลังของ Input ชั้นในสุดไม่ให้สีซ้อนกัน */
+    [data-testid="stMain"] [data-testid="stTextInput"] input {
+        background-color: transparent !important; 
+        color: #111844 !important;                /* ตัวหนังสือตอนพิมพ์เป็นสีน้ำเงินเข้ม */
+        -webkit-text-fill-color: #111844 !important;
+        caret-color: #111844 !important;          /* สีเคอร์เซอร์กระพริบ */
+        font-size: 15px !important;
+    }
+
+    /* สีของตัวอักษรบอกสถานะ 0/20 มุมขวา */
+    [data-testid="stMain"] [data-testid="stTextInput"] div[data-baseweb="base-input"] ~ div {
+        color: #5b7db1 !important; /* ปรับตัวเลข 0/20 ให้เป็นสีฟ้าเข้าธีม ไม่กลืนหาย */
+    }
+
+    /* สีข้อความคำใบ้ตอนยังไม่ได้พิมพ์ (Placeholder) */
+    [data-testid="stMain"] [data-testid="stTextInput"] input::placeholder {
+        color: #8fa0c0 !important; 
+    }
+
+    /* เส้นขอบตอนคลิกพิมพ์ (Focus) */
+    [data-testid="stMain"] [data-testid="stTextInput"] div[data-baseweb="base-input"]:focus-within {
+        border-color: #5b7db1 !important;
+        box-shadow: 0 0 0 1px #5b7db1 !important;
     }
     
     
