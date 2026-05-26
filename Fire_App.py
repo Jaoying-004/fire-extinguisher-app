@@ -141,22 +141,24 @@ st.markdown("""
         background-color: #f3f6fb !important;
         border: 1px dashed #5b7db1 !important; 
     }
-    /* จุดที่แก้ไข: เปลี่ยนสีข้อความคำอธิบายขนาดไฟล์ (200MB per file...) ให้เป็นสีน้ำเงินเข้มอ่านง่าย */
-    [data-testid="stSidebar"] [data-testid="stFileUploader"] section div div {
-        color: #111844 !important;
-    }
-    /* ดักจับลึกเข้าไปในแท็กสัญกรณ์ขนาดเล็กด้านใน */
+    
+    /* สยบทุกตัวอักษรที่เป็นคำอธิบายในกล่องอัปโหลด (รวมถึง 200MB per file...) */
+    [data-testid="stSidebar"] [data-testid="stFileUploader"] section div,
+    [data-testid="stSidebar"] [data-testid="stFileUploader"] section div *,
     [data-testid="stSidebar"] [data-testid="stFileUploader"] small {
         color: #111844 !important;
         -webkit-text-fill-color: #111844 !important;
+        opacity: 1 !important; /* ป้องกันระบบทำโปร่งใส/ตัวเทา */
     }
-    /* ตัวปุ่ม Upload ด้านใน */
+
+    /* ตัวปุ่ม Upload ด้านใน (แยกสไตล์ออกเพื่อให้ปุ่มยังคงเด่น) */
     [data-testid="stSidebar"] [data-testid="stFileUploader"] button[data-testid="stBaseButton-secondary"] {
         background-color: #5b7db1 !important; 
         border: none !important;
     }
     /* ตัวอักษรบนปุ่ม Upload */
-    [data-testid="stSidebar"] [data-testid="stFileUploader"] button[data-testid="stBaseButton-secondary"] p {
+    [data-testid="stSidebar"] [data-testid="stFileUploader"] button[data-testid="stBaseButton-secondary"] p,
+    [data-testid="stSidebar"] [data-testid="stFileUploader"] button[data-testid="stBaseButton-secondary"] * {
         color: #ffffff !important;                
         -webkit-text-fill-color: #ffffff !important;
     }
