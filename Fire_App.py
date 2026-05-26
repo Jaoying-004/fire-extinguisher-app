@@ -62,35 +62,46 @@ except Exception as e:
 # โซนปรับแต่งสีจ้า (Sidebar)
 st.markdown("""
     <style>
+    /* ==========================================================
+       1. SIDEBAR BASE (จัดการพื้นหลังและตัวอักษรหัวข้อ)
+       ========================================================== */
+    /* เปลี่ยนสีพื้นหลังของ Sidebar */
     [data-testid="stSidebar"] > div:first-child {
         background-color: #14264d !important; 
     }
 
-    /* บังคับสีขาวเฉพาะ หัวข้อ (h1-h6) และ ป้ายข้อความกำกับ (Labels) เท่านั้น */
+    /* บังคับสีตัวหนังสือของหัวข้อและข้อความทั่วไปใน Sidebar ให้เป็นสีขาว */
     [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, 
     [data-testid="stSidebar"] h3, [data-testid="stSidebar"] h4, 
     [data-testid="stSidebar"] h5, [data-testid="stSidebar"] h6,
-    [data-testid="stSidebar"] [data-testid="stWidgetLabel"] p,
-    [data-testid="stSidebar"] label[data-testid="stWidgetLabel"] {
+    [data-testid="stSidebar"] label {
         color: #ffffff !important;
     }
 
+    /* บังคับสีของข้อความป้ายกำกับ (Labels) ด้านบนของทุกๆ Widget */
+    [data-testid="stSidebar"] [data-testid="stWidgetLabel"] p {
+        color: #ffffff !important; 
+    }
+
     /* ==========================================================
-       2. SELECTBOX (เมื่อไม่มีข้อ 1 มาขัดขา สีน้ำเงินเข้มจะทำงานได้ 100%)
+       2. SELECTBOX (ปลดล็อกแท็ก p ชั้นในสุดให้เป็นน้ำเงินเข้ม #111844)
        ========================================================== */
-    /* ตัวกล่อง Selectbox */
+    /* ตัวกล่อง Selectbox ตอนปิดปกติ */
     [data-testid="stSidebar"] div[data-baseweb="select"] > div {
-        background-color: #f3f6fb !important; /* พื้นหลังกล่อง */
-        border: 1px solid #cbd8f2 !important; /* เส้นขอบกล่อง */
+        background-color: #f3f6fb !important; /* สีพื้นหลังของกล่อง */
+        border: 1px solid #cbd8f2 !important; /* สีเส้นขอบกล่อง */
     }
 
-    /* บังคับสีตัวอักษรข้างในกล่องหลักเป็นสีน้ำเงินเข้ม */
-    [data-testid="stSidebar"] div[data-baseweb="select"] * {
+    /* 🎯 ล็อกมง: ดักจับแท็ก p, span, div ทุกตัวที่ซ่อนอยู่ข้างใน Selectbox ให้เป็น #111844 */
+    [data-testid="stSidebar"] div[data-baseweb="select"] p,
+    [data-testid="stSidebar"] div[data-baseweb="select"] span,
+    [data-testid="stSidebar"] div[data-baseweb="select"] [data-testid="stSelectboxInputValue"],
+    [data-testid="stSidebar"] div[data-baseweb="select"] div[role="button"] * {
         color: #111844 !important;
-        -webkit-text-fill-color: #111844 !important;
+        -webkit-text-fill-color: #111844 !important; /* บังคับล้างเอฟเฟกต์สืบทอดสีขาว */
     }
 
-    /* เปลี่ยนสีไอคอนลูกศรชี้ลง */
+    /* เปลี่ยนสีไอคอนลูกศรชี้ลง (Dropdown Arrow) ในกล่อง */
     [data-testid="stSidebar"] div[data-baseweb="select"] svg {
         fill: #111844 !important;
     }
@@ -98,7 +109,6 @@ st.markdown("""
     /* ==========================================================
        3. DROPDOWN MENU (หน้าต่างรายการตัวเลือกที่เด้งกางออกมา)
        ========================================================== */
-    /* หน้าต่างป๊อปอัปและตัวเลือกแถว */
     div[data-baseweb="popover"] li,
     div[data-baseweb="popover"] li * {
         background-color: #f3f6fb !important; 
@@ -116,7 +126,7 @@ st.markdown("""
     }
     /* ดักจับช่อง st.text_area */
     [data-testid="stSidebar"] [data-testid="stTextArea"] textarea {
-        background-color: #fff8e9 !important; /* พื้นหลังสีครีมตามโค้ดเดิมของคุณ */
+        background-color: #fff8e9 !important; 
         color: #111844 !important;            
         border: 1px solid #cbd8f2 !important; 
     }
