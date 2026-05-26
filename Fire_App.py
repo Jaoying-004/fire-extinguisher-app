@@ -322,7 +322,7 @@ st.markdown("""
     /* จัดระเบียบหัวข้อหลักให้เด่นและดูคลีน */
     h1 {
         text-align: center !important;
-        font-size: 28px !important;
+        font-size: 50px !important;
         margin-bottom: 8px !important;
     }
     
@@ -420,40 +420,7 @@ st.markdown("""
         font-size: 18px !important; 
     }
     
-    /* ==========================================================
-       ปรับแต่งกล่องกรอกรหัสพนักงาน และระยะห่างข้อความ
-       ========================================================== */
     
-    /* 1. ขยับกล่องกรอกข้อมูลและองค์ประกอบด้านบนให้ชิดกันมากขึ้น */
-    [data-testid="stTextInput"] {
-        margin-top: -15px !important; /* 👈 สั่งให้ช่องกรอกข้อมูลขยับขึ้้นไปใกล้คำว่า "กรุณาเข้าสู่ระบบ" */
-    }
-
-    /* 2. เปลี่ยนสีกล่องข้อความจากเหลืองครีมให้เป็นสีฟ้าอ่อนสมดุลกับธีม */
-    [data-testid="stTextInput"] div[data-baseweb="input"] {
-        background-color: #f3f6fb !important; /* 👈 สีพื้นหลังฟ้าอ่อนนวล */
-        border: 1px solid #cbd8f2 !important; /* 👈 สีเส้นขอบฟ้าอ่อน */
-        border-radius: 8px !important;        /* ทำมุมโค้งมนกำลังดี */
-        transition: all 0.2s ease !important;
-    }
-
-    /* 3. บังคับสีตัวอักษรและ Cursor ตอนพิมพ์ให้อ่านง่าย */
-    [data-testid="stTextInput"] input {
-        color: #111844 !important;                    /* สีน้ำเงินเข้ม */
-        -webkit-text-fill-color: #111844 !important;
-        caret-color: #111844 !important;              /* สีเคอร์เซอร์กะพริบ */
-    }
-
-    /* 4. เปลี่ยนสีข้อความคำใบ้ข้างใน (Placeholder: กรอกรหัสพนักงาน) */
-    [data-testid="stTextInput"] input::placeholder {
-        color: #8fa0c0 !important; /* สีฟ้าหม่นเพื่อให้ดูนุ่มนวลและไม่แย่งสายตา */
-    }
-
-    /* 5. เอฟเฟกต์ตอนกดคลิกพิมพ์ (Focus State) */
-    [data-testid="stTextInput"] div[data-baseweb="input"]:focus-within {
-        border-color: #5b7db1 !important;
-        box-shadow: 0 0 0 1px #5b7db1 !important;
-    }
     
 """, unsafe_allow_html=True)
 
@@ -723,8 +690,6 @@ if st.session_state.get("cookie_ready", False):
 
 if not st.session_state.get("authenticated"):
     st.title("SafePig Safety Inspection System")
-    st.markdown("<h1 style='text-align: center; font-size: 50px;'>SafePig Safety Inspection System</h1>",
-                unsafe_allow_html=True)
     st.subheader("กรุณาเข้าสู่ระบบ")
 
     # ✅ แสดง query params ถ้ามี
