@@ -308,6 +308,89 @@ st.markdown("""
         -webkit-text-fill-color: #111844 !important;
         font-weight: 600 !important;
     }
+    
+    /* ==========================================================
+       1. LOGIN PAGE CONTAINER (ปรับแต่งพื้นหลังและเลย์เอาต์ภาพรวม)
+       ========================================================== */
+    /* กำหนดให้เนื้อหาหลักทั้งหมดในหน้านี้ขยับมาอยู่กึ่งกลางอย่างสมดุล */
+    .main .block-container {
+        max-width: 520px !important;  /* บีบความกว้างหน้าล็อกอินให้กะทัดรัดพอดีสายตา */
+        padding-top: 5rem !important;
+        padding-bottom: 5rem !important;
+    }
+
+    /* จัดระเบียบหัวข้อหลักให้เด่นและดูคลีน */
+    h1 {
+        text-align: center !important;
+        font-size: 28px !important;
+        margin-bottom: 8px !important;
+    }
+    
+    /* จัดคำว่า "กรุณาเข้าสู่ระบบ" ให้สไตล์มินิมอล อยู่กึ่งกลาง */
+    h1 + div, h1 + p, .main p {
+        text-align: center !important;
+        color: rgba(255, 255, 255, 0.7) !important;
+        font-size: 16px !important;
+    }
+
+    /* ==========================================================
+       2. TEXT INPUT (ช่องกรอกรหัสพนักงาน)
+       ========================================================== */
+    /* เปลี่ยนสีช่องกรอกข้อมูลจากเหลืองเป็นสีฟ้านวลเพื่อให้เข้ากับธีมหลัก */
+    [data-testid="stTextInput"] div[data-baseweb="input"] {
+        background-color: #f3f6fb !important; 
+        border: 1px solid #cbd8f2 !important;
+        border-radius: 8px !important;
+        height: 46px !important; /* เพิ่มความหนาให้ช่องพิมพ์ดูพรีเมียมขึ้น */
+    }
+    
+    /* ปรับแต่งตัวอักษรข้างในช่องกรอกข้อมูล */
+    [data-testid="stTextInput"] input {
+        color: #111844 !important;
+        -webkit-text-fill-color: #111844 !important;
+        font-size: 15px !important;
+    }
+    
+    /* สไตล์ตัวหนังสือ Placeholder (กรอกรหัสพนักงาน) */
+    [data-testid="stTextInput"] input::placeholder {
+        color: #8fa0c0 !important;
+    }
+
+    /* ==========================================================
+       3. LOGIN BUTTON (ปุ่มเข้าสู่ระบบ)
+       ========================================================== */
+    /* ปลดล็อกให้ปุ่มกางเต็มความกว้างของฟอร์ม และเปลี่ยนสีให้โมเดิร์น */
+    [data-testid="stBaseButton-secondary"] {
+        width: 100% !important; /* ขยายปุ่มให้เต็มกว้าง กดง่ายสไตล์โมเดิร์น */
+        background-color: #5b7db1 !important; /* เปลี่ยนจากสีแดงเป็นสีฟ้าธีมหลัก */
+        color: #ffffff !important;
+        border: none !important;
+        border-radius: 8px !important;
+        height: 46px !important; /* หนาเท่ากับช่องกรอกข้อมูล */
+        font-size: 16px !important;
+        font-weight: 600 !important;
+        transition: all 0.2s ease !important;
+        margin-top: 10px !important;
+        box-shadow: 0 4px 12px rgba(91, 125, 177, 0.2) !important;
+    }
+    
+    /* เอฟเฟกต์ตอนเอาเมาส์ไปชี้ปุ่มล็อกอิน */
+    [data-testid="stBaseButton-secondary"]:hover {
+        background-color: #466699 !important;
+        box-shadow: 0 6px 16px rgba(70, 102, 153, 0.3) !important;
+        transform: translateY(-1px) !important;
+    }
+
+    /* ==========================================================
+       4. EXPANDER / ACCORDION (ข้อมูลการใช้งานด้านล่าง)
+       ========================================================== */
+    /* ตกแต่งกล่องข้อมูลการใช้งานด้านล่างให้กลืนไปกับพื้นหลัง */
+    [data-testid="stExpander"] {
+        background-color: rgba(243, 246, 251, 0.04) !important;
+        border: 1px solid rgba(203, 216, 242, 0.15) !important;
+        border-radius: 8px !important;
+        margin-top: 20px !important;
+    }
 """, unsafe_allow_html=True)
 
 #ส่วนที่ 1 ของล็อคอิน======================================================================================================
