@@ -230,33 +230,37 @@ st.markdown("""
 
 
     /* ==========================================================
-       7. MAIN CONTENT RADIO BUTTONS (เวอร์ชันสมดุล มินิมอล สวยงาม)
+       7. MAIN CONTENT RADIO BUTTONS (เวอร์ชันทลายบล็อกสไตล์ระบบ)
        ========================================================== */
-    /* คุมพฤติกรรมกลุ่มปุ่มวิทยุหน้าหลัก */
+    /* 🛠️ จุดสำคัญ: ดักจับและปลดล็อกการควบคุมความกว้างที่ตัวหุ้มด้านนอกสุดของ Streamlit */
+    [data-testid="stMain"] [data-testid="stRadio"] {
+        width: 100% !important;
+        max-width: 280px !important; /* 👈 กำหนดขนาดความกว้างกล่องที่คุณต้องการตรงนี้ (เช่น 260px, 280px, 300px) */
+        margin-left: 0 !important;   /* จัดชิดซ้ายตามแนวหัวข้อ */
+    }
+
+    /* คุมพฤติกรรมกลุ่มปุ่มวิทยุ (แผ่เต็มพื้นที่ 280px ที่ปลดล็อกไว้) */
     [data-testid="stMain"] [data-testid="stRadio"] div[role="radiogroup"] {
         display: flex !important;
         flex-direction: column !important; 
-        gap: 10px !important;              /* ระยะห่างที่กำลังพอดีระหว่างกล่อง ใช่ และ ไม่ใช่ */
+        gap: 10px !important;              
         padding-top: 8px !important;
-        
         width: 100% !important;
-        max-width: 280px !important;       /* 👈 ปรับความกว้างให้มินิมอลพอดีคำ (จากเดิม 400px) */
-        margin: 0 !important;              /* จัดชิดซ้ายตามแนวหัวข้อคำถามเพื่อให้อ่านง่าย */
     }
 
-    /* ปรับขนาดกล่อง ใช่ / ไม่ใช่ ทุกข้อให้เท่ากันและสมดุล */
+    /* สไตล์กล่อง ใช่ / ไม่ใช่ ทุกข้อให้เท่ากันและสมดุล */
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"] {
-        background-color: rgba(243, 246, 251, 0.06) !important; /* ปรับพื้นหลังจางลงเล็กน้อยให้ดูคลีน */
+        background-color: rgba(243, 246, 251, 0.06) !important; 
         border: 1px solid rgba(203, 216, 242, 0.15) !important;
-        border-radius: 10px !important;    /* ปรับความมนให้เข้ากับขนาดกล่องที่เล็กลง */
+        border-radius: 10px !important;    
         
-        width: 100% !important;            /* กางเท่ากันทุกกล่องที่ความกว้าง 280px */
-        min-height: 42px !important;       /* 👈 ลดความสูงกล่องลงมาให้เรียวสวยงาม ไม่หนาเทอะทะ */
-        padding: 0 !important;             /* ล้างค่าพื้นที่ในเพื่อคุมความสูงด้วย min-height ได้นิ่งๆ */
+        width: 100% !important;            /* ขยายกว้างเต็มสัดส่วน 280px เท่ากันเป๊ะทุกข้อ */
+        min-height: 42px !important;       /* ควบคุมความสูงให้เรียวสวยงาม */
+        padding: 0 !important;             
         
         display: flex !important;
         align-items: center !important;
-        justify-content: center !important; /* ตัวหนังสืออยู่กึ่งกลางกล่องเป๊ะ */
+        justify-content: center !important; /* ตัวหนังสืออยู่กึ่งกลางกล่อง */
         transition: all 0.2s ease !important;
         cursor: pointer !important;
         margin: 0 !important;              
@@ -271,9 +275,9 @@ st.markdown("""
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"] div,
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"] p,
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"] span {
-        color: rgba(255, 255, 255, 0.85) !important; /* สีขาวนวลสบายตาในสถานะปกติ */
+        color: rgba(255, 255, 255, 0.85) !important; 
         -webkit-text-fill-color: rgba(255, 255, 255, 0.85) !important;
-        font-size: 14px !important;        /* ขนาดตัวอักษรพอดีกับขนาดกล่องใหม่ */
+        font-size: 14px !important;        
         font-weight: 500 !important;
         margin: 0 !important;
     }
@@ -286,7 +290,7 @@ st.markdown("""
 
     /* เอฟเฟกต์เมื่อกล่อง "ถูกเลือก" */
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) {
-        background-color: #f3f6fb !important; /* ไฮไลต์ฟ้าอ่อนสว่าง */
+        background-color: #f3f6fb !important; 
         border: 1px solid #5b7db1 !important;
         box-shadow: 0 4px 10px rgba(17, 24, 68, 0.08) !important;
     }
@@ -295,7 +299,7 @@ st.markdown("""
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) div,
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) p,
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) span {
-        color: #111844 !important;            /* ตัวอักษรน้ำเงินเข้มคมชัด */
+        color: #111844 !important;            
         -webkit-text-fill-color: #111844 !important;
         font-weight: 600 !important;
     }
