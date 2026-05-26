@@ -70,21 +70,14 @@ st.markdown("""
 }
 
 /* ตัวหนังสือทั้งหมดใน sidebar */
-[data-testid="stSidebar"] h1,
-[data-testid="stSidebar"] h2,
-[data-testid="stSidebar"] h3,
-[data-testid="stSidebar"] h4,
-[data-testid="stSidebar"] h5,
-[data-testid="stSidebar"] h6,
-[data-testid="stSidebar"] p,
-[data-testid="stSidebar"] span,
-[data-testid="stSidebar"] div,
-[data-testid="stSidebar"] label {
+[data-testid="stSidebar"] * {
     color: #ffffff !important;
 }
 
-/* Widget label */
-[data-testid="stSidebar"] [data-testid="stWidgetLabel"] p {
+/* Widget label - บังคับให้เป็นสีขาว */
+[data-testid="stSidebar"] [data-testid="stWidgetLabel"] label,
+[data-testid="stSidebar"] [data-testid="stWidgetLabel"] p,
+[data-testid="stSidebar"] [data-testid="stWidgetLabel"] span {
     color: #ffffff !important;
 }
 
@@ -92,39 +85,68 @@ st.markdown("""
    SELECTBOX - แก้ไขใหม่ทั้งหมด
 ================================ */
 
-/* 1. กล่องหลักของ Selectbox */
+/* กล่อง Selectbox ปิด (ยังไม่กด) */
 [data-testid="stSidebar"] div[data-baseweb="select"] > div {
     background-color: #f3f6fb !important;
     border: 1px solid #cbd8f2 !important;
     border-radius: 10px !important;
 }
 
-/* 2. ✅ ตัวหนังสือภายใน Selectbox (สำคัญ!) */
+/* ✅ บังคับสีตัวหนังสือใน Selectbox */
+[data-testid="stSidebar"] div[data-baseweb="select"] > div,
 [data-testid="stSidebar"] div[data-baseweb="select"] > div > div,
 [data-testid="stSidebar"] div[data-baseweb="select"] span,
-[data-testid="stSidebar"] div[data-baseweb="select"] div[role="button"] {
+[data-testid="stSidebar"] div[data-baseweb="select"] div[role="button"],
+[data-testid="stSidebar"] div[data-baseweb="select"] div[role="button"] > div {
     color: #111844 !important;
 }
 
-/* 3. ลูกศร dropdown */
+/* ลูกศร dropdown */
 [data-testid="stSidebar"] div[data-baseweb="select"] svg {
     fill: #111844 !important;
 }
 
-/* 4. ✅ รายการใน dropdown เมื่อกด */
-div[data-baseweb="popover"] li {
+/* ================================
+   DROPDOWN MENU (สำคัญที่สุด!)
+================================ */
+
+/* ✅ Popover Container */
+div[role="listbox"] {
+    background-color: #ffffff !important;
+}
+
+/* ✅ รายการทั้งหมดใน dropdown */
+div[role="listbox"] li,
+div[role="listbox"] li > div,
+div[role="listbox"] li span,
+div[role="listbox"] li * {
     background-color: #f3f6fb !important;
     color: #111844 !important;
 }
 
-/* 5. ✅ รายการที่ hover */
-div[data-baseweb="popover"] li:hover {
+/* ✅ Base-web popover (ครอบคลุมทุกกรณี) */
+div[data-baseweb="popover"] li,
+div[data-baseweb="popover"] li > div,
+div[data-baseweb="popover"] li span,
+div[data-baseweb="popover"] li * {
+    background-color: #f3f6fb !important;
+    color: #111844 !important;
+}
+
+/* ✅ รายการที่ hover */
+div[role="listbox"] li:hover,
+div[role="listbox"] li:hover *,
+div[data-baseweb="popover"] li:hover,
+div[data-baseweb="popover"] li:hover * {
     background-color: #cbd8f2 !important;
     color: #111844 !important;
 }
 
-/* 6. ✅ รายการที่เลือกอยู่ */
-div[data-baseweb="popover"] li[aria-selected="true"] {
+/* ✅ รายการที่เลือกอยู่ */
+div[role="listbox"] li[aria-selected="true"],
+div[role="listbox"] li[aria-selected="true"] *,
+div[data-baseweb="popover"] li[aria-selected="true"],
+div[data-baseweb="popover"] li[aria-selected="true"] * {
     background-color: #5b7db1 !important;
     color: #ffffff !important;
 }
@@ -156,8 +178,8 @@ div[data-baseweb="popover"] li[aria-selected="true"] {
 /* ================================
    TEXT INPUT / TEXT AREA
 ================================ */
-[data-testid="stTextInput"] input,
-[data-testid="stTextArea"] textarea {
+[data-testid="stSidebar"] [data-testid="stTextInput"] input,
+[data-testid="stSidebar"] [data-testid="stTextArea"] textarea {
     background-color: #f3f6fb !important;
     color: #111844 !important;
     border: 1px solid #cbd8f2 !important;
@@ -166,16 +188,16 @@ div[data-baseweb="popover"] li[aria-selected="true"] {
 }
 
 /* focus */
-[data-testid="stTextInput"] input:focus,
-[data-testid="stTextArea"] textarea:focus {
+[data-testid="stSidebar"] [data-testid="stTextInput"] input:focus,
+[data-testid="stSidebar"] [data-testid="stTextArea"] textarea:focus {
     border-color: #5b7db1 !important;
     box-shadow: 0 0 0 1px #5b7db1 !important;
     outline: none !important;
 }
 
 /* placeholder */
-[data-testid="stTextInput"] input::placeholder,
-[data-testid="stTextArea"] textarea::placeholder {
+[data-testid="stSidebar"] [data-testid="stTextInput"] input::placeholder,
+[data-testid="stSidebar"] [data-testid="stTextArea"] textarea::placeholder {
     color: #6b7aa6 !important;
 }
 
