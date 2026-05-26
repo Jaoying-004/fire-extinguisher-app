@@ -689,7 +689,8 @@ if st.session_state.get("cookie_ready", False):
                 st.session_state["emp_id"] = emp_id
 
 if not st.session_state.get("authenticated"):
-    st.title("SafePig Safety Inspection System")
+    st.markdown("<h1 style='text-align: center; font-size: 50px;'>SafePig Safety Inspection System🧯</h1>",
+                unsafe_allow_html=True)
     st.subheader("กรุณาเข้าสู่ระบบ")
 
     # ✅ แสดง query params ถ้ามี
