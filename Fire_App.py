@@ -338,7 +338,7 @@ st.markdown("""
        ========================================================== */
     /* เปลี่ยนสีช่องกรอกข้อมูลจากเหลืองเป็นสีฟ้านวลเพื่อให้เข้ากับธีมหลัก */
     [data-testid="stTextInput"] div[data-baseweb="input"] {
-        background-color: #f3f6fb !important; 
+        background-color: #cbd8f2 !important; 
         border: 1px solid #cbd8f2 !important;
         border-radius: 8px !important;
         height: 46px !important; /* เพิ่มความหนาให้ช่องพิมพ์ดูพรีเมียมขึ้น */
