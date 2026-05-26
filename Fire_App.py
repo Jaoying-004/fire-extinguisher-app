@@ -725,12 +725,7 @@ if not st.session_state.get("authenticated"):
         "</h1>",
         unsafe_allow_html=True
     )
-    st.markdown(
-        "<p style='font-size: 15px; color: rgba(255, 255, 255, 0.6); margin-bottom: -75px; position: relative; z-index: 99;'>"
-        "กรุณาเข้าสู่ระบบ"
-        "</p>",
-        unsafe_allow_html=True
-    )
+
 
     # ✅ แสดง query params ถ้ามี
     tank_id = st.query_params.get("tank_id")
