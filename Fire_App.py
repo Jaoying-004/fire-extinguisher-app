@@ -355,6 +355,23 @@ st.markdown("""
     [data-testid="stTextInput"] input::placeholder {
         color: #8fa0c0 !important;
     }
+    /* ==========================================================
+       โค้ดสำหรับเปลี่ยนสีกล่องกรอกรหัสพนักงานเป็นสีขาว
+       ========================================================== */
+    [data-testid="stMain"] [data-testid="stTextInput"] div[data-baseweb="base-input"] {
+        background-color: #ffffff !important; /* 👈 เปลี่ยนสีพื้นหลังกล่องเป็นสีขาว */
+        border: 1px solid #cbd8f2 !important; /* สีเส้นขอบ (ปรับเปลี่ยนได้ตามชอบ) */
+        border-radius: 8px !important;        /* ทำมุมโค้งมน */
+        height: 46px !important;              /* ความหนาของกล่อง */
+    }
+
+    /* คุมสีตัวหนังสือตอนพิมพ์ข้างในกล่อง */
+    [data-testid="stMain"] [data-testid="stTextInput"] input {
+        background-color: transparent !important; 
+        color: #111844 !important;                /* ตัวหนังสือตอนพิมพ์เป็นสีน้ำเงินเข้มเพื่อให้อ่านง่ายบนพื้นขาว */
+        -webkit-text-fill-color: #111844 !important;
+        caret-color: #111844 !important;          /* สีเคอร์เซอร์กะพริบตอนพิมพ์ */
+    }
 
     /* ==========================================================
        3. LOGIN BUTTON (ปุ่มเข้าสู่ระบบ)
