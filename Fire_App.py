@@ -199,7 +199,7 @@ st.markdown("""
     [data-testid="stSidebar"] [data-testid="stRadio"] label[data-baseweb="radio"] span {
         color: #ffffff !important;
         -webkit-text-fill-color: #ffffff !important;
-        font-size: 16px !important;
+        font-size: 12px !important;
         font-weight: 500 !important;
     }
 
