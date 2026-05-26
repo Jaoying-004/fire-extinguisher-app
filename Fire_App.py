@@ -813,7 +813,7 @@ with st.container(border=True):
     with col_info:
         st.markdown(f"""
         <div style="
-            background: linear-gradient(135deg, #fff6dd, #f7e8bc);
+            background: #cbd8f2;
             padding: 22px;
             border-radius: 16px;
             box-shadow: 0 6px 18px rgba(0,0,0,0.12);
