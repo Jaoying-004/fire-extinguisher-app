@@ -110,13 +110,13 @@ st.markdown("""
        ========================================================== */
     /* ดักจับช่อง st.text_input */
     [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"] input {
-        background-color: #f3f6fb !important; 
+        background-color: #f3f6fb !important; /* สีฟ้าอ่อน */
         color: #111844 !important;            
-        -webkit-text-fill-color: #111844 !important; /* บังคับสีตัวอักษรสำหรับบางเบราว์เซอร์ */
+        -webkit-text-fill-color: #111844 !important; 
     }
-    /* ดักจับช่อง st.text_area */
+    /* ดักจับช่อง st.text_area (จุดที่แก้ไข: เปลี่ยนจากสีครีมเป็นสีฟ้าอ่อน #f3f6fb) */
     [data-testid="stSidebar"] [data-testid="stTextArea"] div[data-baseweb="textarea"] textarea {
-        background-color: #fff8e9 !important; /* พื้นหลังสีครีมตามดีไซน์ */
+        background-color: #f3f6fb !important; /* ปรับเป็นสีฟ้าอ่อนตามที่คุณต้องการ */
         color: #111844 !important;            
         -webkit-text-fill-color: #111844 !important; 
     }
@@ -141,13 +141,18 @@ st.markdown("""
         background-color: #f3f6fb !important;
         border: 1px dashed #5b7db1 !important; 
     }
-    /* คำอธิบายขนาดไฟล์ด้านล่าง (200MB per file...) */
-    [data-testid="stSidebar"] [data-testid="stFileUploader"] section div div small {
-        color: #5b7db1 !important;
+    /* จุดที่แก้ไข: เปลี่ยนสีข้อความคำอธิบายขนาดไฟล์ (200MB per file...) ให้เป็นสีน้ำเงินเข้มอ่านง่าย */
+    [data-testid="stSidebar"] [data-testid="stFileUploader"] section div div {
+        color: #111844 !important;
+    }
+    /* ดักจับลึกเข้าไปในแท็กสัญกรณ์ขนาดเล็กด้านใน */
+    [data-testid="stSidebar"] [data-testid="stFileUploader"] small {
+        color: #111844 !important;
+        -webkit-text-fill-color: #111844 !important;
     }
     /* ตัวปุ่ม Upload ด้านใน */
     [data-testid="stSidebar"] [data-testid="stFileUploader"] button[data-testid="stBaseButton-secondary"] {
-        background-color: #5b7db1 !important; /* ปรับเฉดเข้มขึ้นเล็กน้อยเพื่อให้เห็นข้อความชัดเจน */
+        background-color: #5b7db1 !important; 
         border: none !important;
     }
     /* ตัวอักษรบนปุ่ม Upload */
