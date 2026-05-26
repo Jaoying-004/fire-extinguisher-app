@@ -84,28 +84,35 @@ st.markdown("""
     }
 
     /* ==========================================================
-       2. SELECTBOX (ช่องเลือกข้อมูลใน Sidebar - จุดที่ติดปัญหา)
+       2. SELECTBOX (ช่องเลือกข้อมูลใน Sidebar - ฉบับตัดขาดสีระบบ)
        ========================================================== */
-    /* เปลี่ยนสีตัวกล่องข้อความ และสีเส้นขอบ (ตอนยังไม่ได้กด) */
+    /* ตัวกล่อง Selectbox ตอนปิดปกติ */
     [data-testid="stSidebar"] div[data-baseweb="select"] > div {
         background-color: #f3f6fb !important; /* สีพื้นหลังของกล่อง */
         border: 1px solid #cbd8f2 !important; /* สีเส้นขอบกล่อง */
     }
 
-    /* 🎯 ล็อกมง: บังคับสีตัวหนังสือที่อยู่ข้างในกล่อง Selectbox ให้เป็นสีน้ำเงินเข้ม */
-    [data-testid="stSidebar"] div[data-baseweb="select"] div[data-testid="stMarkdownContainer"] p,
-    [data-testid="stSidebar"] div[data-baseweb="select"] [data-testid="stSelectboxInputValue"],
-    [data-testid="stSidebar"] div[data-baseweb="select"] div[role="button"] *,
-    [data-testid="stSidebar"] div[data-baseweb="select"] span {
+    /* 🔥 ไม้ตาย: เจาะจงไปที่คลาสเด็ดหัวของ Base Web และบังคับสีทับทุกมิติ */
+    [data-testid="stSidebar"] div[data-baseweb="select"] [data-user-value="true"],
+    [data-testid="stSidebar"] div[data-baseweb="select"] [role="button"] div,
+    [data-testid="stSidebar"] div[data-baseweb="select"] div[title],
+    [data-testid="stSidebar"] [data-testid="stSelectboxInputValue"] {
         color: #111844 !important;
-        -webkit-text-fill-color: #111844 !important;
+        background-color: transparent !important;
+        /* บังคับล้างเอฟเฟกต์สีขาวของระบบดั้งเดิม */
+        -webkit-text-fill-color: #111844 !important; 
+    }
+
+    /* ดักทางอีกชั้นในกรณีที่เป็น Placeholder (เช่น คำว่า "เลือกข้อมูล...") */
+    [data-testid="stSidebar"] div[data-baseweb="select"] div[aria-live="polite"] {
+        color: #111844 !important;
+        opacity: 0.9 !important;
     }
 
     /* เปลี่ยนสีไอคอนลูกศรชี้ลง (Dropdown Arrow) ในกล่อง */
     [data-testid="stSidebar"] div[data-baseweb="select"] svg {
         fill: #111844 !important;
     }
-
     /* ==========================================================
        3. DROPDOWN MENU (หน้าต่างรายการตัวเลือกที่เด้งกางออกมา)
        ========================================================== */
