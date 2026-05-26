@@ -230,36 +230,35 @@ st.markdown("""
 
 
     /* ==========================================================
-       7. MAIN CONTENT RADIO BUTTONS (เวอร์ชันล็อกพิกเซลทุกชั้น - ไม้ตายสุดท้าย)
+       7. MAIN CONTENT RADIO BUTTONS (เวอร์ชันล็อกขนาดตายตัวเท่ากันทุกข้อ)
        ========================================================== */
-    /* ปล่อยโครงสร้างกลุ่มปุ่มให้เรียงแนวตั้งปกติ */
+    /* ตัวควบคุมกลุ่มปุ่มวิทยุ (Radio Group) */
     [data-testid="stMain"] [data-testid="stRadio"] div[role="radiogroup"] {
         display: flex !important;
         flex-direction: column !important; 
-        gap: 10px !important;              
+        gap: 12px !important;              
         padding-top: 8px !important;
+        
+        /* จุดที่เพิ่ม: บังคับความกว้างสูงสุดของกลุ่มปุ่ม และจัดให้กลุ่มปุ่มอยู่กึ่งกลาง */
+        width: 100% !important;
+        max-width: 400px !important;       /* 👈 บังคับความกว้างสูงสุดของกลุ่มกล่อง (ปรับเพิ่ม-ลดตัวเลขนี้ได้) */
+        margin: 0 auto !important;         /* 👈 จัดให้กลุ่มกล่องทั้งหมดอยู่กึ่งกลางหน้าหลัก */
     }
 
-    /* 💎 บังคับความกว้างตายตัวที่ตัวโครงสร้างปุ่ม และทุกบล็อกย่อยด้านใน 💎 */
-    [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"],
-    [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"] > div,
-    [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"] div[data-testid="stMarkdownContainer"] {
-        width: 200px !important;     /* 👈 ล็อกความกว้างทุกชั้นไว้ที่ 280px (ปรับเพิ่ม-ลดตัวเลขนี้ได้ตามชอบครับ) */
-        max-width: 280px !important; /* ดักจับไม่ให้ยืดเกินเด็ดขาด */
-        box-sizing: border-box !important;
-    }
-
-    /* สไตล์การตกแต่งภายนอกของกล่อง ใช่ / ไม่ใช่ */
+    /* สไตล์กล่อง ใช่ / ไม่ใช่ ทุกกล่อง ทุกข้อ ให้ขนาดเท่ากันเป๊ะ */
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"] {
-        background-color: rgba(243, 246, 251, 0.06) !important; 
-        border: 1px solid rgba(203, 216, 242, 0.15) !important;
-        border-radius: 10px !important;    
-        min-height: 42px !important; /* ควบคุมความสูงให้เรียวสวยงาม */
-        padding: 0 !important;             
+        background-color: rgba(243, 246, 251, 0.08) !important;
+        border: 1px solid rgba(203, 216, 242, 0.2) !important;
+        padding: 0 20px !important;         
+        border-radius: 12px !important;
+        
+        /* 💎 จุดสำคัญ: กำหนดขนาดกล่องเองแบบตายตัว 💎 */
+        width: 50% !important;            /* ให้ขยายเต็มกว้างสุด (400px) ตามที่ตั้งไว้ด้านบน */
+        min-height: 52px !important;       /* บังคับความสูงมาตรฐานให้เท่ากันเป๊ะทุกข้อ */
         
         display: flex !important;
         align-items: center !important;
-        justify-content: center !important; /* จัดตัวหนังสือให้อยู่ตรงกลางกล่องเป๊ะ */
+        justify-content: center !important; /* จัดตัวหนังสือ "ใช่ / ไม่ใช่" อยู่ตรงกลางกล่องพอดี */
         transition: all 0.2s ease !important;
         cursor: pointer !important;
         margin: 0 !important;              
@@ -270,41 +269,35 @@ st.markdown("""
         display: none !important;
     }
 
-    /* จัดระเบียบตัวอักษร ใช่ / ไม่ใช่ ข้างในกล่องให้พุ่งมาอยู่ตรงกลาง ไม่เอียงซ้าย */
-    [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"] div[data-testid="stMarkdownContainer"] p {
-        text-align: center !important;
-        width: 100% !important;
-        margin: 0 !important;
-    }
-
-    /* ปรับแต่งสีและขนาดตัวอักษร (สถานะปกติ) */
+    /* สีฟอนต์คำว่า ใช่/ไม่ใช่ (สถานะปกติ) */
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"] div,
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"] p,
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"] span {
-        color: rgba(255, 255, 255, 0.85) !important; 
-        -webkit-text-fill-color: rgba(255, 255, 255, 0.85) !important;
-        font-size: 14px !important;        
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+        font-size: 15px !important; 
         font-weight: 500 !important;
+        margin: 0 !important;
     }
 
     /* เมื่อเอาเมาส์ชี้กล่อง ใช่/ไม่ใช่ */
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"]:hover {
-        background-color: rgba(243, 246, 251, 0.12) !important;
+        background-color: rgba(243, 246, 251, 0.15) !important;
         border-color: #5b7db1 !important;
     }
 
-    /* เมื่อกล่อง "ถูกเลือก" */
+    /* เมื่อกล่อง ใช่ หรือ ไม่ใช่ "ถูกเลือก" */
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) {
-        background-color: #f3f6fb !important; 
+        background-color: #f3f6fb !important;
         border: 1px solid #5b7db1 !important;
-        box-shadow: 0 4px 10px rgba(17, 24, 68, 0.08) !important;
+        box-shadow: 0 4px 12px rgba(17, 24, 68, 0.1) !important;
     }
 
-    /* สีฟอนต์เมื่อกล่อง "ถูกเลือก" */
+    /* สีฟอนต์คำว่า ใช่/ไม่ใช่ (เมื่อโดนเลือก) */
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) div,
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) p,
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) span {
-        color: #111844 !important;            
+        color: #111844 !important;
         -webkit-text-fill-color: #111844 !important;
         font-weight: 600 !important;
     }
@@ -400,15 +393,15 @@ def set_cookie_safe(name, value, expiry_days=1):
 def remove_cookie_safe(name):
     """ลบ Cookie"""
     if not st.session_state.get("cookie_ready", False):
-        return False
+        return True
 
     try:
         cookie_manager.delete(name)
         time.sleep(0.3)
         return True
     except Exception as e:
-        st.warning(f"⚠️ ไม่สามารถลบ cookie: {e}")
-    return False
+        pass
+    return True
 
 #-----------------------------------------------------------------------------------------------------------------
 # ส่วนที่ 2: การเชื่อมต่อแผ่นงานและฐานข้อมูล Google Sheet (Database Connection)
@@ -747,6 +740,7 @@ with st.container(border=True):
                         del st.session_state[key]
 
                 st.session_state["authenticated"] = False
+                st.session_state["auto_login_attempted"] = False
                 st.session_state["logged_out"] = True
 
                 time.sleep(1)
