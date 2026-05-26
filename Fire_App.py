@@ -230,39 +230,49 @@ st.markdown("""
 
 
     /* ==========================================================
-       7. MAIN CONTENT RADIO BUTTONS (ปรับแต่งกล่อง "ใช่/ไม่ใช่" หน้าหลัก)
+       7. MAIN CONTENT RADIO BUTTONS (เวอร์ชันบังคับเท่ากันทุกข้อ)
        ========================================================== */
-    /* จัดเลย์เอาต์ของกล่อง ใช่/ไม่ใช่ ให้เว้นระยะห่างเท่าๆ กัน */
+    /* บังคับให้กลุ่มปุ่มวิทยุ (Radio Group) กางเต็มพื้นที่หน้าจอหลัก */
     [data-testid="stMain"] [data-testid="stRadio"] div[role="radiogroup"] {
-        gap: 10px !important;
-        padding-top: 6px !important;
+        display: flex !important;
+        flex-direction: column !important; /* จัดเรียงแบบแนวตั้ง */
+        width: 100% !important;            /* กางเต็มความกว้าง */
+        gap: 12px !important;              /* ระยะห่างระหว่างกล่อง ใช่ และ ไม่ใช่ */
+        padding-top: 8px !important;
     }
 
-    /* บังคับขนาดกล่อง ใช่ และ ไม่ใช่ ให้มีความสูงและหน้าตาเท่ากันเป๊ะ ดูสมดุล */
+    /* สไตล์กล่อง ใช่ / ไม่ใช่ ทุกกล่อง ทุกข้อ ให้เท่ากันเป๊ะ */
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"] {
         background-color: rgba(243, 246, 251, 0.08) !important;
         border: 1px solid rgba(203, 216, 242, 0.2) !important;
-        padding: 12px 16px !important;  /* ปรับขนาดด้านในให้พอดีกับคำสั้นๆ */
-        border-radius: 10px !important;
-        width: 100% !important;
-        min-height: 48px !important;    /* 👈 ล็อกความสูงมาตรฐานให้กล่อง "ใช่" กับ "ไม่ใช่" เท่ากัน 100% */
+        padding: 0 20px !important;         /* เว้นระยะซ้ายขวาด้านใน */
+        border-radius: 12px !important;
+        
+        /* จุดเด่น: ล็อกขนาดให้เท่ากันทุกข้อ */
+        width: 100% !important;            /* บังคับกางกว้างเท่ากันหมดตามสัดส่วนหน้าจอ */
+        min-height: 52px !important;       /* บังคับความสูงมาตรฐานให้เท่ากันเป๊ะ */
+        
         display: flex !important;
         align-items: center !important;
-        justify-content: flex-start !important; /* จัดข้อความชิดซ้ายปกติเพื่อไม่ให้ฝืนโครงสร้างเดิม */
+        justify-content: center !important; /* จัดตัวหนังสือ "ใช่ / ไม่ใช่" อยู่ตรงกลางกล่องพอดีเพื่อความโมเดิร์น */
         transition: all 0.2s ease !important;
+        cursor: pointer !important;
+        margin: 0 !important;              /* ล้างค่า Margin ป้องกันกล่องเบี้ยว */
     }
 
-    /* ซ่อนวงกลมดั้งเดิมของกล่อง ใช่/ไม่ใช่ */
+    /* ซ่อนวงกลมดั้งเดิม */
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"] > div:first-child {
         display: none !important;
     }
 
     /* สีฟอนต์คำว่า ใช่/ไม่ใช่ (สถานะปกติ) */
-    [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"] p {
+    [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"] div,
+    [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"] p,
+    [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"] span {
         color: #ffffff !important;
         -webkit-text-fill-color: #ffffff !important;
-        font-size: 14px !important; /* ตัวหนังสือเล็กลงมาหน่อยให้เข้ากับคำถาม */
-        font-weight: 400 !important;
+        font-size: 15px !important; 
+        font-weight: 500 !important;
         margin: 0 !important;
     }
 
@@ -276,10 +286,13 @@ st.markdown("""
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) {
         background-color: #f3f6fb !important;
         border: 1px solid #5b7db1 !important;
+        box-shadow: 0 4px 12px rgba(17, 24, 68, 0.1) !important;
     }
 
     /* สีฟอนต์คำว่า ใช่/ไม่ใช่ (เมื่อโดนเลือก) */
-    [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) p {
+    [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) div,
+    [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) p,
+    [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) span {
         color: #111844 !important;
         -webkit-text-fill-color: #111844 !important;
         font-weight: 600 !important;
