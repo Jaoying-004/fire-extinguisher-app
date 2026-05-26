@@ -230,34 +230,38 @@ st.markdown("""
 
 
     /* ==========================================================
-       7. MAIN CONTENT RADIO BUTTONS (เวอร์ชันบังคับเท่ากันทุกข้อ)
+       7. MAIN CONTENT RADIO BUTTONS (เวอร์ชันล็อกขนาดตายตัวเท่ากันทุกข้อ)
        ========================================================== */
-    /* บังคับให้กลุ่มปุ่มวิทยุ (Radio Group) กางเต็มพื้นที่หน้าจอหลัก */
+    /* ตัวควบคุมกลุ่มปุ่มวิทยุ (Radio Group) */
     [data-testid="stMain"] [data-testid="stRadio"] div[role="radiogroup"] {
         display: flex !important;
-        flex-direction: column !important; /* จัดเรียงแบบแนวตั้ง */
-        width: 100% !important;            /* กางเต็มความกว้าง */
-        gap: 12px !important;              /* ระยะห่างระหว่างกล่อง ใช่ และ ไม่ใช่ */
+        flex-direction: column !important; 
+        gap: 12px !important;              
         padding-top: 8px !important;
+        
+        /* จุดที่เพิ่ม: บังคับความกว้างสูงสุดของกลุ่มปุ่ม และจัดให้กลุ่มปุ่มอยู่กึ่งกลาง */
+        width: 100% !important;
+        max-width: 400px !important;       /* 👈 บังคับความกว้างสูงสุดของกลุ่มกล่อง (ปรับเพิ่ม-ลดตัวเลขนี้ได้) */
+        margin: 0 auto !important;         /* 👈 จัดให้กลุ่มกล่องทั้งหมดอยู่กึ่งกลางหน้าหลัก */
     }
 
-    /* สไตล์กล่อง ใช่ / ไม่ใช่ ทุกกล่อง ทุกข้อ ให้เท่ากันเป๊ะ */
+    /* สไตล์กล่อง ใช่ / ไม่ใช่ ทุกกล่อง ทุกข้อ ให้ขนาดเท่ากันเป๊ะ */
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"] {
         background-color: rgba(243, 246, 251, 0.08) !important;
         border: 1px solid rgba(203, 216, 242, 0.2) !important;
-        padding: 0 20px !important;         /* เว้นระยะซ้ายขวาด้านใน */
+        padding: 0 20px !important;         
         border-radius: 12px !important;
         
-        /* จุดเด่น: ล็อกขนาดให้เท่ากันทุกข้อ */
-        width: 100% !important;            /* บังคับกางกว้างเท่ากันหมดตามสัดส่วนหน้าจอ */
-        min-height: 52px !important;       /* บังคับความสูงมาตรฐานให้เท่ากันเป๊ะ */
+        /* 💎 จุดสำคัญ: กำหนดขนาดกล่องเองแบบตายตัว 💎 */
+        width: 100% !important;            /* ให้ขยายเต็มกว้างสุด (400px) ตามที่ตั้งไว้ด้านบน */
+        min-height: 52px !important;       /* บังคับความสูงมาตรฐานให้เท่ากันเป๊ะทุกข้อ */
         
         display: flex !important;
         align-items: center !important;
-        justify-content: center !important; /* จัดตัวหนังสือ "ใช่ / ไม่ใช่" อยู่ตรงกลางกล่องพอดีเพื่อความโมเดิร์น */
+        justify-content: center !important; /* จัดตัวหนังสือ "ใช่ / ไม่ใช่" อยู่ตรงกลางกล่องพอดี */
         transition: all 0.2s ease !important;
         cursor: pointer !important;
-        margin: 0 !important;              /* ล้างค่า Margin ป้องกันกล่องเบี้ยว */
+        margin: 0 !important;              
     }
 
     /* ซ่อนวงกลมดั้งเดิม */
