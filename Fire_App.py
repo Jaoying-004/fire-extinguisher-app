@@ -230,31 +230,36 @@ st.markdown("""
 
 
     /* ==========================================================
-       7. MAIN CONTENT RADIO BUTTONS (เวอร์ชันล็อกพิกเซลที่ตัวปุ่มโดยตรง)
+       7. MAIN CONTENT RADIO BUTTONS (เวอร์ชันล็อกพิกเซลทุกชั้น - ไม้ตายสุดท้าย)
        ========================================================== */
-    /* ปล่อยโครงสร้างหลักให้กางตามธรรมชาติ แต่คุมระยะห่าง */
+    /* ปล่อยโครงสร้างกลุ่มปุ่มให้เรียงแนวตั้งปกติ */
     [data-testid="stMain"] [data-testid="stRadio"] div[role="radiogroup"] {
         display: flex !important;
         flex-direction: column !important; 
         gap: 10px !important;              
         padding-top: 8px !important;
-        width: 100% !important;
     }
 
-    /* 💎 บังคับขนาดกล่อง ใช่ / ไม่ใช่ ทุกข้อให้เท่ากันด้วยหน่วยพิกเซลตรงๆ 💎 */
+    /* 💎 บังคับความกว้างตายตัวที่ตัวโครงสร้างปุ่ม และทุกบล็อกย่อยด้านใน 💎 */
+    [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"],
+    [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"] > div,
+    [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"] div[data-testid="stMarkdownContainer"] {
+        width: 200px !important;     /* 👈 ล็อกความกว้างทุกชั้นไว้ที่ 280px (ปรับเพิ่ม-ลดตัวเลขนี้ได้ตามชอบครับ) */
+        max-width: 280px !important; /* ดักจับไม่ให้ยืดเกินเด็ดขาด */
+        box-sizing: border-box !important;
+    }
+
+    /* สไตล์การตกแต่งภายนอกของกล่อง ใช่ / ไม่ใช่ */
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"] {
         background-color: rgba(243, 246, 251, 0.06) !important; 
         border: 1px solid rgba(203, 216, 242, 0.15) !important;
         border-radius: 10px !important;    
-        
-        /* เปลี่ยนลอจิกตรงนี้: ล็อกความกว้างตายตัว ไม่สนความยาวโจทย์ด้านบน */
-        width: 200px !important;           /* 👈 ล็อกความกว้างกล่องปุ่ม (ปรับเพิ่ม-ลดตัวเลขพิกเซลตรงนี้ได้เลยครับ) */
-        min-height: 42px !important;       /* ควบคุมความสูงให้เรียวสวยงาม */
+        min-height: 42px !important; /* ควบคุมความสูงให้เรียวสวยงาม */
         padding: 0 !important;             
         
         display: flex !important;
         align-items: center !important;
-        justify-content: center !important; /* จัดตัวหนังสืออยู่ตรงกลางกล่อง */
+        justify-content: center !important; /* จัดตัวหนังสือให้อยู่ตรงกลางกล่องเป๊ะ */
         transition: all 0.2s ease !important;
         cursor: pointer !important;
         margin: 0 !important;              
@@ -265,7 +270,14 @@ st.markdown("""
         display: none !important;
     }
 
-    /* ปรับแต่งตัวอักษร ใช่ / ไม่ใช่ ข้างในกล่อง */
+    /* จัดระเบียบตัวอักษร ใช่ / ไม่ใช่ ข้างในกล่องให้พุ่งมาอยู่ตรงกลาง ไม่เอียงซ้าย */
+    [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"] div[data-testid="stMarkdownContainer"] p {
+        text-align: center !important;
+        width: 100% !important;
+        margin: 0 !important;
+    }
+
+    /* ปรับแต่งสีและขนาดตัวอักษร (สถานะปกติ) */
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"] div,
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"] p,
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"] span {
@@ -273,16 +285,15 @@ st.markdown("""
         -webkit-text-fill-color: rgba(255, 255, 255, 0.85) !important;
         font-size: 14px !important;        
         font-weight: 500 !important;
-        margin: 0 !important;
     }
 
-    /* เอฟเฟกต์เมื่อเมาส์ชี้ */
+    /* เมื่อเอาเมาส์ชี้กล่อง ใช่/ไม่ใช่ */
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"]:hover {
         background-color: rgba(243, 246, 251, 0.12) !important;
         border-color: #5b7db1 !important;
     }
 
-    /* เอฟเฟกต์เมื่อกล่อง "ถูกเลือก" */
+    /* เมื่อกล่อง "ถูกเลือก" */
     [data-testid="stMain"] [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) {
         background-color: #f3f6fb !important; 
         border: 1px solid #5b7db1 !important;
