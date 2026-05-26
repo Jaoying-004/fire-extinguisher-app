@@ -990,7 +990,7 @@ with tab4:
     except Exception as e:
         st.error(f"❌ Error: {e}")
 
-if colored_button("🔍 อัปเดตข้อมูลล่าสุด", color="#1a3263", text_color="#111844"):
+if st.button("🔍 อัปเดตข้อมูลล่าสุด", type="secondary"):
     st.rerun()
 
 
@@ -1307,7 +1307,7 @@ def send_line_notify(message):
     requests.post(url, headers=headers, json=data)
 
 import pandas as pd
-if colored_button("📈 ส่งสรุปข้อมูลประจำเดือน", color="#1a3263", text_color="#ffff"):
+if st.button("📈 ส่งสรุปข้อมูลประจำเดือน", type="secondary"):
     all_data = log_sheet.get_all_records()
     df = pd.DataFrame(all_data)
 
