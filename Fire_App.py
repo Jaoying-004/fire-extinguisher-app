@@ -187,6 +187,20 @@ div[data-baseweb="popover"] li[aria-selected="true"] * {
     caret-color: #111844 !important;
 }
 
+/* 1. เปลี่ยนสีตัวกล่องข้อความ และสีตัวหนังสือข้างใน Selectbox (ตอนยังไม่ได้กด) */
+
+[data-testid="stSidebar"] div[data-baseweb="select"] > div {
+
+background-color: #f3f6fb !important; /* สีพื้นหลังของกล่องข้อความ */
+
+color: #111844 !important; /* สีตัวหนังสือภายในกล่อง */
+
+border: 1px solid #fff8e9 !important; /* สีเส้นขอบกล่อง */
+
+}
+
+
+
 /* focus */
 [data-testid="stSidebar"] [data-testid="stTextInput"] input:focus,
 [data-testid="stSidebar"] [data-testid="stTextArea"] textarea:focus {
