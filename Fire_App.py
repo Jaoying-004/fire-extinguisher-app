@@ -235,7 +235,7 @@ st.markdown("""
     /* 🛠️ จุดสำคัญ: ดักจับและปลดล็อกการควบคุมความกว้างที่ตัวหุ้มด้านนอกสุดของ Streamlit */
     [data-testid="stMain"] [data-testid="stRadio"] {
         width: 100% !important;
-        max-width: 280px !important; /* 👈 กำหนดขนาดความกว้างกล่องที่คุณต้องการตรงนี้ (เช่น 260px, 280px, 300px) */
+        max-width: 200px !important; /* 👈 กำหนดขนาดความกว้างกล่องที่คุณต้องการตรงนี้ (เช่น 260px, 280px, 300px) */
         margin-left: 0 !important;   /* จัดชิดซ้ายตามแนวหัวข้อ */
     }
 
