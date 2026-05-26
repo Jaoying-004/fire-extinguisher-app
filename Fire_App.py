@@ -391,6 +391,34 @@ st.markdown("""
         border-radius: 8px !important;
         margin-top: 20px !important;
     }
+    
+    /* ==========================================================
+       ปรับขนาดตัวอักษรหน้าเว็บหลัก (Login)
+       ========================================================== */
+    
+    /* 1. เพิ่มขนาดตัวหนังสือหัวข้อบนสุด (ระบบตรวจเช็คอุปกรณ์ดับเพลิง) */
+    [data-testid="stMain"] h1, 
+    [data-testid="stMain"] h2 {
+        font-size: 36px !important;    /* 👈 เพิ่มความใหญ่เด่นชัด (ปรับเพิ่ม-ลดตัวเลข px ได้ครับ) */
+        font-weight: 700 !important;   /* ทำตัวหนาพิเศษ */
+        letter-spacing: 0.5px !important;
+        margin-bottom: 15px !important;
+    }
+
+    /* 2. ลดขนาดคำว่า "กรุณาเข้าสู่ระบบ" ลงมา */
+    /* ดักจับกรณีที่เขียนด้วย st.subheader หรือ h3/h4 */
+    [data-testid="stMain"] h3,
+    [data-testid="stMain"] h4 {
+        font-size: 18px !important;    /* 👈 ลดขนาดลงมาให้ดูเป็นซับไตเติล (จากเดิมมักจะอยู่ที่ 24px) */
+        font-weight: 400 !important;   /* ปรับให้ตัวบางลงเพื่อลดความเด่น */
+        color: rgba(255, 255, 255, 0.7) !important; /* ปรับสีขาวหม่นลงเล็กน้อย ให้สบายตา */
+    }
+
+    /* ดักจับกรณีคำว่า "กรุณาเข้าสู่ระบบ" เขียนด้วยข้อความธรรมดา (st.write หรือ st.markdown ทั่วไป) */
+    [data-testid="stMain"] div[data-testid="stMarkdownContainer"] p {
+        /* ตรวจสอบว่าถ้าอยู่ในบล็อกบนๆ ให้ปรับขนาดลง */
+        font-size: 18px !important; 
+    }
 """, unsafe_allow_html=True)
 
 #ส่วนที่ 1 ของล็อคอิน======================================================================================================
@@ -658,7 +686,7 @@ if st.session_state.get("cookie_ready", False):
                 st.session_state["emp_id"] = emp_id
 
 if not st.session_state.get("authenticated"):
-    st.title("🚒 ระบบตรวจเช็คอุปกรณ์ดับเพลิง")
+    st.title("SafePig Safety Inspection System")
     st.subheader("กรุณาเข้าสู่ระบบ")
 
     # ✅ แสดง query params ถ้ามี
@@ -685,7 +713,7 @@ if not st.session_state.get("authenticated"):
     col1, col2, col3 = st.columns([2, 1, 2])
 
     with col2:
-        login_button = st.button("🔐 เข้าสู่ระบบ", type="primary", use_container_width=True)
+        login_button = st.button("🔐 เข้าสู่ระบบ", type="secondary", use_container_width=True)
 
     if login_button:
         if not emp_input:
@@ -1230,7 +1258,7 @@ with st.sidebar:
             status = st.radio("สถานะโดยรวม", ["ปกติ", "ไม่ปกติ (ต้องแก้ไข)"])
     # หมายเหตุ (กรณีมีข้อที่ไม่ปกติ)
             remarks = st.text_area("ระบุรายละเอียดเพิ่มเติม (ถ้าไม่ปกติ)")
-            submit_button = st.form_submit_button("บันทึกข้อมูล")
+            submit_button = st.form_submit_button("บันทึกข้อมูล", type="secondary", use_container_width=True)
             log_sheet = client.open(sheet_name).worksheet("Inspection_Log")
 
         if submit_button:
