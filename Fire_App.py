@@ -1031,71 +1031,68 @@ with tab3:
         st.error(f"❌ {type(e).__name__}: {e}")
 
 with tab4:
-    st.markdown("<h3 style='color: #ffffff; font-weight: bold;'>🔧 ติดตามการแก้ไข</h3>",
-                unsafe_allow_html=True)
+    st.markdown("<h3 style='color: #ffffff; font-weight: bold;'>🔧 ติดตามการแก้ไข</h3>", unsafe_allow_html=True)
+
+    # ปุ่มกดเพื่อดึงข้อมูลใหม่ล่าสุดด้วยมือกรณีแก้ไขใน Google Sheets โดยตรง
+    if st.button("🔄 ดึงข้อมูลล่าสุดจาก Google Sheets"):
+        st.cache_data.clear()
+        st.rerun()
+
     try:
+        # เปิด Worksheet และดึงข้อมูล
         inspection_sheet = client.open(sheet_name).worksheet("Inspection_Log")
         inspection_rows = inspection_sheet.get_all_values()
 
         if inspection_rows and len(inspection_rows) > 1:
             df_inspection = pd.DataFrame(inspection_rows[1:], columns=inspection_rows[0])
+
+            # ลบคอลัมน์ที่ไม่มีชื่อออก
             df_inspection = df_inspection.loc[:, df_inspection.columns != '']
 
-            # 🔥 [แก้ไขจุดที่ 1] ป้องกันแถวว่างที่เกิดจากการแก้ไขใน Google Sheets โดยตรง
-            df_inspection = df_inspection.replace(r'^\s*$', None, regex=True).dropna(how='all')
+            # 🛠️ ป้องกันแถวว่าง (กรณีผู้ใช้กด Delete ข้อมูลใน Sheet โดยตรง)
+            df_inspection = df_inspection.replace(r'^\s*$', None, regex=True)
+            # ลบแถวที่คอลัมน์สำคัญ เช่น 'ID' หรือ 'Timestamp' เป็นค่าว่างออกไป
+            if 'ID' in df_inspection.columns:
+                df_inspection = df_inspection.dropna(subset=['ID'])
+            else:
+                df_inspection = df_inspection.dropna(how='all')
 
-            if not df_inspection.empty and 'Status' in df_inspection.columns:
-
-                # 🔥 [แก้ไขจุดที่ 2] เคลียร์ช่องว่างซ้าย-ขวาของคอลัมน์ Status ก่อนทำการกรองข้อมูล
+            if 'Status' in df_inspection.columns:
+                # แปลงค่า และตัดช่องว่างเพื่อความแม่นยำในการเปรียบเทียบ
                 df_inspection['Status'] = df_inspection['Status'].astype(str).str.strip()
 
-                # กรองข้อมูลที่ต้องแก้ไข
-                df_need_repair = df_inspection[
-                    df_inspection['Status'] == 'ไม่ปกติ (ต้องแก้ไข)'
-                    ].copy()
+                # กรองเฉพาะเคสที่ต้องแก้ไข
+                df_need_repair = df_inspection[df_inspection['Status'] == 'ไม่ปกติ (ต้องแก้ไข)']
 
-                # ---- เช็คตรงนี้ว่ามีข้อมูลที่ต้องแก้ไขจริงๆ ไหม ----
                 if not df_need_repair.empty:
-                    st.warning(f"⚠️ พบ {len(df_need_repair)} รายการที่ต้องได้รับการแก้ไข")
+                    st.warning(f"พบ {len(df_need_repair)} รายการ")
 
-                    # ลบหัวคอลัมน์ลำดับเดิมออกถ้ามี
+                    # ลบคอลัมน์ลำดับเดิมออกถ้ามี
                     for col in ["No.", "No"]:
                         if col in df_need_repair.columns:
                             df_need_repair = df_need_repair.drop(columns=[col])
 
-                    # รีเซ็ตและสร้างคอลัมน์ No. ใหม่
+                    # จัดอันดับ No. ใหม่ให้สวยงาม
                     df_need_repair = df_need_repair.reset_index(drop=True)
                     df_need_repair.index = df_need_repair.index + 1
                     df_need_repair.insert(0, "No.", df_need_repair.index)
 
-
-                    # ---- ฟังก์ชันสำหรับไฮไลต์เฉพาะคอลลัมน์ ----
-                    def highlight_cols(x):
-                        df_css = pd.DataFrame('', index=x.index, columns=x.columns)
-                        df_css.loc[:, :] = 'background-color: #cbd8f2; color: #111844;'
-
-                        if 'Status' in x.columns:
-                            df_css['Status'] = 'background-color: #ff4b4b; color: #ffffff; font-weight: bold;'
-                        if 'ID' in x.columns:
-                            df_css['ID'] = 'background-color: #ffeaa7; color: #111844; font-weight: bold;'
-                        return df_css
-
-
-                    # แสดงผลตารางพร้อมสไตล์ใหม่
+                    # แสดงผลตารางด้วยสไตล์ที่กำหนด
                     st.dataframe(
-                        df_need_repair.style.apply(highlight_cols, axis=None).set_properties(**{
+                        df_need_repair.style.set_properties(**{
+                            'background-color': '#cbd8f2',
+                            'color': '#111844',
                             'border-color': '#FFFFFF'
                         }),
                         use_container_width=True,
                         hide_index=True
                     )
                 else:
-                    # ถ้าไม่มีแถวไหนเป็น 'ไม่ปกติ (ต้องแก้ไข)' แล้ว
-                    st.success("🎉 ดีเยี่ยม! ไม่มีรายการที่ต้องแก้ไขในระบบ")
+                    st.success("🎉 ไม่มีรายการที่ต้องแก้ไข")
             else:
-                st.success("🎉 ดีเยี่ยม! ไม่มีรายการที่ต้องแก้ไขในระบบ (ไม่มีข้อมูลค้าง)")
+                st.error("❌ ไม่พบหลักฐานคอลัมน์ 'Status' ใน Google Sheets")
         else:
-            st.info("ℹ️ ไม่พบข้อมูลใดๆ ในไฟล์ Google Sheets")
+            st.success("🎉 ไม่มีข้อมูลที่ต้องแก้ไข (ข้อมูลในชีตว่างเปล่า)")
 
     except Exception as e:
         st.error(f"❌ Error: {e}")
@@ -1381,23 +1378,38 @@ with st.sidebar:
                                 with st.spinner("กำลังอัปเดตระบบ..."):
                                     chosen_row = \
                                     df_need_action[df_need_action['picker_label'] == selected_repair_item].iloc[0]
-                                    target_row_num = int(chosen_row['sheet_row_index'])
+                                    target_id = str(chosen_row['ID'])  # ดึงค่า ID มาอ้างอิง
 
-                                    status_col_num = repair_data[0].index('Status') + 1
-                                    repair_log_sheet.update_cell(target_row_num, status_col_num, "ดำเนินการแก้ไขแล้ว")
+                                    # ดึงข้อมูลจากชีตแบบสด ๆ ป้องกันการเคลื่อนของแถวจากการแก้ไขในชีตโดยตรง
+                                    fresh_data = repair_log_sheet.get_all_values()
+                                    headers = fresh_data[0]
 
-                                    if 'Note' in repair_data[0]:
-                                        note_col_num = repair_data[0].index('Note') + 1
-                                        current_date_str = datetime.now().strftime('%Y-%m-%d')
-                                        repair_log_text = f"⚙️ ซ่อมโดย {repairman_name}: {repair_details} ({current_date_str})"
-                                        repair_log_sheet.update_cell(target_row_num, note_col_num, repair_log_text)
+                                    # ค้นหาว่า ID คู่นั้นอยู่ในแถว (row) ที่เท่าใดบน Google Sheets ณ ปัจจุบัน
+                                    target_row_num = None
+                                    id_col_num = headers.index('ID') + 1
 
-                                    # ล้างแคชเพื่อให้หน้าตาราง (Tab 4) ได้รับข้อมูลอัปเดตใหม่ทันที
-                                    st.cache_data.clear()
-                                    st.success("🎉 อัปเดตสถานะสำเร็จแล้ว!")
-                                    st.rerun()
-                    else:
-                        st.success("🎉 ไม่มีรายการค้างซ่อมในระบบ")
+                                    for index, row in enumerate(fresh_data[1:], start=2):
+                                        if len(row) > id_col_num - 1 and row[id_col_num - 1] == target_id:
+                                            target_row_num = index
+                                            break
+
+                                    if target_row_num:
+                                        status_col_num = headers.index('Status') + 1
+                                        repair_log_sheet.update_cell(target_row_num, status_col_num,
+                                                                     "ดำเนินการแก้ไขแล้ว")
+
+                                        if 'Note' in headers:
+                                            note_col_num = headers.index('Note') + 1
+                                            current_date_str = datetime.now().strftime('%Y-%m-%d')
+                                            repair_log_text = f"⚙️ ซ่อมโดย {repairman_name}: {repair_details} ({current_date_str})"
+                                            repair_log_sheet.update_cell(target_row_num, note_col_num, repair_log_text)
+
+                                        # ล้างแคชเพื่อให้ตารางดึงข้อมูลใหม่ทันที
+                                        st.cache_data.clear()
+                                        st.success("🎉 อัปเดตสถานะสำเร็จแล้ว!")
+                                        st.rerun()
+                                    else:
+                                        st.error("❌ ไม่พบรหัสอุปกรณ์นี้บน Google Sheets (อาจถูกลบไปแล้ว)")
                 else:
                     st.success("🎉 ไม่มีรายการค้างซ่อมในระบบ (ข้อมูลในชีตว่างเปล่า)")
             else:
