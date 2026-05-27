@@ -1041,13 +1041,20 @@ with tab4:
             df_inspection = pd.DataFrame(inspection_rows[1:], columns=inspection_rows[0])
             df_inspection = df_inspection.loc[:, df_inspection.columns != '']
 
-            if 'Status' in df_inspection.columns:
+            # 🔥 [แก้ไขจุดที่ 1] ป้องกันแถวว่างที่เกิดจากการแก้ไขใน Google Sheets โดยตรง
+            df_inspection = df_inspection.replace(r'^\s*$', None, regex=True).dropna(how='all')
+
+            if not df_inspection.empty and 'Status' in df_inspection.columns:
+
+                # 🔥 [แก้ไขจุดที่ 2] เคลียร์ช่องว่างซ้าย-ขวาของคอลัมน์ Status ก่อนทำการกรองข้อมูล
+                df_inspection['Status'] = df_inspection['Status'].astype(str).str.strip()
+
                 # กรองข้อมูลที่ต้องแก้ไข
                 df_need_repair = df_inspection[
-                    df_inspection['Status'].str.strip() == 'ไม่ปกติ (ต้องแก้ไข)'
+                    df_inspection['Status'] == 'ไม่ปกติ (ต้องแก้ไข)'
                     ].copy()
 
-                # ---- แก้ไขข้อ 2: เช็คตรงนี้ว่ามีข้อมูลที่ต้องแก้ไขจริงๆ ไหม ----
+                # ---- เช็คตรงนี้ว่ามีข้อมูลที่ต้องแก้ไขจริงๆ ไหม ----
                 if not df_need_repair.empty:
                     st.warning(f"⚠️ พบ {len(df_need_repair)} รายการที่ต้องได้รับการแก้ไข")
 
@@ -1062,38 +1069,31 @@ with tab4:
                     df_need_repair.insert(0, "No.", df_need_repair.index)
 
 
-                    # ---- แก้ไขข้อ 3: ฟังก์ชันสำหรับไฮไลต์เฉพาะคอลลัมน์ ----
+                    # ---- ฟังก์ชันสำหรับไฮไลต์เฉพาะคอลลัมน์ ----
                     def highlight_cols(x):
-                        # สร้าง DataFrame เปล่าที่มีขนาดเท่ากับข้อมูลหลัก
                         df_css = pd.DataFrame('', index=x.index, columns=x.columns)
-
-                        # กำหนดสไตล์เริ่มต้นของตาราง (สีพื้นหลังน้ำเงินเข้ม ตัวอักษรสีน้ำเงินเข้มตามโค้ดเดิมของคุณ)
                         df_css.loc[:, :] = 'background-color: #cbd8f2; color: #111844;'
 
-                        # เจาะจงไฮไลต์คอลัมน์ 'Status' ให้เป็นสีแดงแจ้งเตือน ตัวอักษรขาวเด่นๆ
                         if 'Status' in x.columns:
                             df_css['Status'] = 'background-color: #ff4b4b; color: #ffffff; font-weight: bold;'
-
-                        # เจาะจงไฮไลต์คอลัมน์ 'ID' ให้เป็นสีเหลืองเด่นเตะตา
                         if 'ID' in x.columns:
                             df_css['ID'] = 'background-color: #ffeaa7; color: #111844; font-weight: bold;'
-
                         return df_css
 
 
                     # แสดงผลตารางพร้อมสไตล์ใหม่
                     st.dataframe(
                         df_need_repair.style.apply(highlight_cols, axis=None).set_properties(**{
-                            'border-color': '#FFFFFF'  # เส้นขอบขาวจางๆ
+                            'border-color': '#FFFFFF'
                         }),
                         use_container_width=True,
                         hide_index=True
                     )
                 else:
-                    # ถ้า df_need_repair ว่างเปล่า (ไม่มีแถวไหนเป็น 'ไม่ปกติ (ต้องแก้ไข)')
+                    # ถ้าไม่มีแถวไหนเป็น 'ไม่ปกติ (ต้องแก้ไข)' แล้ว
                     st.success("🎉 ดีเยี่ยม! ไม่มีรายการที่ต้องแก้ไขในระบบ")
             else:
-                st.error("❌ ไม่พบตัวแปรคอลัมน์ 'Status' ใน Google Sheets")
+                st.success("🎉 ดีเยี่ยม! ไม่มีรายการที่ต้องแก้ไขในระบบ (ไม่มีข้อมูลค้าง)")
         else:
             st.info("ℹ️ ไม่พบข้อมูลใดๆ ในไฟล์ Google Sheets")
 
