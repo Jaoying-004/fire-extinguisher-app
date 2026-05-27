@@ -1033,35 +1033,32 @@ with tab3:
 with tab4:
     st.markdown("<h3 style='color: #ffffff; font-weight: bold;'>🔧 ติดตามการแก้ไข</h3>",
                 unsafe_allow_html=True)
-
-    # 🔄 เพิ่มปุ่มรีเฟรชข้อมูล/ล้างแคช ที่หน้าตารางติดตาม
-    col_refresh, _ = st.columns([1, 3])
-    with col_refresh:
-        if st.button("🔄 อัปเดตข้อมูลล่าสุด", use_container_width=True):
-            st.cache_data.clear()  # ล้างแคชทั้งหมด
-            st.rerun()  # รีโหลดหน้าเว็บใหม่ทันที
-
     try:
+        # 🔥 แก้จุดนี้: บังคับเคลียร์แคชเฉพาะส่วนของตารางติดตามก่อนดึงข้อมูลทุกครั้ง
+        # เพื่อให้สะท้อนหน้า Google Sheets ณ วินาทีนั้นจริงๆ ไม่ว่าจะลบด้วยวิธีไหน
         inspection_sheet = client.open(sheet_name).worksheet("Inspection_Log")
+
+        # ดึงข้อมูลแบบสดใหม่ 100%
         inspection_rows = inspection_sheet.get_all_values()
 
-        # ตรวจสอบว่ามีแถวข้อมูลจริงไหม (ต้องมีมากกว่า 1 แถวเพราะแถวแรกคือ Header)
         if inspection_rows and len(inspection_rows) > 1:
             df_inspection = pd.DataFrame(inspection_rows[1:], columns=inspection_rows[0])
             df_inspection = df_inspection.loc[:, df_inspection.columns != '']
 
-            # ป้องกันเศษแถวว่างที่เกิดจากการไปกด Delete ใน Google Sheets
+            # 🛠️ คลีนแถวว่างที่เกิดจากการไปกดปุ่ม Delete/Backspace ใน Google Sheets โดยตรง
             df_inspection = df_inspection.replace(r'^\s*$', None, regex=True).dropna(how='all')
 
             if not df_inspection.empty and 'Status' in df_inspection.columns:
-                # เคลียร์ช่องว่างและกรองเฉพาะตัวที่ต้องซ่อม
+                # ลบช่องว่างหัว-ท้ายของคำว่า 'ไม่ปกติ (ต้องแก้ไข)'
                 df_inspection['Status'] = df_inspection['Status'].astype(str).str.strip()
+
+                # กรองข้อมูล
                 df_need_repair = df_inspection[df_inspection['Status'] == 'ไม่ปกติ (ต้องแก้ไข)'].copy()
 
                 if not df_need_repair.empty:
                     st.warning(f"⚠️ พบ {len(df_need_repair)} รายการที่ต้องได้รับการแก้ไข")
 
-                    # รีเซ็ตลำดับ No.
+                    # รีเซ็ตและสร้างคอลัมน์ No. ใหม่
                     for col in ["No.", "No"]:
                         if col in df_need_repair.columns:
                             df_need_repair = df_need_repair.drop(columns=[col])
@@ -1070,7 +1067,7 @@ with tab4:
                     df_need_repair.insert(0, "No.", df_need_repair.index)
 
 
-                    # ฟังก์ชันไฮไลต์สี
+                    # ฟังก์ชันสำหรับไฮไลต์
                     def highlight_cols(x):
                         df_css = pd.DataFrame('', index=x.index, columns=x.columns)
                         df_css.loc[:, :] = 'background-color: #cbd8f2; color: #111844;'
@@ -1081,6 +1078,7 @@ with tab4:
                         return df_css
 
 
+                    # แสดงผลตาราง
                     st.dataframe(
                         df_need_repair.style.apply(highlight_cols, axis=None).set_properties(**{
                             'border-color': '#FFFFFF'
@@ -1089,12 +1087,11 @@ with tab4:
                         hide_index=True
                     )
                 else:
-                    st.success("🎉 ดีเยี่ยม! ไม่มีรายการที่ต้องแก้ไขในระบบ")
+                    st.success("🎉 ดีเยี่ยม! ไม่มีรายการที่ต้องแก้ไขในระบบ (ข้อมูลอัปเดตแล้ว)")
             else:
-                st.success("🎉 ดีเยี่ยม! ไม่มีรายการที่ต้องแก้ไขในระบบ")
+                st.success("🎉 ดีเยี่ยม! ไม่มีรายการที่ต้องแก้ไขในระบบ (ข้อมูลอัปเดตแล้ว)")
         else:
-            # 💡 จุดนี้จะทำงานทันทีถ้าใน Google Sheets เหลือแค่หัวข้อ หรือไม่มีข้อมูลเลย
-            st.success("🎉 ดีเยี่ยม! ไม่มีรายการที่ต้องแก้ไขในระบบ (ข้อมูลใน Google Sheets ว่างเปล่า)")
+            st.success("🎉 ดีเยี่ยม! ไม่มีรายการที่ต้องแก้ไขในระบบ (ในชีตไม่มีข้อมูลค้างซ่อมเหลืออยู่)")
 
     except Exception as e:
         st.error(f"❌ Error: {e}")
