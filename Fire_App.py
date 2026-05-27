@@ -1033,47 +1033,47 @@ with tab3:
 with tab4:
     st.markdown("<h3 style='color: #ffffff; font-weight: bold;'>🔧 ติดตามการแก้ไข</h3>",
                 unsafe_allow_html=True)
+
+    # 🔄 เพิ่มปุ่มรีเฟรชข้อมูล/ล้างแคช ที่หน้าตารางติดตาม
+    col_refresh, _ = st.columns([1, 3])
+    with col_refresh:
+        if st.button("🔄 อัปเดตข้อมูลล่าสุด", use_container_width=True):
+            st.cache_data.clear()  # ล้างแคชทั้งหมด
+            st.rerun()  # รีโหลดหน้าเว็บใหม่ทันที
+
     try:
         inspection_sheet = client.open(sheet_name).worksheet("Inspection_Log")
         inspection_rows = inspection_sheet.get_all_values()
 
+        # ตรวจสอบว่ามีแถวข้อมูลจริงไหม (ต้องมีมากกว่า 1 แถวเพราะแถวแรกคือ Header)
         if inspection_rows and len(inspection_rows) > 1:
             df_inspection = pd.DataFrame(inspection_rows[1:], columns=inspection_rows[0])
             df_inspection = df_inspection.loc[:, df_inspection.columns != '']
 
-            # 🔥 [แก้ไขจุดที่ 1] ป้องกันแถวว่างที่เกิดจากการแก้ไขใน Google Sheets โดยตรง
+            # ป้องกันเศษแถวว่างที่เกิดจากการไปกด Delete ใน Google Sheets
             df_inspection = df_inspection.replace(r'^\s*$', None, regex=True).dropna(how='all')
 
             if not df_inspection.empty and 'Status' in df_inspection.columns:
-
-                # 🔥 [แก้ไขจุดที่ 2] เคลียร์ช่องว่างซ้าย-ขวาของคอลัมน์ Status ก่อนทำการกรองข้อมูล
+                # เคลียร์ช่องว่างและกรองเฉพาะตัวที่ต้องซ่อม
                 df_inspection['Status'] = df_inspection['Status'].astype(str).str.strip()
+                df_need_repair = df_inspection[df_inspection['Status'] == 'ไม่ปกติ (ต้องแก้ไข)'].copy()
 
-                # กรองข้อมูลที่ต้องแก้ไข
-                df_need_repair = df_inspection[
-                    df_inspection['Status'] == 'ไม่ปกติ (ต้องแก้ไข)'
-                    ].copy()
-
-                # ---- เช็คตรงนี้ว่ามีข้อมูลที่ต้องแก้ไขจริงๆ ไหม ----
                 if not df_need_repair.empty:
                     st.warning(f"⚠️ พบ {len(df_need_repair)} รายการที่ต้องได้รับการแก้ไข")
 
-                    # ลบหัวคอลัมน์ลำดับเดิมออกถ้ามี
+                    # รีเซ็ตลำดับ No.
                     for col in ["No.", "No"]:
                         if col in df_need_repair.columns:
                             df_need_repair = df_need_repair.drop(columns=[col])
-
-                    # รีเซ็ตและสร้างคอลัมน์ No. ใหม่
                     df_need_repair = df_need_repair.reset_index(drop=True)
                     df_need_repair.index = df_need_repair.index + 1
                     df_need_repair.insert(0, "No.", df_need_repair.index)
 
 
-                    # ---- ฟังก์ชันสำหรับไฮไลต์เฉพาะคอลลัมน์ ----
+                    # ฟังก์ชันไฮไลต์สี
                     def highlight_cols(x):
                         df_css = pd.DataFrame('', index=x.index, columns=x.columns)
                         df_css.loc[:, :] = 'background-color: #cbd8f2; color: #111844;'
-
                         if 'Status' in x.columns:
                             df_css['Status'] = 'background-color: #ff4b4b; color: #ffffff; font-weight: bold;'
                         if 'ID' in x.columns:
@@ -1081,7 +1081,6 @@ with tab4:
                         return df_css
 
 
-                    # แสดงผลตารางพร้อมสไตล์ใหม่
                     st.dataframe(
                         df_need_repair.style.apply(highlight_cols, axis=None).set_properties(**{
                             'border-color': '#FFFFFF'
@@ -1090,12 +1089,12 @@ with tab4:
                         hide_index=True
                     )
                 else:
-                    # ถ้าไม่มีแถวไหนเป็น 'ไม่ปกติ (ต้องแก้ไข)' แล้ว
                     st.success("🎉 ดีเยี่ยม! ไม่มีรายการที่ต้องแก้ไขในระบบ")
             else:
-                st.success("🎉 ดีเยี่ยม! ไม่มีรายการที่ต้องแก้ไขในระบบ (ไม่มีข้อมูลค้าง)")
+                st.success("🎉 ดีเยี่ยม! ไม่มีรายการที่ต้องแก้ไขในระบบ")
         else:
-            st.info("ℹ️ ไม่พบข้อมูลใดๆ ในไฟล์ Google Sheets")
+            # 💡 จุดนี้จะทำงานทันทีถ้าใน Google Sheets เหลือแค่หัวข้อ หรือไม่มีข้อมูลเลย
+            st.success("🎉 ดีเยี่ยม! ไม่มีรายการที่ต้องแก้ไขในระบบ (ข้อมูลใน Google Sheets ว่างเปล่า)")
 
     except Exception as e:
         st.error(f"❌ Error: {e}")
