@@ -1356,9 +1356,9 @@ with st.sidebar:
                         # 5. 🛠️ อัปเดตตารางหลัก (Master List) ทำงานเสมอทุกเคสเพื่อเปลี่ยนสถานะตารางดิบ
                         cell = sheet.find(selected_device)
                         if cell is not None:
-                            sheet.update_cell(cell.row, 6, status)  # คอลัมน์ F (6): สถานะปัจจุบัน (ปกติ / ไม่ปกติ)
-                            sheet.update_cell(cell.row, 7, now_str)  # คอลัมน์ G (7): วันเวลาตรวจล่าสุด
-                            sheet.update_cell(cell.row, 8, inspector)  # คอลัมน์ H (8): ชื่อ จป. ผู้ตรวจ
+                            sheet.update_cell(cell.row, 5, status)  # คอลัมน์ F (6): สถานะปัจจุบัน (ปกติ / ไม่ปกติ)
+                            sheet.update_cell(cell.row, 6, now_str)  # คอลัมน์ G (7): วันเวลาตรวจล่าสุด
+                            sheet.update_cell(cell.row, 7, inspector)  # คอลัมน์ H (8): ชื่อ จป. ผู้ตรวจ
 
                         # 6. เคลียร์ค่าแคชหน้าจอ และปลดล็อกสถานะ
                         st.cache_data.clear()
