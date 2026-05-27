@@ -9,6 +9,9 @@ import uuid
 import extra_streamlit_components as stx
 from streamlit_extras.stylable_container import stylable_container
 
+if "submitting" not in st.session_state:
+    st.session_state["submitting"] = False
+
 
 def colored_button(label, color, text_color="white", key=None):
     """
@@ -35,12 +38,17 @@ def colored_button(label, color, text_color="white", key=None):
             }}
         """,
     ):
-
         return st.button(label, key=btn_key)
+
+
 # ตั้งค่าเวลาไทยไว้ใช้ทั้งแอป
 tz = pytz.timezone('Asia/Bangkok')
+
+
 def get_now():
     return datetime.now(tz)
+
+
 # --- 1. การดึงความลับ (Secrets) ---
 try:
     # ดึงค่าจาก Secrets ออกมาใช้ตรงๆ
@@ -57,7 +65,7 @@ try:
 except Exception as e:
     st.error(f"เกิดข้อผิดพลาดในการเชื่อมต่อกุญแจ: {e}")
     st.stop()
-#==================================================================================================================
+# ==================================================================================================================
 # โซนปรับแต่งสีจ้า (Sidebar)
 st.markdown("""
     <style>
@@ -140,7 +148,7 @@ st.markdown("""
         background-color: #f3f6fb !important;
         border: 1px dashed #5b7db1 !important; 
     }
-    
+
     /* สยบทุกตัวอักษรที่เป็นคำอธิบายในกล่องอัปโหลด (รวมถึง 200MB per file...) */
     [data-testid="stSidebar"] [data-testid="stFileUploader"] section div,
     [data-testid="stSidebar"] [data-testid="stFileUploader"] section div *,
@@ -165,7 +173,7 @@ st.markdown("""
     [data-testid="stSidebar"] [data-testid="stFileUploader"] button[data-testid="stBaseButton-secondary"]:hover {
         background-color: #466699 !important; 
     }
-    
+
     /* ==========================================================
        6. MODERN RADIO BUTTONS (ล็อกให้ใหญ่เฉพาะใน Sidebar)
        ========================================================== */
@@ -256,7 +264,7 @@ st.markdown("""
         border-radius: 10px !important;    
         min-height: 42px !important; /* ควบคุมความสูงให้เรียวสวยงาม */
         padding: 0 !important;             
-        
+
         display: flex !important;
         align-items: center !important;
         justify-content: center !important; /* จัดตัวหนังสือให้อยู่ตรงกลางกล่องเป๊ะ */
@@ -308,7 +316,7 @@ st.markdown("""
         -webkit-text-fill-color: #111844 !important;
         font-weight: 600 !important;
     }
-    
+
     /* ==========================================================
        1. LOGIN PAGE CONTAINER (ปรับแต่งพื้นหลังและเลย์เอาต์ภาพรวม)
        ========================================================== */
@@ -325,7 +333,7 @@ st.markdown("""
         font-size: 50px !important;
         margin-bottom: 8px !important;
     }
-    
+
     /* จัดคำว่า "กรุณาเข้าสู่ระบบ" ให้สไตล์มินิมอล อยู่กึ่งกลาง */
     h1 + div, h1 + p, .main p {
         text-align: center !important;
@@ -343,14 +351,14 @@ st.markdown("""
         border-radius: 8px !important;
         height: 46px !important; /* เพิ่มความหนาให้ช่องพิมพ์ดูพรีเมียมขึ้น */
     }
-    
+
     /* ปรับแต่งตัวอักษรข้างในช่องกรอกข้อมูล */
     [data-testid="stTextInput"] input {
         color: #111844 !important;
         -webkit-text-fill-color: #111844 !important;
         font-size: 15px !important;
     }
-    
+
     /* สไตล์ตัวหนังสือ Placeholder (กรอกรหัสพนักงาน) */
     [data-testid="stTextInput"] input::placeholder {
         color: #8fa0c0 !important;
@@ -390,7 +398,7 @@ st.markdown("""
         margin-top: 10px !important;
         box-shadow: 0 4px 12px rgba(91, 125, 177, 0.2) !important;
     }
-    
+
     /* เอฟเฟกต์ตอนเอาเมาส์ไปชี้ปุ่มล็อกอิน */
     [data-testid="stBaseButton-secondary"]:hover {
         background-color: #466699 !important;
@@ -408,16 +416,14 @@ st.markdown("""
         border-radius: 8px !important;
         margin-top: 20px !important;
     }
-    
-    
+
+
 """, unsafe_allow_html=True)
 
-#ส่วนที่ 1 ของล็อคอิน======================================================================================================
+# ส่วนที่ 1 ของล็อคอิน======================================================================================================
 
 COOKIE_NAME = "emp_auth_token"
 SESSION_EXPIRY_DAYS = 1
-
-
 
 # เรียกใช้ครั้งเดียว
 cookie_manager = stx.CookieManager()
@@ -512,7 +518,8 @@ def remove_cookie_safe(name):
         st.warning(f"⚠️ ไม่สามารถลบ cookie: {e}")
     return False
 
-#-----------------------------------------------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------------------------------------------
 # ส่วนที่ 2: การเชื่อมต่อแผ่นงานและฐานข้อมูล Google Sheet (Database Connection)
 @st.cache_resource
 def get_workbook(_client):
@@ -546,17 +553,20 @@ def get_worksheet(_wb, sheet_name: str):
     except gspread.exceptions.WorksheetNotFound:
         st.error(f"❌ ไม่พบชีตชื่อ '{sheet_name}' ในไฟล์ Google Sheets")
         st.stop()
+
+
 # เชื่อมต่อกับ Worksheets
 try:
     wb = get_workbook(client)
-    sheet_emp = get_worksheet(wb, "employee_list")      # คอลัมน์: emp_id | emp_name
-    sheet_log = get_worksheet(wb, "login_log")          # คอลัมน์: emp_id | timestamp
-    sheet_sessions = get_worksheet(wb, "Auth_Sessions") # คอลัมน์: emp_id | token | expires_at
+    sheet_emp = get_worksheet(wb, "employee_list")  # คอลัมน์: emp_id | emp_name
+    sheet_log = get_worksheet(wb, "login_log")  # คอลัมน์: emp_id | timestamp
+    sheet_sessions = get_worksheet(wb, "Auth_Sessions")  # คอลัมน์: emp_id | token | expires_at
 except Exception as e:
     st.error(f"❌ เกิดข้อผิดพลาดในการโหลดชีต: {e}")
     st.stop()
 
-#ส่วนที่ 3 =========================================================================================================
+
+# ส่วนที่ 3 =========================================================================================================
 @st.cache_data(ttl=600)  # Cache 10 นาที
 def load_employees():
     """
@@ -657,6 +667,7 @@ def revoke_token_in_sheet(token):
     except Exception:
         pass  # ไม่แสดง error เพราะอาจเป็นกรณีที่ token ถูกลบไปแล้ว
 
+
 # ส่วนที่ 4: การจัดกระบวนการทำงานและตรวจสอบสิทธิ์อัตโนมัติ (Execution Flow)
 
 # เริ่มต้น session state
@@ -683,7 +694,6 @@ if not st.session_state.get("authenticated"):
         "</h1>",
         unsafe_allow_html=True
     )
-
 
     # ✅ แสดง query params ถ้ามี
     tank_id = st.query_params.get("tank_id")
@@ -831,7 +841,6 @@ with st.container(border=True):
         </div>
         """, unsafe_allow_html=True)
 
-
         selected_tank = st.session_state.get("selected_tank") or st.query_params.get("tank_id")
 
     with col_profile:
@@ -859,9 +868,10 @@ with st.container(border=True):
                 time.sleep(1)
                 st.rerun()
 
-#จบส่วนล็อคอิน==========================================================================================================
 
-#------------------------------กำหนดลิมิตของข้อมูล-------------------------------------------------------------------------
+# จบส่วนล็อคอิน==========================================================================================================
+
+# ------------------------------กำหนดลิมิตของข้อมูล-------------------------------------------------------------------------
 @st.cache_data(ttl=60)
 def load_sheet_data(worksheet_name):
     ws = spreadsheet.worksheet(worksheet_name)
@@ -875,6 +885,7 @@ def load_sheet_data(worksheet_name):
     df = df.reset_index(drop=True)
     df.insert(0, "No.", df.index + 1)
     return df
+
 
 # --- 2. ดึงข้อมูลจาก Google Sheets --------------------------------------------------------------------------------------
 sheet_name = "FireExtinguisher_MasterList_2026"
@@ -897,7 +908,7 @@ st.markdown("""
             color: #ebeff5 !important;
             font-weight: bold;
         }
-        
+
         /* 3. ปรับสีของเส้นขีดล่าง (เส้นใต้แท็บ) เวลาที่เลือก ให้เป็นสีส้มทอง */
         div[data-testid="stTabs"] [data-baseweb="tab-highlight-bar"] {
             background-color: #FFC570 !important;
@@ -906,11 +917,13 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-tab1, tab2, tab3, tab4 = st.tabs(["📅 รายการตรวจวันนี้", "📋 FireExtinguisher_Data", "🚨 Emergency_Safety_Equipment", "🔧 ติดตามการแก้ไข"])
-#ดึงข้อมูลจากชีตมาโชว์
+tab1, tab2, tab3, tab4 = st.tabs(
+    ["📅 รายการตรวจวันนี้", "📋 FireExtinguisher_Data", "🚨 Emergency_Safety_Equipment", "🔧 ติดตามการแก้ไข"])
+# ดึงข้อมูลจากชีตมาโชว์
 with tab1:
     df = load_sheet_data("Inspection_Log")
-    st.markdown("<h3 style='color: #ffffff; font-weight: bold;'>รายการที่ตรวจเช็คแล้ววันนี้</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color: #ffffff; font-weight: bold;'>รายการที่ตรวจเช็คแล้ววันนี้</h3>",
+                unsafe_allow_html=True)
 
     if not df.empty:
         date_col = "Timestamp" if "Timestamp" in df.columns else df.columns[0]
@@ -945,7 +958,7 @@ with tab1:
                 df_display.style.set_properties(**{
                     'background-color': '#cbd8f2',  # บังคับพื้นหลังในตารางให้เป็นสีน้ำเงินเข้มตามธีม
                     'color': '#111844',  # บังคับตัวหนังสือด้านในให้เป็นสีขาวนวล (อ่านง่าย ชัดเจน 100%)
-                    'border-color': '#FFFFFF' #เส้นตัดขอบในตารางจางๆ
+                    'border-color': '#FFFFFF'  # เส้นตัดขอบในตารางจางๆ
                 }),
                 use_container_width=True,
                 hide_index=True
@@ -958,7 +971,6 @@ with tab1:
 
     else:
         st.info("ยังไม่มีข้อมูลการตรวจบันทึกในแท็บ Log")
-
 
 with tab2:
     df = load_sheet_data("FireExtinguisher_Data")
@@ -984,17 +996,16 @@ with tab2:
                 df_tab2.style.set_properties(**{
                     'background-color': '#cbd8f2',  # บังคับพื้นหลังในตารางให้เป็นสีน้ำเงินเข้มตามธีม
                     'color': '#111844',  # บังคับตัวหนังสือด้านในให้เป็นสีขาวนวล (อ่านง่าย ชัดเจน 100%)
-                    'border-color': '#FFFFFF' #  # เส้นตัดขอบในตารางจางๆ
+                    'border-color': '#FFFFFF'  # # เส้นตัดขอบในตารางจางๆ
                 }),
                 use_container_width=True,
                 hide_index=True
             )
 
             # แสดงผลลัพธ์ (แนะนำให้ใส่ hide_index=True เพื่อไม่ให้มี index ซ้ำซ้อนโผล่มาซ้ายสุดอีก)
-            #st.dataframe(df_tab2, use_container_width=True, hide_index=True)
+            # st.dataframe(df_tab2, use_container_width=True, hide_index=True)
     except Exception as e:
         st.error(f"❌ {type(e).__name__}: {e}")
-
 
 with tab3:
     df = load_sheet_data("Emergency_Safety_Equipment")
@@ -1034,71 +1045,68 @@ with tab4:
     st.markdown("<h3 style='color: #ffffff; font-weight: bold;'>🔧 ติดตามการแก้ไข</h3>",
                 unsafe_allow_html=True)
     try:
-        inspection_sheet = client.open(sheet_name).worksheet("Inspection_Log")
-        inspection_rows = inspection_sheet.get_all_values()
+        action_required_sheet = client.open(sheet_name).worksheet("Action_Required")
+        action_rows = action_required_sheet.get_all_values()
+        st.write("DEBUG เคส ที่ต้องแก้ไขปัจจุบัน:", len(action_rows) - 1 if len(action_rows) > 0 else 0)
 
-        if inspection_rows and len(inspection_rows) > 1:
-            df_inspection = pd.DataFrame(inspection_rows[1:], columns=inspection_rows[0])
-            df_inspection = df_inspection.loc[:, df_inspection.columns != '']
+        if action_rows and len(action_rows) > 1:
+            df_need_repair = pd.DataFrame(action_rows[1:], columns=action_rows[0])
+            df_need_repair = df_need_repair.loc[:, df_need_repair.columns != '']
 
-            if 'Status' in df_inspection.columns:
-                df_need_repair = df_inspection[
-                    df_inspection['Status'].str.strip() == 'ไม่ปกติ (ต้องแก้ไข)'
-                    ]
-                # --- 1. ส่วนหัวข้อ และ ตัวกรองมุมขวา (ใช้ st.popover เพื่อความสะอาดตา) ---
+            # ตารางแสดงผลรายการค้างซ่อม
+            if not df_need_repair.empty:
+                st.warning(f"พบ {len(df_need_repair)} รายการที่กำลังรอการแก้ไข")
 
-                # ตาราง
-                if not df_need_repair.empty:
-                    st.warning(f"พบ {len(df_need_repair)} รายการ")
+                for col in ["No.", "No"]:
+                    if col in df_need_repair.columns:
+                        df_need_repair = df_need_repair.drop(columns=[col])
 
-                    for col in ["No.", "No"]:
-                        if col in df_need_repair.columns:
-                            df_need_repair = df_need_repair.drop(columns=[col])
+                df_need_repair = df_need_repair.reset_index(drop=True)
+                df_need_repair.index = df_need_repair.index + 1
+                df_need_repair.insert(0, "No.", df_need_repair.index)
 
-                            # ให้ index เริ่มที่ 1
-                    df_need_repair = df_need_repair.reset_index(drop=True)
-                    df_need_repair.index = df_need_repair.index + 1
-
-                    df_need_repair.insert(0, "No.", df_need_repair.index)
-
-                    # แสดงผลโดยซ่อน index เดิมเพื่อความสวยงาม
-                    st.dataframe(
-                        df_need_repair.style.set_properties(**{
-                            'background-color': '#cbd8f2',  # บังคับพื้นหลังในตารางให้เป็นสีน้ำเงินเข้มตามธีม
-                            'color': '#111844',  # บังคับตัวหนังสือด้านในให้เป็นสีขาวนวล (อ่านง่าย ชัดเจน 100%)
-                            'border-color': '#FFFFFF'  # # เส้นตัดขอบในตารางจางๆ
-                        }),
-                        use_container_width=True,
-                        hide_index=True
-                    )
-                else:
-                    st.success("🎉 ไม่มีรายการที่ต้องแก้ไข")
+                # แสดงผลตารางแบบคุมธีมสีน้ำเงินเข้มอ่านง่าย
+                st.dataframe(
+                    df_need_repair.style.set_properties(**{
+                        'background-color': '#cbd8f2',
+                        'color': '#111844',
+                        'border-color': '#FFFFFF'
+                    }),
+                    use_container_width=True,
+                    hide_index=True
+                )
+            else:
+                st.success("🎉 ยอดเยี่ยม! ไม่มีรายการอุปกรณ์ที่ต้องแก้ไขค้างอยู่ในระบบ")
+        else:
+            st.success("🎉 ยอดเยี่ยม! ไม่มีรายการอุปกรณ์ที่ต้องแก้ไขค้างอยู่ในระบบ")
 
     except Exception as e:
-        st.error(f"❌ Error: {e}")
+        st.error(f"❌ เกิดข้อผิดพลาดในการโหลดตารางติดตาม: {e}")
 
 if st.button("🔍 อัปเดตข้อมูลล่าสุด", type="secondary"):
+    st.cache_data.clear()
     st.rerun()
 
-
-
-
-#-----------------------------------------------------------------------------------------------------------------
-#ส่วนของการจัดการรูปภาพ
+# -----------------------------------------------------------------------------------------------------------------
+# ส่วนของการจัดการรูปภาพ
 import cloudinary
 import cloudinary.uploader
+
 cloudinary.config(
     cloud_name="drac2fch1",
     api_key="111436524955713",
     api_secret="dKOBl29NIqRzeZ-CALZ22fgmHI8"
-    )
+)
 
-    # อัปโหลดรูป
+
+# อัปโหลดรูป
 def upload_image(image_file):
     result = cloudinary.uploader.upload(image_file)
     return result["secure_url"]  # ← ได้ URL รูปกลับมา
-#-------------------------------------------------------------------------------------------------------------------
-#ส่วนของแบบฟอร์มการตรวจเช็ค
+
+
+# -------------------------------------------------------------------------------------------------------------------
+# ส่วนของแบบฟอร์มการตรวจเช็ค
 with st.sidebar:
     st.header("📌 ระบบบันทึกข้อมูล")
 
@@ -1125,6 +1133,8 @@ with st.sidebar:
         )
 
         sheet_name_var = "FireExtinguisher_MasterList_2026"
+
+
         @st.cache_data(ttl=600)
         def get_device_options(sheet_name):
             try:
@@ -1133,6 +1143,8 @@ with st.sidebar:
                 return [row[1] for row in rows[1:]]
             except:
                 return []
+
+
         default_index = 0
         is_locked_by_qr = False
 
@@ -1184,7 +1196,7 @@ with st.sidebar:
             default_name = st.session_state.get("emp_name", "")
             inspector = st.text_input("ชื่อผู้ตรวจ", value=default_name, key="inspector_input")
 
-    # --- ส่วนเช็คลิสต์ตามประเภท ---
+            # --- ส่วนเช็คลิสต์ตามประเภท ---
             if device_type == "ถังดับเพลิง":
                 if device_sub_type == "ผงเคมีแห้ง":
                     st.write(f"🔍 ประเภทถัง: **{device_sub_type}**")
@@ -1192,14 +1204,17 @@ with st.sidebar:
                     q2 = st.radio("2. สายฉีดไม่แตกลายงา ไม่อุดตัน", ["ใช่", "ไม่ใช่"], key="chk_dry_2")
                     q3 = st.radio("3. สภาพตัวถังไม่บุบ ไม่มีสิ่งผิดปกติ", ["ใช่", "ไม่ใช่"], key="chk_dry_3")
                     q4 = st.radio("4. ซีลและสลักอยู่ครบ ไม่ฉีกขาด", ["ใช่", "ไม่ใช่"], key="chk_dry_4")
-                    q5 = st.radio("5. ระยะรอบถังไม่มีสิ่งกีดขวาง เข้าใข้งานถังได้สะดวก", ["ใช่", "ไม่ใช่"], key="chk_dry_5")
+                    q5 = st.radio("5. ระยะรอบถังไม่มีสิ่งกีดขวาง เข้าใข้งานถังได้สะดวก", ["ใช่", "ไม่ใช่"],
+                                  key="chk_dry_5")
 
                 elif device_sub_type == "CO2":
                     st.write(f"🔍 ประเภทถัง: **{device_sub_type}**")
-                    q1 = st.radio("1. น้ำหนักถังปกติ (ยกประเมินด้วยมือต้องไม่เบาโหวง)", ["ใช่", "ไม่ใช่"], key="chk_co2_1")
+                    q1 = st.radio("1. น้ำหนักถังปกติ (ยกประเมินด้วยมือต้องไม่เบาโหวง)", ["ใช่", "ไม่ใช่"],
+                                  key="chk_co2_1")
                     q2 = st.radio("2. คันบีบและสลักไม่เป็นสนิม ไม่หักงอ", ["ใช่", "ไม่ใช่"], key="chk_co2_2")
                     q3 = st.radio("3. หัวฉีดไม่มีน้ำแข็งเกาะ/ไม่อุดตัน)", ["ใช่", "ไม่ใช่"], key="chk_co2_3")
-                    q4 = st.radio("4. ระยะรอบถังไม่มีสิ่งกีดขวาง เข้าใข้งานถังได้สะดวก", ["ใช่", "ไม่ใช่"], key="chk_co2_4")
+                    q4 = st.radio("4. ระยะรอบถังไม่มีสิ่งกีดขวาง เข้าใข้งานถังได้สะดวก", ["ใช่", "ไม่ใช่"],
+                                  key="chk_co2_4")
 
             elif device_type == "Emergency Equipment":
                 st.info("🚨 ตรวจระบบ: Emergency Equipment")
@@ -1230,179 +1245,208 @@ with st.sidebar:
                                   ["ใช่", "ไม่ใช่"], key="chk_exit_4")
 
             # --- ส่วนแนบรูป (บังคับให้แนบเพื่อยืนยันว่าไปจริง) ---------------------------------------------------------------------------
-            img_files = st.file_uploader("📸 แนบรูปถ่ายขณะตรวจเช็ค", type=['jpg', 'png', 'jpeg'], accept_multiple_files=True)
+            img_files = st.file_uploader("📸 แนบรูปถ่ายขณะตรวจเช็ค", type=['jpg', 'png', 'jpeg'],
+                                         accept_multiple_files=True)
             status = st.radio("สถานะโดยรวม", ["ปกติ", "ไม่ปกติ (ต้องแก้ไข)"])
-    # หมายเหตุ (กรณีมีข้อที่ไม่ปกติ)
+            # หมายเหตุ (กรณีมีข้อที่ไม่ปกติ)
             remarks = st.text_area("ระบุรายละเอียดเพิ่มเติม (ถ้าไม่ปกติ)")
-            submit_button = st.form_submit_button("บันทึกข้อมูล", type="secondary", use_container_width=True)
+            submit_button = st.form_submit_button("บันทึกข้อมูล", type="primary", use_container_width=True)
             log_sheet = client.open(sheet_name).worksheet("Inspection_Log")
 
         if submit_button:
-            now_dt = get_now()
-            now_str = now_dt.strftime("%Y-%m-%d %H:%M:%S")
-            image_link = "ไม่มีรูปแนบ"
-            try:
-            # 1. อัปโหลดรูปภาพ (ถ้ามี)
-                if img_files:  # เปลี่ยนตามชื่อตัวแปรของ st.file_uploader ตัวใหม่
-                    image_urls = []
+            # 1. รวบรวมคำตอบจากปุ่ม Radio ทุกข้อมาตรวจสอบ
+            answers_to_check = []
+            if device_type == "ถังดับเพลิง":
+                if device_sub_type == "ผงเคมีแห้ง":
+                    answers_to_check = [st.session_state.get("chk_dry_1"), st.session_state.get("chk_dry_2"),
+                                        st.session_state.get("chk_dry_3"), st.session_state.get("chk_dry_4"),
+                                        st.session_state.get("chk_dry_5")]
+                elif device_sub_type == "CO2":
+                    answers_to_check = [st.session_state.get("chk_co2_1"), st.session_state.get("chk_co2_2"),
+                                        st.session_state.get("chk_co2_3"), st.session_state.get("chk_co2_4")]
 
-                # วนลูปส่งรูปขึ้น Cloudinary ทีละรูปจนครบ
-                    for file in img_files:
-                        result = cloudinary.uploader.upload(file)  # ✅ Cloudinary อัปโหลดทีละไฟล์
-                        image_urls.append(result["secure_url"])  # เก็บลิงก์ที่ได้ลงลิสต์
+            elif device_type == "Emergency Equipment":
+                if device_sub_type == "Emergency Light":
+                    answers_to_check = [st.session_state.get("chk_em_light_1"), st.session_state.get("chk_em_light_3"),
+                                        st.session_state.get("chk_em_light_4")]
+                elif device_sub_type == "Fire alarm":
+                    answers_to_check = [st.session_state.get("chk_fire_alarm_1"),
+                                        st.session_state.get("chk_fire_alarm_2")]
+                elif device_sub_type == "Emergency Exit":
+                    answers_to_check = [st.session_state.get("chk_exit_1"), st.session_state.get("chk_exit_2"),
+                                        st.session_state.get("chk_exit_3"), st.session_state.get("chk_exit_4")]
 
-                # รวมทุกลิงก์เป็นข้อความเดียว คั่นด้วยคอมม่า (,) เพื่อส่งต่อลงช่องเดิมใน Sheets
-                    image_link = ", ".join(image_urls)
-                else:
-                    image_link = ""
+            # 2. ทำ Data Validation (ดักจับความครบถ้วนก่อนส่ง)
+            if None in answers_to_check:
+                st.sidebar.error("❌ บันทึกไม่สำเร็จ: กรุณาประเมินหัวข้อเช็คลิสต์ (ใช่ / ไม่ใช่) ให้ครบทุกข้อก่อนครับ")
 
-            # 2. บันทึกลง Log Sheet (ใช้ now และ image_link ได้แล้ว)
-                new_log_entry = [
-                    now_str,  # คอลัมน์ 1: วันเวลาที่ตรวจ
-                    device_sub_type,  # คอลัมน์ 3: ประเภทอุปกรณ์ (Type) 💡 เพิ่มตัวนี้เข้ามาแล้วครับ
-                    selected_device,  # คอลัมน์ 2: รหัสอุปกรณ์ (ID)
-                    inspector,  # คอลัมน์ 4: ชื่อผู้ตรวจ
-                    status,  # คอลัมน์ 5: สถานะโดยรวม
-                    remarks,  # คอลัมน์ 6: หมายเหตุ
-                    image_link  # คอลัมน์ 7: ลิงก์รูปภาพ
-                ]
-                log_sheet.append_row(new_log_entry)
-                if status == "ไม่ปกติ (ต้องแก้ไข)":
+            elif not inspector:
+                st.sidebar.error("❌ บันทึกไม่สำเร็จ: กรุณากรอกชื่อผู้ตรวจก่อนบันทึกข้อมูล")
+
+            elif st.session_state["submitting"]:
+                st.sidebar.warning("⏳ ระบบกำลังบันทึกข้อมูลอยู่ กรุณารอสักครู่...")
+
+            else:
+                # 3. ล็อกสถานะเพื่อป้องกันปัญหารีเฟรชตัดหน้า
+                st.session_state["submitting"] = True
+
+                # 🎯 ดึงบล็อก spinner และการบันทึกทั้งหมดเข้ามาอยู่ใน else (เยื้องขวาเข้ามา 1 Step)
+                with st.spinner("🚀 กำลังอัปโหลดรูปภาพและบันทึกข้อมูลความปลอดภัย..."):
                     try:
-                    # เปิด Sheet Action_Required
-                        action_sheet = client.open(sheet_name).worksheet("Action_Required")
-                        cell = sheet.find(selected_device)
-                        device_row = sheet.row_values(cell.row)
-                        device_location = device_row[3] if len(device_row) > 3 else "-"  # ปรับ index ตาม Sheet
+                        now_dt = get_now()
+                        now_str = now_dt.strftime("%Y-%m-%d %H:%M:%S")
+                        image_link = "ไม่มีรูปแนบ"
 
-                        action_entry = [
+                        # --- ส่วนจัดการรูปภาพขึ้น Cloudinary ---
+                        if img_files:
+                            image_urls = []
+                            for file in img_files:
+                                result = cloudinary.uploader.upload(file)
+                                image_urls.append(result["secure_url"])
+                            image_link = ", ".join(image_urls)
+                        else:
+                            image_link = "ไม่มีรูปแนบ"
+
+                        # 4. บันทึกข้อมูลลงฐานข้อมูลประวัติ (Inspection_Log)
+                        new_log_entry = [
                             now_str,  # คอลัมน์ 1: วันเวลาที่ตรวจ
-                            device_sub_type,  # คอลัมน์ 3: ประเภทอุปกรณ์ (Type) 💡 เพิ่มตัวนี้เข้ามาแล้วครับ
-                            selected_device,  # คอลัมน์ 2: รหัสอุปกรณ์ (ID)
+                            device_sub_type,  # คอลัมน์ 2: ประเภทอุปกรณ์ย่อย (Type)
+                            selected_device,  # คอลัมน์ 3: รหัสอุปกรณ์ (ID)
                             inspector,  # คอลัมน์ 4: ชื่อผู้ตรวจ
-                            status,  # คอลัมน์ 5: สถานะโดยรวม
+                            status,  # คอลัมน์ 5: สถานะโดยรวม (ปกติ / ไม่ปกติ)
                             remarks,  # คอลัมน์ 6: หมายเหตุ
                             image_link  # คอลัมน์ 7: ลิงก์รูปภาพ
                         ]
-                        action_sheet.append_row(action_entry)
-                        st.success("✅ บันทึกข้อมูลเรียบร้อย")
-                        st.warning(f"⚠️ รายการ {selected_device} ถูกส่งไปยัง 'Action_Required' เพื่อติดตามการแก้ไข")
-                    except Exception as e:
-                        st.warning(f"⚠️ บันทึกลง Inspection_Logs แล้ว แต่ไม่สามารถส่งไป Action_Required: {e}")
-                else:
-                    st.success("✅ บันทึกข้อมูลเรียบร้อย")
-            # 3. อัปเดตตารางหลัก (Master List)
-                    cell = sheet.find(selected_device)
-                    if cell is not None:
-                    # 💡 ปรับเลขคอลัมน์ใหม่ให้ตรงตามหน้าแผ่นงานจริงเป๊ะๆ ครับ
-                    # อัปเดตช่อง Status -> ให้ลงคอลัมน์ E (คอลัมน์ที่ 5)
-                        sheet.update_cell(cell.row, 6, status)
+                        log_sheet.append_row(new_log_entry)
 
-                    # อัปเดตช่อง Last Inspected -> ให้ลงคอลัมน์ F (คอลัมน์ที่ 6)
-                        sheet.update_cell(cell.row, 7, now_str)
+                        # บันทึกข้อมูลแยกเคส "ไม่ปกติ" ส่งไปติดตามงานซ่อม (Action_Required)
+                        if status == "ไม่ปกติ (ต้องแก้ไข)":
+                            try:
+                                action_sheet = client.open(sheet_name).worksheet("Action_Required")
+                                action_sheet.append_row(new_log_entry)
+                                st.sidebar.warning(f"⚠️ รายการ {selected_device} ถูกส่งไปยังใบงานซ่อมแล้ว")
+                            except Exception as e:
+                                st.sidebar.error(f"⚠️ บันทึกประวัติสำเร็จ แต่ส่งไปแท็บงานซ่อมล้มเหลว: {e}")
 
-                    # อัปเดตช่อง ผู้ตรวจ -> ให้ลงคอลัมน์ G (คอลัมน์ที่ 7)
-                        sheet.update_cell(cell.row, 8, inspector)
-                        st.sidebar.success(f"✅ บันทึกข้อมูลและรูปภาพถัง {selected_device} เรียบร้อย!")
+                        # 5. 🛠️ อัปเดตตารางหลัก (Master List) ทำงานเสมอทุกเคสเพื่อเปลี่ยนสถานะตารางดิบ
+                        cell = sheet.find(selected_device)
+                        if cell is not None:
+                            sheet.update_cell(cell.row, 6, status)  # คอลัมน์ F (6): สถานะปัจจุบัน (ปกติ / ไม่ปกติ)
+                            sheet.update_cell(cell.row, 7, now_str)  # คอลัมน์ G (7): วันเวลาตรวจล่าสุด
+                            sheet.update_cell(cell.row, 8, inspector)  # คอลัมน์ H (8): ชื่อ จป. ผู้ตรวจ
+
+                        # 6. เคลียร์ค่าแคชหน้าจอ และปลดล็อกสถานะ
+                        st.cache_data.clear()
+                        st.session_state["submitting"] = False
+
+                        st.sidebar.success(f"🎉 บันทึกข้อมูลอุปกรณ์ {selected_device} เรียบร้อย!")
+                        st.balloons()
+                        time.sleep(1)
                         st.query_params.clear()
                         st.rerun()
-            except Exception as e:
-                st.sidebar.error(f"❌ เกิดข้อผิดพลาดในการบันทึก: {e}")
-    #โฟลวที่ 2 แบบฟอร์มแจ้งการแก้ไข
+
+                    except Exception as e:
+                        # ปลดล็อกสถานะเพื่อให้พนักงานกดส่งใหม่อีกครั้งได้หากเน็ตหลุด
+                        st.session_state["submitting"] = False
+                        st.sidebar.error(f"❌ เกิดข้อผิดพลาดทางเทคนิคระหว่างบันทึก: {e}")
+
+    # โฟลวที่ 2 แบบฟอร์มแจ้งการแก้ไข
     elif menu_page == "🛠️ ฟอร์มแจ้งการแก้ไข":
         st.subheader("🛠️ ฟอร์มแจ้งการแก้ไข")
 
         try:
-            repair_log_sheet = client.open(sheet_name).worksheet("Inspection_Log")
-            repair_data = repair_log_sheet.get_all_values()
+            repair_action_sheet = client.open(sheet_name).worksheet("Action_Required")
+            repair_data = repair_action_sheet.get_all_values()
 
             # ตรวจสอบว่าในชีตมีหัวข้อ และมีข้อมูลอย่างน้อย 1 แถว (รวมเป็น > 1)
             if repair_data and len(repair_data) > 1:
                 df_repair = pd.DataFrame(repair_data[1:], columns=repair_data[0])
-
-                # 🛠️ ป้องกันแถวว่างที่เกิดจากการกด Delete: เคลียร์ช่องว่างออกก่อน
                 df_repair = df_repair.replace(r'^\s*$', None, regex=True).dropna(how='all')
 
-                # ถ้าหลังจากลบแถวว่างแล้ว ยังมีข้อมูลอยู่
-                if not df_repair.empty and 'Status' in df_repair.columns:
+                if not df_repair.empty:
+                    # สร้างป้ายกำกับให้เลือกซ่อมได้ง่ายขึ้น (ระบุ ID คู่กับวันเวลาที่บันทึกเสีย)
+                    # ใช้ชื่อคอลัมน์ดั้งเดิมของคุณที่มีในประวัติ
+                    id_col_name = 'ID' if 'ID' in df_repair.columns else df_repair.columns[2]
+                    time_col_name = 'Timestamp' if 'Timestamp' in df_repair.columns else df_repair.columns[0]
 
-                    # ใส่ Row Index อ้างอิงแถวบน Google Sheets ให้ถูกต้อง (+2 เพราะ Pandas เริ่มที่ 0 และแถวที่ 1 คือ Header)
-                    df_repair['sheet_row_index'] = df_repair.index + 2
+                    df_repair['picker_label'] = df_repair[id_col_name].astype(str) + " (" + df_repair[
+                        time_col_name].astype(str).str[5:16] + ")"
 
-                    # กรองเฉพาะเคสค้างซ่อม
-                    df_need_action = df_repair[df_repair['Status'].astype(str).str.strip() == 'ไม่ปกติ (ต้องแก้ไข)']
+                    with st.form("repair_form"):
+                        selected_repair_item = st.selectbox(
+                            "เลือกอุปกรณ์ที่แก้ไขแล้ว:",
+                            df_repair['picker_label'].tolist()
+                        )
 
-                    if not df_need_action.empty:
-                        df_need_action['picker_label'] = df_need_action['ID'].astype(str) + " (" + df_need_action[
-                            'Timestamp'].astype(str).str[5:16] + ")"
+                        repair_details = st.text_area(
+                            "รายละเอียดการแก้ไข:",
+                            placeholder="เช่น เปลี่ยนถังใหม่ / เติมระดับแรงดันเกจเขียวเรียบร้อยแล้ว"
+                        )
+                        repairman_name = st.text_input("ชื่อผู้แก้ไข:")
 
-                        # --- ตัวฟอร์มแจ้งซ่อม ---
-                        with st.form("repair_form"):
-                            selected_repair_item = st.selectbox(
-                                "เลือกอุปกรณ์ที่แก้ไขแล้ว:",
-                                df_need_action['picker_label'].tolist()
-                            )
+                        submit_repair = st.form_submit_button("💾 ยืนยันแก้ไขสำเร็จ", type="primary")
 
-                            repair_details = st.text_area(
-                                "รายละเอียดการแก้ไข:",
-                                placeholder="เช่น เปลี่ยนถังใหม่ / เติมแรงดันแล้ว"
-                            )
-                            repairman_name = st.text_input("ชื่อผู้แก้ไข:")
+                    if submit_repair:
+                        if not repairman_name or not repair_details:
+                            st.warning("⚠️ กรุณากรอกข้อมูลผู้แก้ไขและรายละเอียดให้ครบถ้วน")
+                        else:
+                            with st.spinner("กำลังทำการอัปเดตและล้างข้อมูลออกจากระบบติดตาม..."):
+                                chosen_row = df_repair[df_repair['picker_label'] == selected_repair_item].iloc[0]
+                                target_id = str(chosen_row[id_col_name])
 
-                            submit_repair = st.form_submit_button("💾 ยืนยันแก้ไขสำเร็จ", type="primary")
+                                # 1. วิ่งไปอัปเดตสถานะในบันทึกประวัติ (Inspection_Log) ให้เป็น "ดำเนินการแก้ไขแล้ว" ตามเดิม
+                                repair_log_sheet = client.open(sheet_name).worksheet("Inspection_Log")
+                                fresh_log_data = repair_log_sheet.get_all_values()
+                                log_headers = fresh_log_data[0]
 
-                        if submit_repair:
-                            if not repairman_name or not repair_details:
-                                st.warning("⚠️ กรุณากรอกข้อมูลให้ครบถ้วน")
-                            else:
-                                with st.spinner("กำลังอัปเดตระบบ..."):
-                                    chosen_row = \
-                                    df_need_action[df_need_action['picker_label'] == selected_repair_item].iloc[0]
-                                    target_id = str(chosen_row['ID'])  # ดึงค่า ID มาอ้างอิง
+                                log_id_col = log_headers.index('ID') + 1 if 'ID' in log_headers else 3
+                                log_status_col = log_headers.index('Status') + 1 if 'Status' in log_headers else 5
 
-                                    # ดึงข้อมูลจากชีตแบบสด ๆ ป้องกันการเคลื่อนของแถวจากการแก้ไขในชีตโดยตรง
-                                    fresh_data = repair_log_sheet.get_all_values()
-                                    headers = fresh_data[0]
+                                # หาแถวล่าสุดของ ID นั้นในชีตประวัติเพื่ออัปเดตสถานะการซ่อม
+                                target_log_row = None
+                                for index, row in enumerate(reversed(fresh_log_data[1:]), start=2):
+                                    actual_index = len(fresh_log_data) - index + 1
+                                    if len(row) > log_id_col - 1 and row[log_id_col - 1] == target_id:
+                                        target_log_row = actual_index
+                                        break
 
-                                    # ค้นหาว่า ID คู่นั้นอยู่ในแถว (row) ที่เท่าใดบน Google Sheets ณ ปัจจุบัน
-                                    target_row_num = None
-                                    id_col_num = headers.index('ID') + 1
+                                if target_log_row:
+                                    repair_log_sheet.update_cell(target_log_row, log_status_col, "ดำเนินการแก้ไขแล้ว")
+                                    if 'Note' in log_headers:
+                                        note_col_num = log_headers.index('Note') + 1
+                                        current_date_str = datetime.now().strftime('%Y-%m-%d')
+                                        repair_log_text = f"⚙️ ซ่อมโดย {repairman_name}: {repair_details} ({current_date_str})"
+                                        repair_log_sheet.update_cell(target_log_row, note_col_num, repair_log_text)
 
-                                    for index, row in enumerate(fresh_data[1:], start=2):
-                                        if len(row) > id_col_num - 1 and row[id_col_num - 1] == target_id:
-                                            target_row_num = index
-                                            break
+                                # 2. 🎯 [จุดแก้ไขสำคัญ] เข้าไปค้นหาและสั่งลบแถวอุปกรณ์ชิ้นนี้ออกจากกระดานค้างซ่อม (Action_Required)
+                                fresh_action_data = repair_action_sheet.get_all_values()
+                                action_headers = fresh_action_data[0]
+                                action_id_col = action_headers.index('ID') + 1 if 'ID' in action_headers else 3
 
-                                    if target_row_num:
-                                        status_col_num = headers.index('Status') + 1
-                                        repair_log_sheet.update_cell(target_row_num, status_col_num,
-                                                                     "ดำเนินการแก้ไขแล้ว")
+                                for index, row in enumerate(fresh_action_data[1:], start=2):
+                                    if len(row) > action_id_col - 1 and row[action_id_col - 1] == target_id:
+                                        repair_action_sheet.delete_rows(index)  # ลบแถวที่จัดการซ่อมเสร็จแล้วทิ้งทันที
+                                        break
 
-                                        if 'Note' in headers:
-                                            note_col_num = headers.index('Note') + 1
-                                            current_date_str = datetime.now().strftime('%Y-%m-%d')
-                                            repair_log_text = f"⚙️ ซ่อมโดย {repairman_name}: {repair_details} ({current_date_str})"
-                                            repair_log_sheet.update_cell(target_row_num, note_col_num, repair_log_text)
-
-                                        # ล้างแคชเพื่อให้ตารางดึงข้อมูลใหม่ทันที
-                                        st.cache_data.clear()
-                                        st.success("🎉 อัปเดตสถานะสำเร็จแล้ว!")
-                                        st.rerun()
-                                    else:
-                                        st.error("❌ ไม่พบรหัสอุปกรณ์นี้บน Google Sheets (อาจถูกลบไปแล้ว)")
+                                # 3. สั่งเคลียร์แคชระบบ เพื่อให้ทุกแท็บแสดงผลข้อมูลล่าสุดตรงกันทันที
+                                st.cache_data.clear()
+                                st.success("🎉 ระบบลงประวัติการซ่อมและเคลียร์รายการออกจากตารางติดตามสำเร็จ!")
+                                time.sleep(1)
+                                st.rerun()
                 else:
-                    st.success("🎉 ไม่มีรายการค้างซ่อมในระบบ (ข้อมูลในชีตว่างเปล่า)")
+                    st.success("🎉 ไม่มีรายการอุปกรณ์ค้างซ่อมในระบบ")
             else:
-                st.info("ℹ️ ไม่มีข้อมูลบันทึกในระบบ (กรุณาตรวจสอบหัวคอลัมน์ใน Google Sheets)")
+                st.success("🎉 ไม่มีรายการอุปกรณ์ค้างซ่อมในระบบ")
 
         except Exception as e:
-            st.error(f"❌ Error: {e}")
+            st.error(f"❌ เกิดข้อผิดพลาดในระบบฟอร์มแจ้งซ่อม: {e}")
 
-
-#------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------------------------------------
 # ส่วนของ Notification ในไลน์
 import requests
 import streamlit as st
+
+
 def send_line_notify(message):
     token = st.secrets["line_api"]["channel_access_token"]
     # 1. ดึงรายชื่อ ID ทั้งหมดออกมาเป็น List
@@ -1418,10 +1462,12 @@ def send_line_notify(message):
         "to": target_ids,
         "messages": [{"type": "text", "text": message}]
     }
-        # ส่งข้อมูล
+    # ส่งข้อมูล
     requests.post(url, headers=headers, json=data)
 
+
 import pandas as pd
+
 if st.button("📈 ส่งสรุปข้อมูลประจำเดือน", type="secondary"):
     all_data = log_sheet.get_all_records()
     df = pd.DataFrame(all_data)
@@ -1442,7 +1488,7 @@ if st.button("📈 ส่งสรุปข้อมูลประจำเด�
         df_month = df[
             (df[col_date].dt.month == now_dt.month) &
             (df[col_date].dt.year == now_dt.year)
-        ]
+            ]
 
         if not df_month.empty:
             # เรียงตามวันที่ก่อน เพื่อให้ keep='last' คือข้อมูลล่าสุดจริง
@@ -1473,6 +1519,6 @@ if st.button("📈 ส่งสรุปข้อมูลประจำเด�
         else:
             st.warning("ไม่พบข้อมูลของเดือนปัจจุบันในชีต")
 
-#--------------------------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------------------
 
 
