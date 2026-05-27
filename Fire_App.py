@@ -1042,57 +1042,60 @@ with tab4:
             df_inspection = df_inspection.loc[:, df_inspection.columns != '']
 
             if 'Status' in df_inspection.columns:
+                # กรองข้อมูลที่ต้องแก้ไข
                 df_need_repair = df_inspection[
                     df_inspection['Status'].str.strip() == 'ไม่ปกติ (ต้องแก้ไข)'
-                ]
-                # --- 1. ส่วนหัวข้อ และ ตัวกรองมุมขวา (ใช้ st.popover เพื่อความสะอาดตา) ---
-                col_title, col_filter = st.columns([3, 1])
-                with col_filter:
-                    # สร้างปุ่มกดตัวกรองไว้มุมขวาบน
-                    with st.popover("🔍 ตัวกรองข้อมูล", use_container_width=True):
-                        selected_inspector = st.selectbox("เลือกคนตรวจ",
-                                                          ["ทั้งหมด"] + list(df_need_repair['Inspector'].unique()))
-                        selected_id = st.selectbox("เลือก ID อุปกรณ์",
-                                                   ["ทั้งหมด"] + list(df_need_repair['ID'].unique()))
+                    ].copy()
 
-
-
-
-
-                # ทำการกรองข้อมูล
-                df_filtered = df_need_repair.copy()
-                if selected_inspector != "ทั้งหมด":
-                    df_filtered = df_filtered[df_filtered['Inspector'] == selected_inspector]
-                if selected_id != "ทั้งหมด":
-                    df_filtered = df_filtered[df_filtered['ID'] == selected_id]
-
-
-                # ตาราง
+                # ---- แก้ไขข้อ 2: เช็คตรงนี้ว่ามีข้อมูลที่ต้องแก้ไขจริงๆ ไหม ----
                 if not df_need_repair.empty:
-                    st.warning(f"พบ {len(df_need_repair)} รายการ")
+                    st.warning(f"⚠️ พบ {len(df_need_repair)} รายการที่ต้องได้รับการแก้ไข")
 
+                    # ลบหัวคอลัมน์ลำดับเดิมออกถ้ามี
                     for col in ["No.", "No"]:
                         if col in df_need_repair.columns:
                             df_need_repair = df_need_repair.drop(columns=[col])
 
-                            # ให้ index เริ่มที่ 1
+                    # รีเซ็ตและสร้างคอลัมน์ No. ใหม่
                     df_need_repair = df_need_repair.reset_index(drop=True)
                     df_need_repair.index = df_need_repair.index + 1
-
                     df_need_repair.insert(0, "No.", df_need_repair.index)
 
-                    # แสดงผลโดยซ่อน index เดิมเพื่อความสวยงาม
+
+                    # ---- แก้ไขข้อ 3: ฟังก์ชันสำหรับไฮไลต์เฉพาะคอลลัมน์ ----
+                    def highlight_cols(x):
+                        # สร้าง DataFrame เปล่าที่มีขนาดเท่ากับข้อมูลหลัก
+                        df_css = pd.DataFrame('', index=x.index, columns=x.columns)
+
+                        # กำหนดสไตล์เริ่มต้นของตาราง (สีพื้นหลังน้ำเงินเข้ม ตัวอักษรสีน้ำเงินเข้มตามโค้ดเดิมของคุณ)
+                        df_css.loc[:, :] = 'background-color: #cbd8f2; color: #111844;'
+
+                        # เจาะจงไฮไลต์คอลัมน์ 'Status' ให้เป็นสีแดงแจ้งเตือน ตัวอักษรขาวเด่นๆ
+                        if 'Status' in x.columns:
+                            df_css['Status'] = 'background-color: #ff4b4b; color: #ffffff; font-weight: bold;'
+
+                        # เจาะจงไฮไลต์คอลัมน์ 'ID' ให้เป็นสีเหลืองเด่นเตะตา
+                        if 'ID' in x.columns:
+                            df_css['ID'] = 'background-color: #ffeaa7; color: #111844; font-weight: bold;'
+
+                        return df_css
+
+
+                    # แสดงผลตารางพร้อมสไตล์ใหม่
                     st.dataframe(
-                        df_need_repair.style.set_properties(**{
-                            'background-color': '#cbd8f2',  # บังคับพื้นหลังในตารางให้เป็นสีน้ำเงินเข้มตามธีม
-                            'color': '#111844',  # บังคับตัวหนังสือด้านในให้เป็นสีขาวนวล (อ่านง่าย ชัดเจน 100%)
-                            'border-color': '#FFFFFF'  # # เส้นตัดขอบในตารางจางๆ
+                        df_need_repair.style.apply(highlight_cols, axis=None).set_properties(**{
+                            'border-color': '#FFFFFF'  # เส้นขอบขาวจางๆ
                         }),
                         use_container_width=True,
                         hide_index=True
                     )
                 else:
-                    st.success("🎉 ไม่มีรายการที่ต้องแก้ไข")
+                    # ถ้า df_need_repair ว่างเปล่า (ไม่มีแถวไหนเป็น 'ไม่ปกติ (ต้องแก้ไข)')
+                    st.success("🎉 ดีเยี่ยม! ไม่มีรายการที่ต้องแก้ไขในระบบ")
+            else:
+                st.error("❌ ไม่พบตัวแปรคอลัมน์ 'Status' ใน Google Sheets")
+        else:
+            st.info("ℹ️ ไม่พบข้อมูลใดๆ ในไฟล์ Google Sheets")
 
     except Exception as e:
         st.error(f"❌ Error: {e}")
