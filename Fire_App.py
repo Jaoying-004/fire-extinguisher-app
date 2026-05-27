@@ -867,31 +867,15 @@ def load_sheet_data(worksheet_name):
     ws = spreadsheet.worksheet(worksheet_name)
     rows = ws.get_all_values()
 
-    if not rows or len(rows) <= 1:
+    if not rows:
         return pd.DataFrame()
 
-    # 1. แปลงเป็น DataFrame ดั้งเดิม
     df = pd.DataFrame(rows[1:], columns=rows[0])
-
-    # 2. ป้องกันคอลัมน์ที่ไม่มีชื่อ
     df = df.loc[:, df.columns != ""]
-
-    # 💥 3. [สำคัญมาก] เคลียร์แถวเปล่าจากการกด "Delete" ใน Google Sheets ออกไปก่อนแคชทำงาน
-    # เปลี่ยนช่องว่าง หรือ spaces ทั้งหมดให้เป็นค่าไม่มีข้อมูล (NaN)
-    df = df.replace(r'^\s*$', pd.NA, regex=True)
-    # ถ้าหากแถวใดก็ตามที่ข้อมูลหลักขาดหายไป (หมดทั้งแถวไม่มีค่าอะไรเลย) ให้ลบแถวนั้นทิ้ง
-    df = df.dropna(how='all')
-
-    # ถ้าลบแถวเปล่าแล้ว DataFrame ว่าง ให้รีเทิร์นตารางว่างทันที
-    if df.empty:
-        return pd.DataFrame()
-
-    # 4. รีเซ็ตลำดับ (Index) ใหม่ตามข้อมูลจริงที่เหลืออยู่
     df = df.reset_index(drop=True)
-
-    # ทางเดินระบบอื่น ๆ ยังได้ใส่คอลัมน์ No. ตามปกติเหมือนเดิม
     df.insert(0, "No.", df.index + 1)
     return df
+
 # --- 2. ดึงข้อมูลจาก Google Sheets --------------------------------------------------------------------------------------
 sheet_name = "FireExtinguisher_MasterList_2026"
 spreadsheet = client.open(sheet_name)
@@ -1047,56 +1031,48 @@ with tab3:
         st.error(f"❌ {type(e).__name__}: {e}")
 
 with tab4:
-    st.markdown("<h3 style='color: #ffffff; font-weight: bold;'>🔧 ติดตามการแก้ไข</h3>", unsafe_allow_html=True)
-
-    # ปุ่มสำหรับล้างแคชเฉพาะฟังก์ชันดึงข้อมูล เพื่อดึงข้อมูลใหม่ทันทีหลังเสร็จสิ้นการแก้ใน Google Sheets
-    if st.button("🔄 ดึงข้อมูลล่าสุดจาก Google Sheets (Force Sync)"):
-        # สั่งล้างแคชเฉพาะฟังก์ชัน load_sheet_data
-        load_sheet_data.clear()
-        st.success("อัปเดตการดึงข้อมูลสดจากระบบเรียบร้อยแล้ว!")
-        st.rerun()
-
+    st.markdown("<h3 style='color: #ffffff; font-weight: bold;'>🔧 ติดตามการแก้ไข</h3>",
+                unsafe_allow_html=True)
     try:
-        # ดึงผ่านฟังก์ชันที่มี Cache (มีความเร็วสูง ป้องกันหน้าเว็บอืด)
-        df_inspection = load_sheet_data("Inspection_Log")
+        inspection_sheet = client.open(sheet_name).worksheet("Inspection_Log")
+        inspection_rows = inspection_sheet.get_all_values()
 
-        if not df_inspection.empty:
+        if inspection_rows and len(inspection_rows) > 1:
+            df_inspection = pd.DataFrame(inspection_rows[1:], columns=inspection_rows[0])
+            df_inspection = df_inspection.loc[:, df_inspection.columns != '']
 
-            # ตรวจสอบว่ามีคอลัมน์ 'Status' หรือไม่
             if 'Status' in df_inspection.columns:
+                df_need_repair = df_inspection[
+                    df_inspection['Status'].str.strip() == 'ไม่ปกติ (ต้องแก้ไข)'
+                    ]
+                # --- 1. ส่วนหัวข้อ และ ตัวกรองมุมขวา (ใช้ st.popover เพื่อความสะอาดตา) ---
 
-                # คลีนช่องว่างเผื่อเหนียวรอบสุดท้าย และคัดกรองเฉพาะสถานะ "ไม่ปกติ"
-                df_inspection['Status'] = df_inspection['Status'].astype(str).str.strip()
-                df_need_repair = df_inspection[df_inspection['Status'] == 'ไม่ปกติ (ต้องแก้ไข)']
-
+                # ตาราง
                 if not df_need_repair.empty:
-                    st.warning(f"พบ {len(df_need_repair)} รายการที่ต้องได้รับแก้ไข")
+                    st.warning(f"พบ {len(df_need_repair)} รายการ")
 
-                    # เอา No. เดิมที่ฟังก์ชันแชร์ร่วมกับหน้าตารางอื่นสร้างให้ออกไปก่อน
-                    # เพื่อจัดระเบียบตัวเลข No. ใหม่เฉพาะของตาราง "ค้างแก้ไข" ตัวนี้ตัวเดียว
-                    if "No." in df_need_repair.columns:
-                        df_need_repair = df_need_repair.drop(columns=["No."])
+                    for col in ["No.", "No"]:
+                        if col in df_need_repair.columns:
+                            df_need_repair = df_need_repair.drop(columns=[col])
 
+                            # ให้ index เริ่มที่ 1
                     df_need_repair = df_need_repair.reset_index(drop=True)
                     df_need_repair.index = df_need_repair.index + 1
+
                     df_need_repair.insert(0, "No.", df_need_repair.index)
 
-                    # แสดงผลในตาราง
+                    # แสดงผลโดยซ่อน index เดิมเพื่อความสวยงาม
                     st.dataframe(
                         df_need_repair.style.set_properties(**{
-                            'background-color': '#cbd8f2',
-                            'color': '#111844',
-                            'border-color': '#FFFFFF'
+                            'background-color': '#cbd8f2',  # บังคับพื้นหลังในตารางให้เป็นสีน้ำเงินเข้มตามธีม
+                            'color': '#111844',  # บังคับตัวหนังสือด้านในให้เป็นสีขาวนวล (อ่านง่าย ชัดเจน 100%)
+                            'border-color': '#FFFFFF'  # # เส้นตัดขอบในตารางจางๆ
                         }),
                         use_container_width=True,
                         hide_index=True
                     )
                 else:
-                    st.success("🎉 ไม่มีรายการที่ต้องแก้ไขในระบบขณะนี้")
-            else:
-                st.error("❌ ไม่พบคอลัมน์ชื่อ 'Status' บน Google Sheets สำหรับตรวจสอบ")
-        else:
-            st.success("🎉 ไม่มีข้อมูลในระบบ (หน้าชีตอาจกำลังว่างเปล่า)")
+                    st.success("🎉 ไม่มีรายการที่ต้องแก้ไข")
 
     except Exception as e:
         st.error(f"❌ Error: {e}")
