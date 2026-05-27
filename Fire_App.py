@@ -1339,59 +1339,72 @@ with st.sidebar:
             repair_log_sheet = client.open(sheet_name).worksheet("Inspection_Log")
             repair_data = repair_log_sheet.get_all_values()
 
-            if len(repair_data) > 1:
+            # ตรวจสอบว่าในชีตมีหัวข้อ และมีข้อมูลอย่างน้อย 1 แถว (รวมเป็น > 1)
+            if repair_data and len(repair_data) > 1:
                 df_repair = pd.DataFrame(repair_data[1:], columns=repair_data[0])
-                df_repair['sheet_row_index'] = df_repair.index + 2
 
-                # กรองเฉพาะเคสค้างซ่อม
-                df_need_action = df_repair[df_repair['Status'].str.strip() == 'ไม่ปกติ (ต้องแก้ไข)']
+                # 🛠️ ป้องกันแถวว่างที่เกิดจากการกด Delete: เคลียร์ช่องว่างออกก่อน
+                df_repair = df_repair.replace(r'^\s*$', None, regex=True).dropna(how='all')
 
-                if not df_need_action.empty:
-                    df_need_action['picker_label'] = df_need_action['ID'] + " (" + df_need_action['Timestamp'].str[
-                        5:16] + ")"
+                # ถ้าหลังจากลบแถวว่างแล้ว ยังมีข้อมูลอยู่
+                if not df_repair.empty and 'Status' in df_repair.columns:
 
-                    # --- ตัวฟอร์มแจ้งซ่อม (อยู่ใน Sidebar) ---
-                    with st.form("repair_form"):
-                        selected_repair_item = st.selectbox(
-                            "เลือกอุปกรณ์ที่แก้ไขแล้ว:",
-                            df_need_action['picker_label'].tolist()
-                        )
+                    # ใส่ Row Index อ้างอิงแถวบน Google Sheets ให้ถูกต้อง (+2 เพราะ Pandas เริ่มที่ 0 และแถวที่ 1 คือ Header)
+                    df_repair['sheet_row_index'] = df_repair.index + 2
 
-                        repair_details = st.text_area(
-                            "รายละเอียดการแก้ไข:",
-                            placeholder="เช่น เปลี่ยนถังใหม่ / เติมแรงดันแล้ว"
-                        )
-                        repairman_name = st.text_input("ชื่อผู้แก้ไข:")
+                    # กรองเฉพาะเคสค้างซ่อม
+                    df_need_action = df_repair[df_repair['Status'].astype(str).str.strip() == 'ไม่ปกติ (ต้องแก้ไข)']
 
-                        submit_repair = st.form_submit_button("💾 ยืนยันแก้ไขสำเร็จ", type="primary")
+                    if not df_need_action.empty:
+                        df_need_action['picker_label'] = df_need_action['ID'].astype(str) + " (" + df_need_action[
+                            'Timestamp'].astype(str).str[5:16] + ")"
 
-                    if submit_repair:
-                        if not repairman_name or not repair_details:
-                            st.warning("⚠️ กรุณากรอกข้อมูลให้ครบถ้วน")
-                        else:
-                            with st.spinner("กำลังอัปเดตระบบ..."):
-                                chosen_row = \
-                                df_need_action[df_need_action['picker_label'] == selected_repair_item].iloc[0]
-                                target_row_num = int(chosen_row['sheet_row_index'])
+                        # --- ตัวฟอร์มแจ้งซ่อม ---
+                        with st.form("repair_form"):
+                            selected_repair_item = st.selectbox(
+                                "เลือกอุปกรณ์ที่แก้ไขแล้ว:",
+                                df_need_action['picker_label'].tolist()
+                            )
 
-                                status_col_num = repair_data[0].index('Status') + 1
-                                repair_log_sheet.update_cell(target_row_num, status_col_num, "ดำเนินการแก้ไขแล้ว")
+                            repair_details = st.text_area(
+                                "รายละเอียดการแก้ไข:",
+                                placeholder="เช่น เปลี่ยนถังใหม่ / เติมแรงดันแล้ว"
+                            )
+                            repairman_name = st.text_input("ชื่อผู้แก้ไข:")
 
-                                if 'Note' in repair_data[0]:
-                                    note_col_num = repair_data[0].index('Note') + 1
-                                    current_date_str = datetime.now().strftime('%Y-%m-%d')
-                                    repair_log_text = f"⚙️ ซ่อมโดย {repairman_name}: {repair_details} ({current_date_str})"
-                                    repair_log_sheet.update_cell(target_row_num, note_col_num, repair_log_text)
+                            submit_repair = st.form_submit_button("💾 ยืนยันแก้ไขสำเร็จ", type="primary")
 
-                                st.success("🎉 อัปเดตสถานะสำเร็จแล้ว!")
-                                st.rerun()
+                        if submit_repair:
+                            if not repairman_name or not repair_details:
+                                st.warning("⚠️ กรุณากรอกข้อมูลให้ครบถ้วน")
+                            else:
+                                with st.spinner("กำลังอัปเดตระบบ..."):
+                                    chosen_row = \
+                                    df_need_action[df_need_action['picker_label'] == selected_repair_item].iloc[0]
+                                    target_row_num = int(chosen_row['sheet_row_index'])
+
+                                    status_col_num = repair_data[0].index('Status') + 1
+                                    repair_log_sheet.update_cell(target_row_num, status_col_num, "ดำเนินการแก้ไขแล้ว")
+
+                                    if 'Note' in repair_data[0]:
+                                        note_col_num = repair_data[0].index('Note') + 1
+                                        current_date_str = datetime.now().strftime('%Y-%m-%d')
+                                        repair_log_text = f"⚙️ ซ่อมโดย {repairman_name}: {repair_details} ({current_date_str})"
+                                        repair_log_sheet.update_cell(target_row_num, note_col_num, repair_log_text)
+
+                                    # ล้างแคชเพื่อให้หน้าตาราง (Tab 4) ได้รับข้อมูลอัปเดตใหม่ทันที
+                                    st.cache_data.clear()
+                                    st.success("🎉 อัปเดตสถานะสำเร็จแล้ว!")
+                                    st.rerun()
+                    else:
+                        st.success("🎉 ไม่มีรายการค้างซ่อมในระบบ")
                 else:
-                    st.success("🎉 ไม่มีรายการค้างซ่อมในระบบ")
+                    st.success("🎉 ไม่มีรายการค้างซ่อมในระบบ (ข้อมูลในชีตว่างเปล่า)")
             else:
-                st.info("ไม่มีข้อมูลบันทึกในระบบ")
+                st.info("ℹ️ ไม่มีข้อมูลบันทึกในระบบ (กรุณาตรวจสอบหัวคอลัมน์ใน Google Sheets)")
 
         except Exception as e:
-            st.error(f"❌ ระบบฟอร์มซ่อมแซมขัดข้อง: {e}")
+            st.error(f"❌ Error: {e}")
 
 
 #------------------------------------------------------------------------------------------------------------------
