@@ -1056,11 +1056,15 @@ with tab4:
             # ตารางแสดงผลรายการค้างซ่อม
             if not df_need_repair.empty:
                 st.warning(f"พบ {len(df_need_repair)} รายการที่กำลังรอการแก้ไข")
-                # 🎯 ตรวจสอบและเพิ่มคอลัมน์ Action_status เป็นคอลัมน์ที่ 7 (ต่อท้ายลิงก์รูปภาพ)
-                # หากดึงมาจากชีตแล้วยังไม่มีคำนี้ ให้เซ็ต Default เป็น 'ต้องแก้ไข' ไว้ก่อน
-                if 'Action_status' not in df_need_repair.columns:
-                    df_need_repair['Action_status'] = 'ต้องแก้ไข'
+                expected_columns = [
+                    'Timestamp', 'Type', 'ID', 'Inspector', 'Status',
+                    'Problem', 'Action Status', 'Fix Date', 'Link_Photo', 'Remark'
+                ]
 
+                # กรองจัดตำแหน่งตามลิสต์ตายตัว
+                df_need_repair = df_need_repair[expected_columns]
+
+                # 3. ลบลำดับ No. เก่าออกแล้วรันเลขลำดับ 1, 2, 3 ใหม่ที่ช่องซ้ายสุดหน้าแอป
                 for col in ["No.", "No"]:
                     if col in df_need_repair.columns:
                         df_need_repair = df_need_repair.drop(columns=[col])
@@ -1070,31 +1074,28 @@ with tab4:
                 df_need_repair.insert(0, "No.", df_need_repair.index)
 
 
+                # 🎨 4. ฟังก์ชันย้อมสีช่อง Action Status แบบพาสเทลมินิมอล คุมโทนร่วมกับสีกระดาน #cbd8f2
                 def style_action_column(s):
-                    # สร้าง List เก็บสไตล์ขนาดเท่าจำนวนแถว ตั้งค่าเริ่มต้นเป็นค่าว่าง
                     styles = [''] * len(s)
                     for i, val in enumerate(s):
                         val_str = str(val).strip()
                         if val_str == 'ต้องแก้ไข':
-                            styles[
-                                i] = 'background-color: #ffcccc; color: #cc0000; font-weight: bold; border-radius: 4px;'
+                            styles[i] = 'background-color: #ffcccc; color: #cc0000; font-weight: bold;'
                         elif val_str == 'กำลังดำเนินการ':
-                            styles[
-                                i] = 'background-color: #ffe6cc; color: #e67300; font-weight: bold; border-radius: 4px;'
+                            styles[i] = 'background-color: #ffe6cc; color: #e67300; font-weight: bold;'
                         elif val_str == 'แก้ไขเสร็จสิ้น':
-                            styles[
-                                i] = 'background-color: #d1e7dd; color: #0f5132; font-weight: bold; border-radius: 4px;'
+                            styles[i] = 'background-color: #d1e7dd; color: #0f5132; font-weight: bold;'
                     return styles
 
 
-                # นำสไตล์หลักของตารางผสมกับสไตล์ไฮไลต์เฉพาะคอลัมน์
+                # สวมสไตล์ให้กับตารางหลัก และเจาะจงย้อมสีเฉพาะคอลัมน์ 'Action Status'
                 styled_df = df_need_repair.style.set_properties(**{
                     'background-color': '#cbd8f2',  # สีพื้นหลังตารางตามธีมหลักของคุณ
-                    'color': '#111844',  # สีตัวอักษรน้ำเงินเข้มให้อ่านง่าย ชัดเจน
-                    'border-color': '#FFFFFF'  # เส้นตัดขอบสีขาวจางๆ
-                }).apply(style_action_column, subset=['Action_status'])  # ย้อมสีเฉพาะคอลัมน์นี้
+                    'color': '#111844',  # สีตัวอักษรน้ำเงินเข้มอ่านง่ายชัดเจน
+                    'border-color': '#FFFFFF'  # เส้นขอบสีขาวจาง ๆ
+                }).apply(style_action_column, subset=['Action Status'])
 
-                # แสดงผลตารางแบบซ่อน Index ดั้งเดิม
+                # แสดงตารางผลลัพธ์
                 st.dataframe(
                     styled_df,
                     use_container_width=True,
@@ -1106,7 +1107,7 @@ with tab4:
             st.success("🎉 ยอดเยี่ยม! ไม่มีรายการอุปกรณ์ที่ต้องแก้ไขค้างอยู่ในระบบ")
 
     except Exception as e:
-        st.error(f"❌ เกิดข้อผิดพลาดในการโหลดตารางติดตาม: {e}")
+        st.error(f"❌ เกิดข้อผิดพลาดในการโหลดตารางติดตามใน Tab 4: {e}")
 
 if st.button("🔍 อัปเดตข้อมูลล่าสุด", type="secondary"):
     st.cache_data.clear()
