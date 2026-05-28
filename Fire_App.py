@@ -848,7 +848,31 @@ with st.container(border=True):
         # 1. เพิ่มขนาดรูปภาพ (จากเดิม 90 เป็น 120-130 หรือปรับตามชอบ)
         user_image = "FirePig.png"
         st.image(user_image, width=130)
-
+        with stylable_container(
+                key="profile_image_container",
+                css_styles="""
+                div[data-testid="stImage"] {
+                    display: flex !important;
+                    justify-content: center !important; /* จัดให้อยู่ตรงกลางคอลัมน์ */
+                    align-items: center !important;
+                    padding: 5px !important;
+                }
+                img {
+                    max-width: 85% !important;   /* 🎯 บีบขนาดรูปให้เล็กลงมานิดนึง ไม่ให้แน่นและดูลอยล้นขอบ */
+                    border-radius: 16px !important; /* ทำมุมโค้งมนนุ่มนวลเข้ากับกล่อง User Profile ด้านซ้าย */
+                    box-shadow: 0 4px 10px rgba(0,0,0,0.15) !important; /* เพิ่มมิติมินิมอลจางๆ */
+                    border: 2px solid #cbd8f2 !important; /* ตัดเส้นขอบสีฟ้าพาสเทลตามธีมหลัก */
+                    background-color: #ffffff !important; /* พื้นหลังขาวเพื่อให้ตัดกับพื้นสีกรมท่าของระบบ */
+                    transition: transform 0.2s !important;
+                }
+                img:hover {
+                    transform: scale(1.03) !important; /* ลูกเล่นเล็กๆ เวลาเอาเมาส์มาชี้ */
+                }
+            """
+        ):
+            user_image = "FirePig.png"
+            # 🎯 ปรับให้รูปย่อตามขนาดกล่องอัตโนมัติ เพื่อไม่ให้ดันโครงสร้างปุ่มล่างพัง
+            st.image(user_image, use_container_width=True)
         # 2. ลดขนาดปุ่ม โดยเอา use_container_width=True ออก
         # และเปลี่ยน type="primary" หรือคง secondary ไว้ตามต้องการเพื่อความสวยงาม
         if st.button("⛓️‍💥 Log out", type="secondary"):
