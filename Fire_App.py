@@ -1496,18 +1496,32 @@ with st.sidebar:
                                     act_time_idx = action_headers.index('Timestamp') + 1
                                     act_status_idx = action_headers.index('Action Status') + 1
                                     act_date_idx = action_headers.index('Fix Date') + 1
-                                    act_inspect_idx = action_headers.index('Editor') + 1
-                                    act_photo_idx = action_headers.index('Link_Photo') + 1
-                                    act_remark_idx = action_headers.index('Remark') + 1
+
+                                    # ดักจับพิกัดคอลัมน์ Editor
+                                    act_editor_idx = (action_headers.index(
+                                        'Editor') + 1) if 'Editor' in action_headers else None
+                                    act_remark_idx = (action_headers.index(
+                                        'Remark') + 1) if 'Remark' in action_headers else None
+                                    act_photo_idx = (action_headers.index(
+                                        'Link_Photo') + 1) if 'Link_Photo' in action_headers else None
                                     for index, row in enumerate(fresh_action_data[1:], start=2):
                                         if row[act_id_idx - 1] == target_id and row[
                                             act_time_idx - 1] == target_timestamp:
+                                            # อัปเดตข้อมูลทับแถวเดิม
                                             repair_action_sheet.update_cell(index, act_status_idx, "แก้ไขเสร็จสิ้น")
                                             repair_action_sheet.update_cell(index, act_date_idx, current_date_str)
-                                            repair_action_sheet.update_cell(index, act_photo_idx, f"ซ่อมโดย {repairman_name}: {repair_details}")
-                                            repair_action_sheet.update_cell(index, act_photo_idx, repair_image_link)
-                                            repair_action_sheet.update_cell(index, act_remark_idx)
 
+                                            # 🎯 บันทึกชื่อผู้ซ่อมลงช่อง Editor
+                                            if act_editor_idx:
+                                                repair_action_sheet.update_cell(index, act_editor_idx, repairman_name)
+
+                                            # บันทึกรายละเอียดการแก้ไขลงช่อง Remark
+                                            if act_remark_idx:
+                                                repair_action_sheet.update_cell(index, act_remark_idx, repair_details)
+
+                                            # บันทึกลิงก์รูปถ่ายลงช่อง Link_Photo
+                                            if act_photo_idx:
+                                                repair_action_sheet.update_cell(index, act_photo_idx, repair_image_link)
                                             break
 
                                         # 3. ค้นหาในตารางหลักเพื่อเปลี่ยนกลับเป็น "ปกติ"
