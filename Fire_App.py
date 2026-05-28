@@ -1391,176 +1391,163 @@ with st.sidebar:
                         st.sidebar.error(f"❌ เกิดข้อผิดพลาดทางเทคนิคระหว่างบันทึก: {e}")
 
         # โฟลวที่ 2 แบบฟอร์มแจ้งการแก้ไข
-        elif menu_page == "🛠️ ฟอร์มแจ้งการแก้ไข":
-            st.subheader("🛠️ ฟอร์มแจ้งการแก้ไข")
+            # โฟลวที่ 2 แบบฟอร์มแจ้งการแก้ไข
+    elif menu_page == "🛠️ ฟอร์มแจ้งการแก้ไข":
+        st.subheader("🛠️ ฟอร์มแจ้งการแก้ไข")
 
-            try:
-                repair_action_sheet = client.open(sheet_name).worksheet("Action_Required")
-                repair_data = repair_action_sheet.get_all_values()
+        try:
+            repair_action_sheet = client.open(sheet_name).worksheet("Action_Required")
+            repair_data = repair_action_sheet.get_all_values()
 
-                # ตรวจสอบว่าในชีตมีหัวข้อ และมีข้อมูลอย่างน้อย 1 แถว (รวมเป็น > 1)
-                if repair_data and len(repair_data) > 1:
-                    df_repair = pd.DataFrame(repair_data[1:], columns=repair_data[0])
-                    df_repair = df_repair.replace(r'^\s*$', None, regex=True).dropna(how='all')
+                # ตรวจสอบว่าในชีตมีข้อมูลมากกว่าแถวหัวข้อ (มีข้อมูลดิบวิ่งมา)
+            if repair_data and len(repair_data) > 1:
+                df_repair = pd.DataFrame(repair_data[1:], columns=repair_data[0])
+                df_repair = df_repair.replace(r'^\s*$', None, regex=True).dropna(how='all')
 
-                    if not df_repair.empty:
-                        # 🎯 ปรับปรุงการกรอง: ในฟอร์มเลือกซ่อม ให้ดึงเฉพาะรายการที่สถานะในชีต "ไม่ใช่" แก้ไขเสร็จสิ้น มาโชว์
-                        if 'Action Status' in df_repair.columns:
-                            df_to_show = df_repair[
-                                df_repair['Action Status'].astype(str).str.strip() != 'แก้ไขเสร็จสิ้น']
-                        else:
-                            df_to_show = df_repair
+                if not df_repair.empty:
+                        # 🎯 กรองข้อมูล: ดึงเฉพาะรายการที่ยังไม่ได้แก้ไข (ไม่เท่ากับ 'แก้ไขเสร็จสิ้น')
+                    if 'Action Status' in df_repair.columns:
+                        df_to_show = df_repair[
+                        df_repair['Action Status'].astype(str).str.strip() != 'แก้ไขเสร็จสิ้น']
+                    else:
+                        df_to_show = df_repair
 
-                        if not df_to_show.empty:
-                            # ใช้ชื่อคอลัมน์ดั้งเดิมของคุณที่มีในประวัติ
-                            id_col_name = 'ID' if 'ID' in df_to_show.columns else df_to_show.columns[2]
-                            time_col_name = 'Timestamp' if 'Timestamp' in df_to_show.columns else df_to_show.columns[0]
+                        # 🎯 เปลี่ยน Logic ตรงนี้: ถ้ายังมีรายการค้างซ่อมเหลืออยู่ ให้โชว์ฟอร์มกรอกข้อมูลตามปกติ
+                    if not df_to_show.empty:
+                        id_col_name = 'ID' if 'ID' in df_to_show.columns else df_to_show.columns[2]
+                        time_col_name = 'Timestamp' if 'Timestamp' in df_to_show.columns else df_to_show.columns[0]
 
-                            df_to_show['picker_label'] = df_to_show[id_col_name].astype(str) + " (" + df_to_show[
-                                time_col_name].astype(str).str[5:16] + ")"
+                            # สร้าง Label แนะนำสำหรับกล่องเลือกอุปกรณ์
+                        df_to_show['picker_label'] = df_to_show[id_col_name].astype(str) + " (" + df_to_show[
+                            time_col_name].astype(str).str[5:16] + ")"
 
-                            with st.form("repair_form"):
-                                selected_repair_item = st.selectbox(
-                                    "เลือกอุปกรณ์ที่แก้ไขแล้ว:",
-                                    df_to_show['picker_label'].tolist()
-                                )
+                        with st.form("repair_form"):
+                            selected_repair_item = st.selectbox(
+                                "เลือกอุปกรณ์ที่แก้ไขแล้ว:",
+                                df_to_show['picker_label'].tolist()
+                            )
 
-                                repair_details = st.text_area(
-                                    "รายละเอียดการแก้ไข:",
-                                    placeholder="เช่น เปลี่ยนถังใหม่ / เติมระดับแรงดันเกจเขียวเรียบร้อยแล้ว"
-                                )
-                                repairman_name = st.text_input("ชื่อผู้แก้ไข:")
+                            repair_details = st.text_area(
+                                "รายละเอียดการแก้ไข:",
+                                placeholder="เช่น เปลี่ยนถังใหม่ / เติมระดับแรงดันเกจเขียวเรียบร้อยแล้ว"
+                            )
+                            repairman_name = st.text_input("ชื่อผู้แก้ไข:")
 
-                                # 🎯 จุดที่ 1 เพิ่มเติม: ปุ่มอัปโหลดรูปภาพสำหรับยืนยันการแก้ไขสำเร็จหน้างาน
-                                img_repair_files = st.file_uploader("📸 แนบรูปถ่ายหลังแก้ไขสำเร็จ",
-                                                                    type=['jpg', 'png', 'jpeg'],
-                                                                    accept_multiple_files=True,
-                                                                    key="img_repair_uploader")
+                                # ปุ่มอัปโหลดรูปภาพสำหรับยืนยันการแก้ไขสำเร็จหน้างาน
+                            img_repair_files = st.file_uploader("📸 แนบรูปถ่ายหลังแก้ไขสำเร็จ",
+                                                                type=['jpg', 'png', 'jpeg'],
+                                                                accept_multiple_files=True,
+                                                                key="img_repair_uploader")
 
-                                submit_repair = st.form_submit_button("💾 ยืนยันแก้ไขสำเร็จ", type="primary")
+                            submit_repair = st.form_submit_button("💾 ยืนยันแก้ไขสำเร็จ", type="primary")
 
-                            if submit_repair:
-                                if not repairman_name or not repair_details:
-                                    st.warning("⚠️ กรุณากรอกข้อมูลผู้แก้ไขและรายละเอียดให้ครบถ้วน")
-                                else:
-                                    with st.spinner("กำลังทำการอัปเดตระบบและฐานข้อมูลประวัติ..."):
-                                        chosen_row = \
-                                        df_to_show[df_to_show['picker_label'] == selected_repair_item].iloc[0]
-                                        target_id = str(chosen_row[id_col_name])
-                                        target_timestamp = str(
-                                            chosen_row[time_col_name])  # ดึงเวลาบันทึกเดิมมาอ้างอิงแถวซ่อม
+                        if submit_repair:
+                            if not repairman_name or not repair_details:
+                                st.warning("⚠️ กรุณากรอกข้อมูลผู้แก้ไขและรายละเอียดให้ครบถ้วน")
+                            else:
+                                with st.spinner("กำลังทำการอัปเดตระบบและฐานข้อมูลประวัติ..."):
+                                    chosen_row = \
+                                    df_to_show[df_to_show['picker_label'] == selected_repair_item].iloc[0]
+                                    target_id = str(chosen_row[id_col_name])
+                                    target_timestamp = str(chosen_row[time_col_name])
 
                                         # --- กระบวนการอัปโหลดรูปภาพซ่อมขึ้น Cloudinary ---
-                                        repair_image_link = "ไม่มีรูปแนบการแก้ไข"
-                                        if img_repair_files:
-                                            repair_image_urls = []
-                                            for file in img_repair_files:
-                                                result = cloudinary.uploader.upload(file)
-                                                repair_image_urls.append(result["secure_url"])
-                                            repair_image_link = ", ".join(repair_image_urls)
+                                    repair_image_link = "ไม่มีรูปแนบการแก้ไข"
+                                    if img_repair_files:
+                                        repair_image_urls = []
+                                        for file in img_repair_files:
+                                            result = cloudinary.uploader.upload(file)
+                                            repair_image_urls.append(result["secure_url"])
+                                        repair_image_link = ", ".join(repair_image_urls)
 
-                                        current_date_str = datetime.now(tz).strftime('%Y-%m-%d %H:%M:%S')
+                                    current_date_str = datetime.now(tz).strftime('%Y-%m-%d %H:%M:%S')
 
-                                        # 1. วิ่งไปอัปเดตสถานะในบันทึกประวัติหลัก (Inspection_Log) ให้เป็น "ดำเนินการแก้ไขแล้ว" ตามเดิม
-                                        repair_log_sheet = client.open(sheet_name).worksheet("Inspection_Log")
-                                        fresh_log_data = repair_log_sheet.get_all_values()
-                                        log_headers = fresh_log_data[0]
+                                        # 1. วิ่งไปอัปเดตสถานะในบันทึกประวัติหลัก (Inspection_Log)
+                                    repair_log_sheet = client.open(sheet_name).worksheet("Inspection_Log")
+                                    fresh_log_data = repair_log_sheet.get_all_values()
+                                    log_headers = fresh_log_data[0]
 
-                                        log_id_col = log_headers.index('ID') + 1 if 'ID' in log_headers else 3
-                                        log_status_col = log_headers.index(
-                                            'Status') + 1 if 'Status' in log_headers else 5
+                                    log_id_col = log_headers.index('ID') + 1 if 'ID' in log_headers else 3
+                                    log_status_col = log_headers.index(
+                                        'Status') + 1 if 'Status' in log_headers else 5
 
-                                        # หาแถวล่าสุดของ ID นั้นในชีตประวัติเพื่ออัปเดตสถานะการซ่อม
-                                        target_log_row = None
-                                        for index, row in enumerate(reversed(fresh_log_data[1:]), start=2):
-                                            actual_index = len(fresh_log_data) - index + 1
-                                            if len(row) > log_id_col - 1 and row[log_id_col - 1] == target_id:
-                                                target_log_row = actual_index
-                                                break
+                                    target_log_row = None
+                                    for index, row in enumerate(reversed(fresh_log_data[1:]), start=2):
+                                        actual_index = len(fresh_log_data) - index + 1
+                                        if len(row) > log_id_col - 1 and row[log_id_col - 1] == target_id:
+                                            target_log_row = actual_index
+                                            break
 
-                                        if target_log_row:
-                                            repair_log_sheet.update_cell(target_log_row, log_status_col,
-                                                                         "ดำเนินการแก้ไขแล้ว")
-                                            if 'Note' in log_headers:
-                                                note_col_num = log_headers.index('Note') + 1
-                                                repair_log_text = f"⚙️ ซ่อมโดย {repairman_name}: {repair_details} ({current_date_str[:10]})"
-                                                repair_log_sheet.update_cell(target_log_row, note_col_num,
+                                    if target_log_row:
+                                        repair_log_sheet.update_cell(target_log_row, log_status_col,
+                                                                        "ดำเนินการแก้ไขแล้ว")
+                                        if 'Note' in log_headers:
+                                            note_col_num = log_headers.index('Note') + 1
+                                            repair_log_text = f"⚙️ ซ่อมโดย {repairman_name}: {repair_details} ({current_date_str[:10]})"
+                                            repair_log_sheet.update_cell(target_log_row, note_col_num,
                                                                              repair_log_text)
 
-                                        # 2. 🎯 [จุดแก้ไขสําคัญ] ดึงข้อมูลจาก Action_Required สด ๆ ค้นหาแถวเดิมแล้วแก้ไขแทนการลบออก
-                                        fresh_action_data = repair_action_sheet.get_all_values()
-                                        action_headers = fresh_action_data[0]
+                                        # 2. ค้นหาแถวเดิมบน Action_Required แล้วอัปเดตข้อมูลทับ (ไม่ลบออก)
+                                    fresh_action_data = repair_action_sheet.get_all_values()
+                                    action_headers = fresh_action_data[0]
 
-                                        # หาตำแหน่งดัชนีคอลัมน์ตามหัวตารางจริงในชีตเพื่อพิมพ์ข้อมูลลงไปได้แม่นยำร้อยเปอร์เซ็นต์
-                                        act_id_idx = action_headers.index('ID') + 1
-                                        act_time_idx = action_headers.index('Timestamp') + 1
-                                        act_status_idx = action_headers.index('Action Status') + 1
-                                        act_date_idx = action_headers.index('Fix Date') + 1
-                                        act_photo_idx = action_headers.index('Link_Photo') + 1
-                                        act_remark_idx = action_headers.index('Remark') + 1
+                                    act_id_idx = action_headers.index('ID') + 1
+                                    act_time_idx = action_headers.index('Timestamp') + 1
+                                    act_status_idx = action_headers.index('Action Status') + 1
+                                    act_date_idx = action_headers.index('Fix Date') + 1
+                                    act_photo_idx = action_headers.index('Link_Photo') + 1
+                                    act_remark_idx = action_headers.index('Remark') + 1
+                                    for index, row in enumerate(fresh_action_data[1:], start=2):
+                                        if row[act_id_idx - 1] == target_id and row[
+                                            act_time_idx - 1] == target_timestamp:
+                                            repair_action_sheet.update_cell(index, act_status_idx, "แก้ไขเสร็จสิ้น")
+                                            repair_action_sheet.update_cell(index, act_date_idx, current_date_str)
+                                            repair_action_sheet.update_cell(index, act_photo_idx, repair_image_link)
+                                            repair_action_sheet.update_cell(index, act_remark_idx,
+                                                                            f"ซ่อมโดย {repairman_name}: {repair_details}")
+                                            break
 
-                                        for index, row in enumerate(fresh_action_data[1:], start=2):
-                                            # ล็อกเป้าหมายแม่นยำด้วยรหัส ID ร่วมกับเวลา Timestamp เดิมเพื่อป้องกันการซ่อมทับแถวกรณีอุปกรณ์ตัวเดิมเคยเสียในอดีต
-                                            if row[act_id_idx - 1] == target_id and row[
-                                                act_time_idx - 1] == target_timestamp:
-                                                # อัปเดตข้อมูลทับลงไปบน Google Sheets แถวเดิม (ไม่ลบแถวออกแล้ว เพื่อคงเป็นประวัติ)
-                                                repair_action_sheet.update_cell(index, act_status_idx,
-                                                                                "แก้ไขเสร็จสิ้น")  # คอลัมน์ G
-                                                repair_action_sheet.update_cell(index, act_date_idx,
-                                                                                current_date_str)  # คอลัมน์ H
-                                                repair_action_sheet.update_cell(index, act_photo_idx,
-                                                                                repair_image_link)  # คอลัมน์ I
-                                                repair_action_sheet.update_cell(index, act_remark_idx,
-                                                                                f"ซ่อมโดย {repairman_name}: {repair_details}")  # คอลัมน์ J
-                                                break
+                                        # 3. ค้นหาในตารางหลักเพื่อเปลี่ยนกลับเป็น "ปกติ"
+                                    if target_id.startswith("Z"):
+                                        master_sheet = client.open(sheet_name).worksheet(
+                                            "Emergency_Safety_Equipment")
+                                    else:
+                                        master_sheet = client.open(sheet_name).worksheet("FireExtinguisher_Data")
 
-                                        if target_id.startswith("Z"):  # อุปกรณ์กลุ่ม Emergency Safety Equipment
-                                            master_sheet = client.open(sheet_name).worksheet(
-                                                "Emergency_Safety_Equipment")
+                                    master_cell = master_sheet.find(target_id)
+                                    if master_cell is not None:
+                                        master_headers = master_sheet.row_values(1)
+                                        m_status_col = (master_headers.index(
+                                            'Status') + 1) if 'Status' in master_headers else 5
+
+                                        if 'Last Inspected (วันที่ตรวจล่าสุด)' in master_headers:
+                                            m_date_col = master_headers.index(
+                                                'Last Inspected (วันที่ตรวจล่าสุด)') + 1
+                                        elif 'Last Inspected' in master_headers:
+                                            m_date_col = master_headers.index('Last Inspected') + 1
                                         else:
-                                            master_sheet = client.open(sheet_name).worksheet("FireExtinguisher_Data")
+                                            m_date_col = 6
 
-                                        master_cell = master_sheet.find(target_id)
-                                        if master_cell is not None:
-                                            # ดึงหัวข้อแถวแรกของชีตหลักนั้น ๆ มาแกะรหัสคอลัมน์แบบ Real-time
-                                            master_headers = master_sheet.row_values(1)
+                                        m_user_col = (master_headers.index(
+                                            'Inspector') + 1) if 'Inspector' in master_headers else 7
 
-                                            # ค้นหาดัชนีคอลัมน์จากชื่อหัวข้อ (รองรับทั้งภาษาอังกฤษและภาษาไทยที่คุณตั้งไว้)
-                                            # ดักจับคอลัมน์ Status
-                                            m_status_col = (master_headers.index(
-                                                'Status') + 1) if 'Status' in master_headers else 5
+                                        master_sheet.update_cell(master_cell.row, m_status_col, "ปกติ")
+                                        master_sheet.update_cell(master_cell.row, m_date_col, current_date_str)
+                                        master_sheet.update_cell(master_cell.row, m_user_col, repairman_name)
 
-                                            # ดักจับคอลัมน์วันเวลาตรวจล่าสุด (รองรับชื่อ Last Inspected หรือ วันที่ตรวจล่าสุด)
-                                            if 'Last Inspected (วันที่ตรวจล่าสุด)' in master_headers:
-                                                m_date_col = master_headers.index(
-                                                    'Last Inspected (วันที่ตรวจล่าสุด)') + 1
-                                            elif 'Last Inspected' in master_headers:
-                                                m_date_col = master_headers.index('Last Inspected') + 1
-                                            else:
-                                                m_date_col = 6  # ค่า Default สำรอง
-
-                                            # ดักจับคอลัมน์ชื่อผู้ตรวจ/ผู้แก้ไข
-                                            m_user_col = (master_headers.index(
-                                                'Inspector') + 1) if 'Inspector' in master_headers else 7
-
-                                            # สั่งอัปเดตข้อมูลลงช่องคอลัมน์ที่โปรแกรมค้นเจอจริงแบบอัตโนมัติ
-                                            master_sheet.update_cell(master_cell.row, m_status_col, "ปกติ")
-                                            master_sheet.update_cell(master_cell.row, m_date_col, current_date_str)
-                                            master_sheet.update_cell(master_cell.row, m_user_col, repairman_name)
-
-                                        # 4. สั่งเคลียร์แคชระบบ เพื่อให้ทุกแท็บแสดงผลข้อมูลล่าสุดตรงกันทันที
-                                        st.cache_data.clear()
-                                        st.success("🎉 อัปเดตสถานะตารางหลักและบันทึกประวัติการซ่อมสำเร็จเรียบร้อย!")
-                                        time.sleep(1)
-                                        st.rerun()
+                                    st.cache_data.clear()
+                                    st.success("🎉 อัปเดตสถานะตารางหลักและบันทึกประวัติการซ่อมสำเร็จเรียบร้อย!")
+                                    time.sleep(1)
+                                    st.rerun()
                         else:
-                            st.success("🎉 ไม่มีรายการอุปกรณ์ค้างซ่อมในระบบขณะนี้")
+                            # แสดงกล่องแจ้งเตือนเมื่อไม่มีเคสค้างซ่อมเหลืออยู่จริง ๆ
+                            st.success("🎉 ยอดเยี่ยม! ไม่มีรายการอุปกรณ์ค้างแก้ไขในระบบขณะนี้")
                     else:
-                        st.success("🎉 ไม่มีรายการอุปกรณ์ค้างซ่อมในระบบขณะนี้")
+                        st.success("🎉 ยอดเยี่ยม! ไม่มีรายการอุปกรณ์ค้างแก้ไขในระบบขณะนี้")
                 else:
                     st.info("ℹ️ ไม่มีข้อมูลบันทึกในระบบ")
 
-            except Exception as e:
+        except Exception as e:
                 st.error(f"❌ เกิดข้อผิดพลาดในระบบฟอร์มแจ้งซ่อม: {e}")
 
 # ------------------------------------------------------------------------------------------------------------------
