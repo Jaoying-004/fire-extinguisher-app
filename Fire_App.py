@@ -120,12 +120,14 @@ st.markdown("""
         background-color: #f3f6fb !important; /* สีฟ้าอ่อน */
         color: #111844 !important;            
         -webkit-text-fill-color: #111844 !important; 
+        caret-color: #111844 !important;
     }
     /* ดักจับช่อง st.text_area (จุดที่แก้ไข: เปลี่ยนจากสีครีมเป็นสีฟ้าอ่อน #f3f6fb) */
     [data-testid="stSidebar"] [data-testid="stTextArea"] div[data-baseweb="textarea"] textarea {
         background-color: #f3f6fb !important; /* ปรับเป็นสีฟ้าอ่อนตามที่คุณต้องการ */
         color: #111844 !important;            
         -webkit-text-fill-color: #111844 !important; 
+        caret-color: #111844 !important;
     }
     /* คุมเส้นขอบรอบกล่องพิมพ์ข้อความ (สภาวะปกติ) */
     [data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"],
@@ -763,7 +765,6 @@ if not st.session_state.get("authenticated"):
                         st.session_state["selected_tank"] = tank_id
 
                     st.success("✅ เข้าสู่ระบบสำเร็จ!")
-                    st.balloons()
                     time.sleep(1)
                     st.rerun()
                 else:
@@ -1226,20 +1227,20 @@ with st.sidebar:
             if device_type == "ถังดับเพลิง":
                 if device_sub_type == "ผงเคมีแห้ง":
                     st.write(f"🔍 ประเภทถัง: **{device_sub_type}**")
-                    q1 = st.radio("1. เกจวัดความดันชี้ที่สีเขียว หน้าปัดไม่แตก", ["ใช่", "ไม่ใช่"], key="chk_dry_1")
-                    q2 = st.radio("2. สายฉีดไม่แตกลายงา ไม่อุดตัน", ["ใช่", "ไม่ใช่"], key="chk_dry_2")
-                    q3 = st.radio("3. สภาพตัวถังไม่บุบ ไม่มีสิ่งผิดปกติ", ["ใช่", "ไม่ใช่"], key="chk_dry_3")
-                    q4 = st.radio("4. ซีลและสลักอยู่ครบ ไม่ฉีกขาด", ["ใช่", "ไม่ใช่"], key="chk_dry_4")
-                    q5 = st.radio("5. ระยะรอบถังไม่มีสิ่งกีดขวาง เข้าใข้งานถังได้สะดวก", ["ใช่", "ไม่ใช่"],
+                    q1 = st.radio("1. เกจวัดความดันชี้ที่สีเขียว หน้าปัดไม่แตก", ["ใช่", "ไม่ใช่"], index=None, key="chk_dry_1")
+                    q2 = st.radio("2. สายฉีดไม่แตกลายงา ไม่อุดตัน", ["ใช่", "ไม่ใช่"], index=None, key="chk_dry_2")
+                    q3 = st.radio("3. สภาพตัวถังไม่บุบ ไม่มีสิ่งผิดปกติ", ["ใช่", "ไม่ใช่"], index=None, key="chk_dry_3")
+                    q4 = st.radio("4. ซีลและสลักอยู่ครบ ไม่ฉีกขาด", ["ใช่", "ไม่ใช่"], index=None, key="chk_dry_4")
+                    q5 = st.radio("5. ระยะรอบถังไม่มีสิ่งกีดขวาง เข้าใข้งานถังได้สะดวก", ["ใช่", "ไม่ใช่"], index=None,
                                   key="chk_dry_5")
 
                 elif device_sub_type == "CO2":
                     st.write(f"🔍 ประเภทถัง: **{device_sub_type}**")
-                    q1 = st.radio("1. น้ำหนักถังปกติ (ยกประเมินด้วยมือต้องไม่เบาโหวง)", ["ใช่", "ไม่ใช่"],
+                    q1 = st.radio("1. น้ำหนักถังปกติ (ยกประเมินด้วยมือต้องไม่เบาโหวง)", ["ใช่", "ไม่ใช่"], index=None,
                                   key="chk_co2_1")
-                    q2 = st.radio("2. คันบีบและสลักไม่เป็นสนิม ไม่หักงอ", ["ใช่", "ไม่ใช่"], key="chk_co2_2")
-                    q3 = st.radio("3. หัวฉีดไม่มีน้ำแข็งเกาะ/ไม่อุดตัน)", ["ใช่", "ไม่ใช่"], key="chk_co2_3")
-                    q4 = st.radio("4. ระยะรอบถังไม่มีสิ่งกีดขวาง เข้าใข้งานถังได้สะดวก", ["ใช่", "ไม่ใช่"],
+                    q2 = st.radio("2. คันบีบและสลักไม่เป็นสนิม ไม่หักงอ", ["ใช่", "ไม่ใช่"], index=None, key="chk_co2_2")
+                    q3 = st.radio("3. หัวฉีดไม่มีน้ำแข็งเกาะ/ไม่อุดตัน)", ["ใช่", "ไม่ใช่"], index=None, key="chk_co2_3")
+                    q4 = st.radio("4. ระยะรอบถังไม่มีสิ่งกีดขวาง เข้าใข้งานถังได้สะดวก", ["ใช่", "ไม่ใช่"], index=None,
                                   key="chk_co2_4")
 
             elif device_type == "Emergency Equipment":
@@ -1247,33 +1248,34 @@ with st.sidebar:
                 st.write(f"🔍 ประเภทอุปกรณ์: **{device_sub_type}**")
                 # --- 1. เคส: Emergency Light (ไฟฉุกเฉิน) ---
                 if device_sub_type == "Emergency Light":
-                    q1 = st.radio("1. ตัวถังเครื่องและดวงโคมสภาพสมบูรณ์ ไม่แตกหัก ไม่มีฝุ่นเกาะ", ["ใช่", "ไม่ใช่"],
+                    q1 = st.radio("1. ตัวเครื่องและดวงโคมสภาพสมบูรณ์ ไม่แตกหัก ไม่มีฝุ่นเกาะ", ["ใช่", "ไม่ใช่"], index=None,
                                   key="chk_em_light_1")
-                    q2 = st.radio("2. สายไฟและปลั๊กเสียบอยู่ในสภาพดี ไม่หลุดลุ่ยหรือชำรุด", ["ใช่", "ไม่ใช่"],
+                    q2 = st.radio("2. สายไฟและปลั๊กเสียบอยู่ในสภาพดี ไม่หลุดลุ่ยหรือชำรุด", ["ใช่", "ไม่ใช่"], index=None,
                                   key="chk_em_light_3")
-                    q3 = st.radio("3. ไม่มีสิ่งกีดขวางบดบังตัวโคมไฟฉุกเฉิน", ["ใช่", "ไม่ใช่"], key="chk_em_light_4")
+                    q3 = st.radio("3. ไม่มีสิ่งกีดขวางบดบังตัวโคมไฟฉุกเฉิน", ["ใช่", "ไม่ใช่"], index=None, key="chk_em_light_4")
+                    q4 = st.radio("4. สัญญาณไฟบ่งชี้สถานะการทำงานแสดงผลปกติ ไม่ดับหรือกะพริบผิดปกติ", ["ใช่", "ไม่ใช่"], index=None, key="chk_em_light_4")
                 # --- 2. เคส: Fire Alarm (ระบบแจ้งเหตุเพลิงไหม้) ---
                 elif device_sub_type == "Fire alarm":
                     q1 = st.radio(
                         "1. อุปกรณ์แจ้งเหตุด้วยมือ (Manual Station) สภาพสมบูรณ์ หน้ากระจกไม่แตก/ฝาไม่เปิดค้าง",
-                        ["ใช่", "ไม่ใช่"], key="chk_fire_alarm_1")
-                    q2 = st.radio("2. ไม่มีสิ่งกีดขวางทางเข้าถึงปุ่มกดแจ้งเหตุ หรือบดบังตัวอุปกรณ์", ["ใช่", "ไม่ใช่"],
+                        ["ใช่", "ไม่ใช่"], index=None, key="chk_fire_alarm_1")
+                    q2 = st.radio("2. ไม่มีสิ่งกีดขวางทางเข้าถึงปุ่มกดแจ้งเหตุ หรือบดบังตัวอุปกรณ์", ["ใช่", "ไม่ใช่"], index=None,
                                   key="chk_fire_alarm_2")
                     # --- 3. เคส: Emergency Exit (ทางออกฉุกเฉิน / ประตูหนีไฟ) ---
                 elif device_sub_type == "Emergency Exit":
-                    q1 = st.radio("1. ป้ายบอกทางหนีไฟ (Exit Sign) ติดสว่างชัดเจน ไม่ดับหรือกะพริบ", ["ใช่", "ไม่ใช่"],
+                    q1 = st.radio("1. ป้ายบอกทางหนีไฟ (Exit Sign) ติดสว่างชัดเจน ไม่ดับหรือกะพริบ", ["ใช่", "ไม่ใช่"], index=None,
                                   key="chk_exit_1")
                     q2 = st.radio("2. บริเวณเส้นทางหนีไฟและหน้าประตู ไม่มีสิ่งของวางกีดขวางแม้แต่ชิ้นเดียว",
-                                  ["ใช่", "ไม่ใช่"], key="chk_exit_2")
+                                  ["ใช่", "ไม่ใช่"], index=None, key="chk_exit_2")
                     q3 = st.radio("3. ประตูหนีไฟปิดสนิท สภาพสมบูรณ์ ลูกบิด/คานผลัก (Panic Bar) ไม่ชำรุด",
-                                  ["ใช่", "ไม่ใช่"], key="chk_exit_3")
+                                  ["ใช่", "ไม่ใช่"], index=None, key="chk_exit_3")
                     q4 = st.radio("4. ประตูหนีไฟสามารถผลักเปิดออกได้ง่าย ไม่ถูกล็อกแม่กุญแจจากภายนอก",
-                                  ["ใช่", "ไม่ใช่"], key="chk_exit_4")
+                                  ["ใช่", "ไม่ใช่"], index=None, key="chk_exit_4")
 
             # --- ส่วนแนบรูป (บังคับให้แนบเพื่อยืนยันว่าไปจริง) ---------------------------------------------------------------------------
             img_files = st.file_uploader("📸 แนบรูปถ่ายขณะตรวจเช็ค", type=['jpg', 'png', 'jpeg'],
                                          accept_multiple_files=True)
-            status = st.radio("สถานะโดยรวม", ["ปกติ", "ไม่ปกติ (ต้องแก้ไข)"])
+            status = st.radio("สถานะโดยรวม", ["ปกติ", "ไม่ปกติ (ต้องแก้ไข)"], index=None)
             # หมายเหตุ (กรณีมีข้อที่ไม่ปกติ)
             remarks = st.text_area("ระบุรายละเอียดเพิ่มเติม (ถ้าไม่ปกติ)")
             submit_button = st.form_submit_button("บันทึกข้อมูล", type="primary", use_container_width=True)
@@ -1379,7 +1381,6 @@ with st.sidebar:
                         st.session_state["submitting"] = False
 
                         st.sidebar.success(f"🎉 บันทึกข้อมูลอุปกรณ์ {selected_device} เรียบร้อย!")
-                        st.balloons()
                         time.sleep(1)
                         st.query_params.clear()
                         st.rerun()
