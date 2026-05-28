@@ -1059,7 +1059,7 @@ with tab4:
                 st.warning(f"พบ {len(df_need_repair)} รายการที่กำลังรอการแก้ไข")
                 expected_columns = [
                     'Timestamp', 'Type', 'ID', 'Inspector', 'Status',
-                    'Problem', 'Action Status', 'Fix Date', 'Link_Photo', 'Remark'
+                    'Problem', 'Action Status', 'Fix Date', 'Editor', 'Link_Photo', 'Remark'
                 ]
 
                 # กรองจัดตำแหน่งตามลิสต์ตายตัว
@@ -1532,7 +1532,7 @@ with st.sidebar:
 
                                         master_sheet.update_cell(master_cell.row, m_status_col, "ปกติ")
                                         master_sheet.update_cell(master_cell.row, m_date_col, current_date_str)
-                                        master_sheet.update_cell(master_cell.row, m_user_col, repairman_name)
+
 
                                     st.cache_data.clear()
                                     st.success("🎉 อัปเดตสถานะตารางหลักและบันทึกประวัติการซ่อมสำเร็จเรียบร้อย!")
