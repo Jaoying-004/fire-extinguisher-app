@@ -704,12 +704,12 @@ if not st.session_state.get("authenticated"):
         st.warning("⚠️ กรุณาเข้าสู่ระบบก่อนดำเนินการต่อ")
 
     # แสดงสถานะ Cookie
-    col1, col2 = st.columns([3, 1])
-    with col2:
-        if st.session_state.get("cookie_ready"):
-            st.success("🟢 ระบบพร้อม")
-        else:
-            st.warning("🟡 กำลังโหลด...")
+    #col1, col2 = st.columns([3, 1])
+    #with col2:
+        #if st.session_state.get("cookie_ready"):
+            #st.success("🟢 ระบบพร้อม")
+        #else:
+            #st.warning("🟡 กำลังโหลด...")
 
     emp_input = st.text_input(
         "รหัสพนักงาน",
