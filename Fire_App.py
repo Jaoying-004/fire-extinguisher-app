@@ -851,24 +851,23 @@ with st.container(border=True):
         with stylable_container(
                 key="profile_image_container",
                 css_styles="""
-                div[data-testid="stImage"] {
-                    display: flex !important;
-                    justify-content: center !important; /* จัดให้อยู่ตรงกลางคอลัมน์ */
-                    align-items: center !important;
-                    padding: 5px !important;
-                }
-                img {
-                    max-width: 85% !important;   /* 🎯 บีบขนาดรูปให้เล็กลงมานิดนึง ไม่ให้แน่นและดูลอยล้นขอบ */
-                    border-radius: 16px !important; /* ทำมุมโค้งมนนุ่มนวลเข้ากับกล่อง User Profile ด้านซ้าย */
-                    box-shadow: 0 4px 10px rgba(0,0,0,0.15) !important; /* เพิ่มมิติมินิมอลจางๆ */
-                    border: 2px solid #cbd8f2 !important; /* ตัดเส้นขอบสีฟ้าพาสเทลตามธีมหลัก */
-                    background-color: #ffffff !important; /* พื้นหลังขาวเพื่อให้ตัดกับพื้นสีกรมท่าของระบบ */
-                    transition: transform 0.2s !important;
-                }
-                img:hover {
-                    transform: scale(1.03) !important; /* ลูกเล่นเล็กๆ เวลาเอาเมาส์มาชี้ */
-                }
-            """
+                        div[data-testid="stImage"] {
+                            display: flex !important;
+                            justify-content: center !important; /* จัดให้อยู่ตรงกลางคอลัมน์ */
+                            align-items: center !important;
+                            padding: 5px !important;
+                        }
+                        img {
+                            max-width: 85% !important;   /* บีบขนาดรูปให้กะทัดรัดพอดี ไม่ล้นขอบ */
+                            background-color: transparent !important; /* 🎯 เปลี่ยนเป็นโปร่งแสง เพื่อให้โชว์พื้นหลังสีกรมท่าของแอป */
+                            border: none !important;     /* 🎯 เอาเส้นขอบสีฟ้าออก เพื่อไม่ให้เห็นเป็นกรอบสี่เหลี่ยม */
+                            box-shadow: none !important; /* เอาเงาออก เพื่อให้เนียนไปกับพื้นหลังหลังบ้าน */
+                            transition: transform 0.2s !important;
+                        }
+                        img:hover {
+                            transform: scale(1.05) !important; /* ลูกเล่นดึงดูดสายตาเวลาเอาเมาส์มาวาง */
+                        }
+                    """
         ):
             user_image = "FirePig.png"
             # 🎯 ปรับให้รูปย่อตามขนาดกล่องอัตโนมัติ เพื่อไม่ให้ดันโครงสร้างปุ่มล่างพัง
