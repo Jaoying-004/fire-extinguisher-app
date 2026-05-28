@@ -1048,7 +1048,7 @@ with tab4:
     try:
         action_required_sheet = client.open(sheet_name).worksheet("Action_Required")
         action_rows = action_required_sheet.get_all_values()
-        st.write("DEBUG เคส ที่ต้องแก้ไขปัจจุบัน:", len(action_rows) - 1 if len(action_rows) > 0 else 0)
+
 
         if action_rows and len(action_rows) > 1:
             df_need_repair = pd.DataFrame(action_rows[1:], columns=action_rows[0])
