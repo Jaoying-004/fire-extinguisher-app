@@ -858,7 +858,7 @@ with st.container(border=True):
                             padding: 5px !important;
                         }
                         img {
-                            max-width: 85% !important;   /* บีบขนาดรูปให้กะทัดรัดพอดี ไม่ล้นขอบ */
+                            max-width: 100% !important;   /* บีบขนาดรูปให้กะทัดรัดพอดี ไม่ล้นขอบ */
                             background-color: transparent !important; /* 🎯 เปลี่ยนเป็นโปร่งแสง เพื่อให้โชว์พื้นหลังสีกรมท่าของแอป */
                             border: none !important;     /* 🎯 เอาเส้นขอบสีฟ้าออก เพื่อไม่ให้เห็นเป็นกรอบสี่เหลี่ยม */
                             box-shadow: none !important; /* เอาเงาออก เพื่อให้เนียนไปกับพื้นหลังหลังบ้าน */
