@@ -1504,9 +1504,10 @@ with st.sidebar:
                                             act_time_idx - 1] == target_timestamp:
                                             repair_action_sheet.update_cell(index, act_status_idx, "แก้ไขเสร็จสิ้น")
                                             repair_action_sheet.update_cell(index, act_date_idx, current_date_str)
+                                            repair_action_sheet.update_cell(index, act_photo_idx, f"ซ่อมโดย {repairman_name}: {repair_details}")
                                             repair_action_sheet.update_cell(index, act_photo_idx, repair_image_link)
-                                            repair_action_sheet.update_cell(index, act_remark_idx,
-                                                                            f"ซ่อมโดย {repairman_name}: {repair_details}")
+                                            repair_action_sheet.update_cell(index, act_remark_idx)
+
                                             break
 
                                         # 3. ค้นหาในตารางหลักเพื่อเปลี่ยนกลับเป็น "ปกติ"
