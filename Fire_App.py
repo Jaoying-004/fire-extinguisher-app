@@ -846,8 +846,8 @@ with st.container(border=True):
 
     with col_profile:
         # 1. เพิ่มขนาดรูปภาพ (จากเดิม 90 เป็น 120-130 หรือปรับตามชอบ)
-        user_image = "FirePig.png"
-        st.image(user_image, width=130)
+        #user_image = "FirePig.png"
+        #st.image(user_image, width=130)
         with stylable_container(
                 key="profile_image_container",
                 css_styles="""
