@@ -1349,10 +1349,23 @@ with st.sidebar:
                         if status == "ไม่ปกติ (ต้องแก้ไข)":
                             try:
                                 action_sheet = client.open(sheet_name).worksheet("Action_Required")
-                                action_sheet.append_row(new_log_entry)
-                                st.sidebar.warning(f"⚠️ รายการ {selected_device} ถูกส่งไปยังใบงานซ่อมแล้ว")
+                                action_entry = [
+                                    now_str,  # 1. Timestamp (A)
+                                    device_sub_type,  # 2. Type (B)
+                                    selected_device,  # 3. ID (C)
+                                    inspector,  # 4. Inspector (D)
+                                    status,  # 5. Status (E)
+                                    remarks,  # 6. Problem (F) -> เอาข้อความเพิ่มเติมมาหยอดช่องปัญหา
+                                    "ต้องแก้ไข",  # 7. Action Status (G) -> สถานะเริ่มต้นค้างซ่อม
+                                    "-",  # 8. Fix Date (H) -> ยังไม่ซ่อมให้แดชไว้ก่อน
+                                    image_link,  # 9. Link_Photo (I) -> ลิงก์รูปภาพขณะตรวจ
+                                    "-"  # 10. Remark (J) -> หมายเหตุการซ่อม (ใส่ตอนซ่อมเสร็จ)
+                                ]
+                                action_sheet.append_row(action_entry)
+                                st.sidebar.warning(f"⚠️ รายการ {selected_device} ถูกส่งไปติดตามการแก้ไขแล้ว")
                             except Exception as e:
-                                st.sidebar.error(f"⚠️ บันทึกประวัติสำเร็จ แต่ส่งไปแท็บงานซ่อมล้มเหลว: {e}")
+                                st.sidebar.error(f"⚠️ บันทึกประวัติสำเร็จ แต่ส่งไปติดตามการแก้ไขล้มเหลว: {e}")
+
 
                         # 5. 🛠️ อัปเดตตารางหลัก (Master List) ทำงานเสมอทุกเคสเพื่อเปลี่ยนสถานะตารางดิบ
                         cell = sheet.find(selected_device)
