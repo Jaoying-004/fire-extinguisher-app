@@ -1358,8 +1358,9 @@ with st.sidebar:
                                     inspector,  # 4. Inspector (D)
                                     status,  # 5. Status (E)
                                     remarks,  # 6. Problem (F) -> เอาข้อความเพิ่มเติมมาหยอดช่องปัญหา
-                                    "ต้องแก้ไข",  # 7. Action Status (G) -> สถานะเริ่มต้นค้างซ่อม
+                                    "รอการแก้ไข",  # 7. Action Status (G) -> สถานะเริ่มต้นค้างซ่อม
                                     "-",  # 8. Fix Date (H) -> ยังไม่ซ่อมให้แดชไว้ก่อน
+                                    "-",
                                     image_link,  # 9. Link_Photo (I) -> ลิงก์รูปภาพขณะตรวจ
                                     "-"  # 10. Remark (J) -> หมายเหตุการซ่อม (ใส่ตอนซ่อมเสร็จ)
                                 ]
@@ -1495,6 +1496,7 @@ with st.sidebar:
                                     act_time_idx = action_headers.index('Timestamp') + 1
                                     act_status_idx = action_headers.index('Action Status') + 1
                                     act_date_idx = action_headers.index('Fix Date') + 1
+                                    act_inspect_idx = action_headers.index('Editor') + 1
                                     act_photo_idx = action_headers.index('Link_Photo') + 1
                                     act_remark_idx = action_headers.index('Remark') + 1
                                     for index, row in enumerate(fresh_action_data[1:], start=2):
@@ -1527,9 +1529,6 @@ with st.sidebar:
                                             m_date_col = master_headers.index('Last Inspected') + 1
                                         else:
                                             m_date_col = 6
-
-                                        m_user_col = (master_headers.index(
-                                            'Inspector') + 1) if 'Inspector' in master_headers else 7
 
                                         master_sheet.update_cell(master_cell.row, m_status_col, "ปกติ")
                                         master_sheet.update_cell(master_cell.row, m_date_col, current_date_str)
