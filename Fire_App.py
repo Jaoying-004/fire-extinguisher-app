@@ -1615,51 +1615,70 @@ if st.button("📈 ส่งสรุปข้อมูลประจำเด�
     df = pd.DataFrame(all_data)
 
     if not df.empty:
-        # ระบุตำแหน่งคอลัมน์
-        col_date = df.columns[0]  # คอลัมน์วันที่
-        col_id = df.columns[1]  # คอลัมน์ถัง
-        col_status = df.columns[3]  # คอลัมน์สถานะ
-        col_remark = df.columns[4]  # คอลัมน์หมายเหตุ
+        # 🎯 จุดแก้ไขที่ 1: ล็อกชื่อหัวคอลัมน์ตามโครงสร้างจริงในชีต Inspection_Log เพื่อความแม่นยำ
+        # โค้ดจะดึงตามชื่อหัวตาราง ทำให้ไม่ว่าคอลัมน์จะอยู่ลำดับที่เท่าไหร่ก็อ่านค่าได้ถูกต้อง
+        col_date = 'Timestamp'
 
-        # แปลงคอลัมน์วันที่เป็น datetime
+        # ดักจับชื่อคอลัมน์ ID (เผื่อในชีตตั้งชื่อว่า รหัส หรือ ID)
+        col_id = 'ID' if 'ID' in df.columns else df.columns[2]
+
+        # ดักจับชื่อคอลัมน์ Status (สถานะ ปกติ / ไม่ปกติ)
+        col_status = 'Status' if 'Status' in df.columns else df.columns[4]
+
+        # ดักจับชื่อคอลัมน์ Remark / หมายเหตุ
+        col_remark = 'Remark' if 'Remark' in df.columns else (df.columns[5] if len(df.columns) > 5 else df.columns[-1])
+
+        # แปลงคอลัมน์วันที่เป็น datetime อย่างปลอดภัย
         df[col_date] = pd.to_datetime(df[col_date], errors='coerce')
-        # ลบแถวที่วันที่แปลงไม่ได้
         df = df.dropna(subset=[col_date])
+
+        # ดึงเวลาปัจจุบันของระบบ
         now_dt = get_now()
-        # เอาเฉพาะเดือน/ปีปัจจุบัน
+
+        # 🎯 จุดการทำงานหลัก: ตรงนี้โค้ดจะทำการกรอง (Filter) ดึงเอาข้อมูลทั้งหมด
+        # ที่เกิดขึ้นภายในเดือนปัจจุบัน (เดือน 5) และปีปัจจุบัน ออกมาคำนวณทั้งหมด โดยไม่สนใจว่าเป็นของวันไหน
         df_month = df[
             (df[col_date].dt.month == now_dt.month) &
             (df[col_date].dt.year == now_dt.year)
             ]
 
         if not df_month.empty:
-            # เรียงตามวันที่ก่อน เพื่อให้ keep='last' คือข้อมูลล่าสุดจริง
+            # เรียงลำดับตามประวัติวันเวลา เพื่อให้ข้อมูลล่าสุดของอุปกรณ์ชิ้นนั้นอยู่ท้ายสุด
             df_month = df_month.sort_values(by=col_date)
 
-            # เลือกเฉพาะบันทึกล่าสุดของแต่ละถังในเดือนนี้
+            # 💡 คัดเลือกเฉพาะ "สถานะล่าสุด" ของอุปกรณ์แต่ละชิ้นในเดือนนี้ (ป้องกันกรณีถังตัวเดิมโดนตรวจซ้ำหลายรอบ)
             df_latest = df_month.drop_duplicates(subset=[col_id], keep='last')
+
             total_tanks = len(df_latest)
-            passed = len(df_latest[df_latest[col_status] == 'ปกติ'])
-            failed_df = df_latest[df_latest[col_status] == 'ไม่ปกติ (ต้องแก้ไข)']
+            passed = len(df_latest[df_latest[col_status].astype(str).str.contains('ปกติ') &
+                                   ~df_latest[col_status].astype(str).str.contains('ไม่ปกติ')])
+
+            # ดึงเคสที่สถานะเป็นไม่ปกติออกมารายงาน
+            failed_df = df_latest[df_latest[col_status].astype(str).str.contains('ไม่ปกติ')]
             failed_count = len(failed_df)
 
             pass_rate = (passed / total_tanks) * 100 if total_tanks > 0 else 0
 
-            msg = f"📊 (For Testing❗❗) Mr. SafePig สรุปผลประจำเดือน {now_dt.strftime('%m/%Y')}\n"
-            msg += f"✅ ตรวจผ่าน: {pass_rate:.1f}% ({passed}/{total_tanks})\n"
-            msg += f"❌ ไม่ผ่าน: {failed_count} รายการ\n"
+            # จัดข้อความเตรียมส่งเข้า LINE
+            msg = f"\n📊 สรุปผลการตรวจเช็คประจำเดือน {now_dt.strftime('%m/%Y')}\n"
+            msg += f"📋 อุปกรณ์ที่ถูกตรวจทั้งหมดในเดือนนี้: {total_tanks} รายการ\n"
+            msg += f"✅ ตรวจผ่านสภาพปกติ: {pass_rate:.1f}% ({passed}/{total_tanks})\n"
+            msg += f"❌ ตรวจพบไม่ปกติ (ค้างแก้ไข): {failed_count} รายการ\n"
 
             if failed_count > 0:
-                msg += "\n🔍 รายการที่ต้องแก้ไข:\n"
+                msg += "\n🔍 รายการอุปกรณ์ที่ต้องแก้ไข:\n"
                 for _, row in failed_df.iterrows():
                     msg += f"- {row[col_id]}: {row[col_remark]}\n"
             else:
-                msg += "\n✅ ทุกถังอยู่ในสภาพปกติ"
+                msg += "\n🎉 ยอดเยี่ยม! อุปกรณ์ทุกชิ้นอยู่ในสภาพปกติพร้อมใช้งาน"
 
+            # เรียกฟังก์ชันส่งไลน์ OA
             send_line_notify(msg)
-            st.success("🚀 ส่งรายงานสรุปเข้า LINE OA เรียบร้อยแล้ว!")
+            st.success(f"🚀 ส่งรายงานสรุปของเดือน {now_dt.month} เข้า LINE OA เรียบร้อยแล้ว!")
         else:
-            st.warning("ไม่พบข้อมูลของเดือนปัจจุบันในชีต")
+            st.warning(f"⚠️ ไม่พบข้อมูลการบันทึกตรวจเช็คของเดือน {now_dt.month} ในแผ่นงานประวัติ")
+    else:
+        st.warning("⚠️ ยังไม่มีข้อมูลใด ๆ บันทึกอยู่ในแท็บ Log")
 
 # --------------------------------------------------------------------------------------------------------------------
 
