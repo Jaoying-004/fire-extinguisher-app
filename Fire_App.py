@@ -1274,8 +1274,8 @@ with st.sidebar:
                     q1 = st.radio("1. ตัวเครื่องและดวงโคมสภาพสมบูรณ์ ไม่แตกหัก ไม่มีฝุ่นเกาะ", ["ใช่", "ไม่ใช่"], index=None,
                                   key="chk_em_light_1")
                     q2 = st.radio("2. สายไฟและปลั๊กเสียบอยู่ในสภาพดี ไม่หลุดลุ่ยหรือชำรุด", ["ใช่", "ไม่ใช่"], index=None,
-                                  key="chk_em_light_3")
-                    q3 = st.radio("3. ไม่มีสิ่งกีดขวางบดบังตัวโคมไฟฉุกเฉิน", ["ใช่", "ไม่ใช่"], index=None, key="chk_em_light_4")
+                                  key="chk_em_light_2")
+                    q3 = st.radio("3. ไม่มีสิ่งกีดขวางบดบังตัวโคมไฟฉุกเฉิน", ["ใช่", "ไม่ใช่"], index=None, key="chk_em_light_3")
                     q4 = st.radio("4. สัญญาณไฟบ่งชี้สถานะการทำงานแสดงผลปกติ ไม่ดับหรือกะพริบผิดปกติ", ["ใช่", "ไม่ใช่"], index=None, key="chk_em_light_4")
                 # --- 2. เคส: Fire Alarm (ระบบแจ้งเหตุเพลิงไหม้) ---
                 elif device_sub_type == "Fire alarm":
